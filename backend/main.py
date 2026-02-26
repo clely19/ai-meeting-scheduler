@@ -1,14 +1,16 @@
 from fastapi import FastAPI
 from database import get_db
+from api.users import router as users_router
 
 app = FastAPI()
 
-@app.get("/health")
+app.include_router(users_router)
+
+
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
-    return {
-        "status": "alive",
-        "project": "ai-meeting-scheduler"
-    }
+    return {"status": "alive", "project": "ai-meeting-scheduler"}
+
 
 @app.get("/db-test")
 def test_database():
@@ -23,7 +25,4 @@ def test_database():
             "result": response.data
         }
     except Exception as e:
-        return {
-            "database": "error",
-            "detail": str(e)
-        }
+        return {"database": "error", "detail": str(e)}
