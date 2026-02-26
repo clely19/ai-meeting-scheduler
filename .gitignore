@@ -304,3 +304,11 @@ iOSInjectionProject/
 **/xcshareddata/WorkspaceSettings.xcsettings
 __pycache__/
 *.pyc
+xcuserdata/
+DerivedData/
+*.xcuserstate
+.DS_Store
+**/.DS_Store
+*.xcworkspace
+MeetingSchedulerTests/
+MeetingSchedulerUITests/
