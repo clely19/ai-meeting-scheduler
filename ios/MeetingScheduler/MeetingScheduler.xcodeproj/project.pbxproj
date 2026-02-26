@@ -1,0 +1,752 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		770687962F4FC05B008D41DA /* Messages.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 770687952F4FC05B008D41DA /* Messages.framework */; };
+		770687A22F4FC05D008D41DA /* MeetingSchedulerMessages.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 770687932F4FC05B008D41DA /* MeetingSchedulerMessages.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		770687732F4FBF8C008D41DA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7706875D2F4FBF8A008D41DA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 770687642F4FBF8A008D41DA;
+			remoteInfo = MeetingScheduler;
+		};
+		7706877D2F4FBF8C008D41DA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7706875D2F4FBF8A008D41DA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 770687642F4FBF8A008D41DA;
+			remoteInfo = MeetingScheduler;
+		};
+		770687A02F4FC05D008D41DA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7706875D2F4FBF8A008D41DA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 770687922F4FC05B008D41DA;
+			remoteInfo = MeetingSchedulerMessages;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		770687A72F4FC05D008D41DA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				770687A22F4FC05D008D41DA /* MeetingSchedulerMessages.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		770687652F4FBF8A008D41DA /* MeetingScheduler.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeetingScheduler.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		770687722F4FBF8C008D41DA /* MeetingSchedulerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MeetingSchedulerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7706877C2F4FBF8C008D41DA /* MeetingSchedulerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MeetingSchedulerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		770687932F4FC05B008D41DA /* MeetingSchedulerMessages.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MeetingSchedulerMessages.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		770687952F4FC05B008D41DA /* Messages.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Messages.framework; path = System/Library/Frameworks/Messages.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		770687A32F4FC05D008D41DA /* Exceptions for "MeetingSchedulerMessages" folder in "MeetingSchedulerMessages" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 770687922F4FC05B008D41DA /* MeetingSchedulerMessages */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		770687672F4FBF8A008D41DA /* MeetingScheduler */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MeetingScheduler;
+			sourceTree = "<group>";
+		};
+		770687752F4FBF8C008D41DA /* MeetingSchedulerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MeetingSchedulerTests;
+			sourceTree = "<group>";
+		};
+		7706877F2F4FBF8C008D41DA /* MeetingSchedulerUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MeetingSchedulerUITests;
+			sourceTree = "<group>";
+		};
+		770687972F4FC05B008D41DA /* MeetingSchedulerMessages */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				770687A32F4FC05D008D41DA /* Exceptions for "MeetingSchedulerMessages" folder in "MeetingSchedulerMessages" target */,
+			);
+			path = MeetingSchedulerMessages;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		770687622F4FBF8A008D41DA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7706876F2F4FBF8C008D41DA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		770687792F4FBF8C008D41DA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		770687902F4FC05B008D41DA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				770687962F4FC05B008D41DA /* Messages.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7706875C2F4FBF8A008D41DA = {
+			isa = PBXGroup;
+			children = (
+				770687672F4FBF8A008D41DA /* MeetingScheduler */,
+				770687752F4FBF8C008D41DA /* MeetingSchedulerTests */,
+				7706877F2F4FBF8C008D41DA /* MeetingSchedulerUITests */,
+				770687972F4FC05B008D41DA /* MeetingSchedulerMessages */,
+				770687942F4FC05B008D41DA /* Frameworks */,
+				770687662F4FBF8A008D41DA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		770687662F4FBF8A008D41DA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				770687652F4FBF8A008D41DA /* MeetingScheduler.app */,
+				770687722F4FBF8C008D41DA /* MeetingSchedulerTests.xctest */,
+				7706877C2F4FBF8C008D41DA /* MeetingSchedulerUITests.xctest */,
+				770687932F4FC05B008D41DA /* MeetingSchedulerMessages.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		770687942F4FC05B008D41DA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				770687952F4FC05B008D41DA /* Messages.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		770687642F4FBF8A008D41DA /* MeetingScheduler */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 770687862F4FBF8C008D41DA /* Build configuration list for PBXNativeTarget "MeetingScheduler" */;
+			buildPhases = (
+				770687612F4FBF8A008D41DA /* Sources */,
+				770687622F4FBF8A008D41DA /* Frameworks */,
+				770687632F4FBF8A008D41DA /* Resources */,
+				770687A72F4FC05D008D41DA /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				770687A12F4FC05D008D41DA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				770687672F4FBF8A008D41DA /* MeetingScheduler */,
+			);
+			name = MeetingScheduler;
+			packageProductDependencies = (
+			);
+			productName = MeetingScheduler;
+			productReference = 770687652F4FBF8A008D41DA /* MeetingScheduler.app */;
+			productType = "com.apple.product-type.application";
+		};
+		770687712F4FBF8C008D41DA /* MeetingSchedulerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 770687892F4FBF8C008D41DA /* Build configuration list for PBXNativeTarget "MeetingSchedulerTests" */;
+			buildPhases = (
+				7706876E2F4FBF8C008D41DA /* Sources */,
+				7706876F2F4FBF8C008D41DA /* Frameworks */,
+				770687702F4FBF8C008D41DA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				770687742F4FBF8C008D41DA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				770687752F4FBF8C008D41DA /* MeetingSchedulerTests */,
+			);
+			name = MeetingSchedulerTests;
+			packageProductDependencies = (
+			);
+			productName = MeetingSchedulerTests;
+			productReference = 770687722F4FBF8C008D41DA /* MeetingSchedulerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		7706877B2F4FBF8C008D41DA /* MeetingSchedulerUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7706878C2F4FBF8C008D41DA /* Build configuration list for PBXNativeTarget "MeetingSchedulerUITests" */;
+			buildPhases = (
+				770687782F4FBF8C008D41DA /* Sources */,
+				770687792F4FBF8C008D41DA /* Frameworks */,
+				7706877A2F4FBF8C008D41DA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7706877E2F4FBF8C008D41DA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				7706877F2F4FBF8C008D41DA /* MeetingSchedulerUITests */,
+			);
+			name = MeetingSchedulerUITests;
+			packageProductDependencies = (
+			);
+			productName = MeetingSchedulerUITests;
+			productReference = 7706877C2F4FBF8C008D41DA /* MeetingSchedulerUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		770687922F4FC05B008D41DA /* MeetingSchedulerMessages */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 770687A42F4FC05D008D41DA /* Build configuration list for PBXNativeTarget "MeetingSchedulerMessages" */;
+			buildPhases = (
+				7706878F2F4FC05B008D41DA /* Sources */,
+				770687902F4FC05B008D41DA /* Frameworks */,
+				770687912F4FC05B008D41DA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				770687972F4FC05B008D41DA /* MeetingSchedulerMessages */,
+			);
+			name = MeetingSchedulerMessages;
+			packageProductDependencies = (
+			);
+			productName = MeetingSchedulerMessages;
+			productReference = 770687932F4FC05B008D41DA /* MeetingSchedulerMessages.appex */;
+			productType = "com.apple.product-type.app-extension.messages";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7706875D2F4FBF8A008D41DA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					770687642F4FBF8A008D41DA = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					770687712F4FBF8C008D41DA = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 770687642F4FBF8A008D41DA;
+					};
+					7706877B2F4FBF8C008D41DA = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 770687642F4FBF8A008D41DA;
+					};
+					770687922F4FC05B008D41DA = {
+						CreatedOnToolsVersion = 26.2;
+					};
+				};
+			};
+			buildConfigurationList = 770687602F4FBF8A008D41DA /* Build configuration list for PBXProject "MeetingScheduler" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 7706875C2F4FBF8A008D41DA;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 770687662F4FBF8A008D41DA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				770687642F4FBF8A008D41DA /* MeetingScheduler */,
+				770687712F4FBF8C008D41DA /* MeetingSchedulerTests */,
+				7706877B2F4FBF8C008D41DA /* MeetingSchedulerUITests */,
+				770687922F4FC05B008D41DA /* MeetingSchedulerMessages */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		770687632F4FBF8A008D41DA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		770687702F4FBF8C008D41DA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7706877A2F4FBF8C008D41DA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		770687912F4FC05B008D41DA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		770687612F4FBF8A008D41DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7706876E2F4FBF8C008D41DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		770687782F4FBF8C008D41DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7706878F2F4FC05B008D41DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		770687742F4FBF8C008D41DA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 770687642F4FBF8A008D41DA /* MeetingScheduler */;
+			targetProxy = 770687732F4FBF8C008D41DA /* PBXContainerItemProxy */;
+		};
+		7706877E2F4FBF8C008D41DA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 770687642F4FBF8A008D41DA /* MeetingScheduler */;
+			targetProxy = 7706877D2F4FBF8C008D41DA /* PBXContainerItemProxy */;
+		};
+		770687A12F4FC05D008D41DA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 770687922F4FC05B008D41DA /* MeetingSchedulerMessages */;
+			targetProxy = 770687A02F4FC05D008D41DA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		770687842F4FBF8C008D41DA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		770687852F4FBF8C008D41DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		770687872F4FBF8C008D41DA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clely.MeetingScheduler;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		770687882F4FBF8C008D41DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clely.MeetingScheduler;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		7706878A2F4FBF8C008D41DA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clely.MeetingSchedulerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MeetingScheduler.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MeetingScheduler";
+			};
+			name = Debug;
+		};
+		7706878B2F4FBF8C008D41DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clely.MeetingSchedulerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MeetingScheduler.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MeetingScheduler";
+			};
+			name = Release;
+		};
+		7706878D2F4FBF8C008D41DA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clely.MeetingSchedulerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MeetingScheduler;
+			};
+			name = Debug;
+		};
+		7706878E2F4FBF8C008D41DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clely.MeetingSchedulerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MeetingScheduler;
+			};
+			name = Release;
+		};
+		770687A52F4FC05D008D41DA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MeetingSchedulerMessages/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MeetingSchedulerMessages;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clely.MeetingScheduler.MeetingSchedulerMessages;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		770687A62F4FC05D008D41DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MeetingSchedulerMessages/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MeetingSchedulerMessages;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clely.MeetingScheduler.MeetingSchedulerMessages;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		770687602F4FBF8A008D41DA /* Build configuration list for PBXProject "MeetingScheduler" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				770687842F4FBF8C008D41DA /* Debug */,
+				770687852F4FBF8C008D41DA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		770687862F4FBF8C008D41DA /* Build configuration list for PBXNativeTarget "MeetingScheduler" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				770687872F4FBF8C008D41DA /* Debug */,
+				770687882F4FBF8C008D41DA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		770687892F4FBF8C008D41DA /* Build configuration list for PBXNativeTarget "MeetingSchedulerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7706878A2F4FBF8C008D41DA /* Debug */,
+				7706878B2F4FBF8C008D41DA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7706878C2F4FBF8C008D41DA /* Build configuration list for PBXNativeTarget "MeetingSchedulerUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7706878D2F4FBF8C008D41DA /* Debug */,
+				7706878E2F4FBF8C008D41DA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		770687A42F4FC05D008D41DA /* Build configuration list for PBXNativeTarget "MeetingSchedulerMessages" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				770687A52F4FC05D008D41DA /* Debug */,
+				770687A62F4FC05D008D41DA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7706875D2F4FBF8A008D41DA /* Project object */;
+}
