@@ -1,0 +1,210 @@
+Inside /backend/calendar_service/ create these 
+three files. Do not modify anything outside 
+/backend/calendar_service/ and /backend/api/.
+
+FILE 1: /backend/calendar_service/free_slot_calculator.py
+
+from datetime import datetime, timedelta
+from typing import List, Dict
+
+def get_free_slots(
+    busy_blocks: List[Dict],
+    date_range_start: str,
+    date_range_end: str,
+    duration_minutes: int,
+    working_hours_start: int = 9,
+    working_hours_end: int = 18
+) -> List[Dict]:
+    
+    start_date = datetime.fromisoformat(date_range_start)
+    end_date = datetime.fromisoformat(date_range_end)
+    
+    # Parse busy blocks into datetime objects
+    parsed_busy = []
+    for block in busy_blocks:
+        parsed_busy.append({
+            "start": datetime.fromisoformat(block["start"]),
+            "end": datetime.fromisoformat(block["end"])
+        })
+    
+    # Sort busy blocks by start time
+    parsed_busy.sort(key=lambda x: x["start"])
+    
+    free_slots = []
+    current_date = start_date
+    
+    while current_date <= end_date:
+        # Define working hours for this day
+        day_start = current_date.replace(
+            hour=working_hours_start,
+            minute=0,
+            second=0,
+            microsecond=0
+        )
+        day_end = current_date.replace(
+            hour=working_hours_end,
+            minute=0,
+            second=0,
+            microsecond=0
+        )
+        
+        # Skip weekends
+        if current_date.weekday() >= 5:
+            current_date += timedelta(days=1)
+            continue
+        
+        # Find busy blocks for this day
+        day_busy = [
+            b for b in parsed_busy
+            if b["start"].date() == current_date.date()
+        ]
+        
+        # Find free slots between busy blocks
+        slot_start = day_start
+        
+        for busy in day_busy:
+            if slot_start + timedelta(minutes=duration_minutes) \
+                    <= busy["start"]:
+                free_slots.append({
+                    "start": slot_start.isoformat(),
+                    "end": (slot_start + timedelta(
+                        minutes=duration_minutes
+                    )).isoformat(),
+                    "duration_minutes": duration_minutes
+                })
+            slot_start = max(slot_start, busy["end"])
+        
+        # Check for free slot after last busy block
+        if slot_start + timedelta(minutes=duration_minutes) \
+                <= day_end:
+            free_slots.append({
+                "start": slot_start.isoformat(),
+                "end": (slot_start + timedelta(
+                    minutes=duration_minutes
+                )).isoformat(),
+                "duration_minutes": duration_minutes
+            })
+        
+        current_date += timedelta(days=1)
+    
+    return free_slots
+
+
+FILE 2: /backend/calendar_service/mock_generator.py
+
+from datetime import datetime, timedelta
+from typing import List, Dict
+import random
+
+def generate_mock_busy_blocks(
+    user_id: str,
+    date_range_start: str,
+    date_range_end: str,
+    density: str = "medium"
+) -> List[Dict]:
+    
+    random.seed(hash(user_id) % 1000)
+    
+    density_map = {
+        "light":  2,
+        "medium": 4,
+        "heavy":  6
+    }
+    meetings_per_day = density_map.get(density, 4)
+    
+    start_date = datetime.fromisoformat(date_range_start)
+    end_date = datetime.fromisoformat(date_range_end)
+    
+    busy_blocks = []
+    current_date = start_date
+    
+    meeting_titles = [
+        "Team Standup",
+        "1:1 Meeting",
+        "Project Review",
+        "Client Call",
+        "Planning Session",
+        "Design Review",
+        "Sprint Planning"
+    ]
+    
+    durations = [30, 45, 60, 90]
+    
+    while current_date <= end_date:
+        if current_date.weekday() >= 5:
+            current_date += timedelta(days=1)
+            continue
+        
+        used_slots = []
+        
+        for _ in range(meetings_per_day):
+            hour = random.randint(9, 16)
+            minute = random.choice([0, 30])
+            duration = random.choice(durations)
+            
+            meeting_start = current_date.replace(
+                hour=hour,
+                minute=minute,
+                second=0,
+                microsecond=0
+            )
+            meeting_end = meeting_start + timedelta(
+                minutes=duration
+            )
+            
+            # Check no overlap with existing blocks
+            overlap = False
+            for used in used_slots:
+                if (meeting_start < used["end"] and 
+                        meeting_end > used["start"]):
+                    overlap = True
+                    break
+            
+            if not overlap and meeting_end.hour <= 18:
+                block = {
+                    "start": meeting_start.isoformat(),
+                    "end": meeting_end.isoformat(),
+                    "title": random.choice(meeting_titles)
+                }
+                busy_blocks.append(block)
+                used_slots.append({
+                    "start": meeting_start,
+                    "end": meeting_end
+                })
+        
+        current_date += timedelta(days=1)
+    
+    return busy_blocks
+
+
+FILE 3: /backend/calendar_service/availability_store.py
+
+from typing import Dict, List
+
+# In-memory store: {user_id: {session_id: [free_slots]}}
+_availability_store: Dict[str, Dict[str, List]] = {}
+
+def store_availability(
+    user_id: str,
+    session_id: str,
+    free_slots: List[Dict]
+) -> None:
+    if user_id not in _availability_store:
+        _availability_store[user_id] = {}
+    _availability_store[user_id][session_id] = free_slots
+
+def get_availability(
+    user_id: str,
+    session_id: str
+) -> List[Dict]:
+    return _availability_store\
+        .get(user_id, {})\
+        .get(session_id, [])
+
+def clear_availability(
+    user_id: str,
+    session_id: str
+) -> None:
+    if user_id in _availability_store:
+        if session_id in _availability_store[user_id]:
+            del _availability_store[user_id][session_id]
