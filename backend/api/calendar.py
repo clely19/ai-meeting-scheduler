@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-from cal_service.mock_generator import generate_mock_busy_blocks
-from cal_service.free_slot_calculator import get_free_slots
-from cal_service.availability_store import store_availability, get_availability
+from calendar_service.mock_generator import generate_mock_busy_blocks
+from calendar_service.free_slot_calculator import get_free_slots
+from calendar_service.availability_store import store_availability, get_availability
 
 router = APIRouter()
 
@@ -15,7 +15,7 @@ class AvailabilityRequest(BaseModel):
     duration_minutes: int
     density: Optional[str] = "medium"
 
-@router.post("/calendar/fetch-slots")
+@router.post("/calendar/availability")
 def fetch_and_calculate_slots(req: AvailabilityRequest):
     try:
         # 1. Generate mock busy blocks
@@ -46,7 +46,7 @@ def fetch_and_calculate_slots(req: AvailabilityRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/calendar/slots/{user_id}/{session_id}")
+@router.get("/calendar/availability/{user_id}/{session_id}")
 def get_cached_slots(user_id: str, session_id: str):
     slots = get_availability(user_id, session_id)
     if not slots:

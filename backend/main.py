@@ -5,8 +5,8 @@ from api.calendar import router as calendar_router
 
 app = FastAPI(title="Personal Scheduling Agent API")
 
-app.include_router(users_router, prefix="/api")
-app.include_router(calendar_router, prefix="/api")
+app.include_router(users_router)
+app.include_router(calendar_router)
 
 
 @app.api_route("/health", methods=["GET", "HEAD"])

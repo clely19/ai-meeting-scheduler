@@ -66,7 +66,7 @@ def generate_mock_busy_blocks(
                     overlap = True
                     break
             
-            if not overlap and meeting_end.hour <= 18:
+            if not overlap and meeting_start.hour >= 9 and meeting_end.hour <= 18:
                 block = {
                     "start": meeting_start.isoformat(),
                     "end": meeting_end.isoformat(),
