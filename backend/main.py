@@ -2,11 +2,13 @@ from fastapi import FastAPI
 from database import get_db
 from api.users import router as users_router
 from api.calendar import router as calendar_router
+from api.agents import router as agents_router
 
 app = FastAPI(title="Personal Scheduling Agent API")
 
 app.include_router(users_router)
 app.include_router(calendar_router)
+app.include_router(agents_router)
 
 
 @app.api_route("/health", methods=["GET", "HEAD"])
