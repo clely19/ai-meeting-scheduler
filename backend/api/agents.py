@@ -17,6 +17,8 @@ from calendar_service.free_slot_calculator import (
 
 router = APIRouter()
 
+VALID_SCHEDULING_STYLES = {"early", "balanced", "flexible"}
+
 class AgentTestRequest(BaseModel):
     user_id: str
     display_name: str
@@ -38,6 +40,34 @@ class HostTestRequest(BaseModel):
     date_range_start: str
     date_range_end: str
     num_proposals: int = 3
+
+
+def validate_agent_test_request(
+    scheduling_style: str,
+    duration_minutes: int,
+    num_proposals: int | None = None
+) -> None:
+    if scheduling_style not in VALID_SCHEDULING_STYLES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "scheduling_style must be one of: "
+                "early, balanced, flexible"
+            )
+        )
+
+    if duration_minutes <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="duration_minutes must be greater than 0"
+        )
+
+    if num_proposals is not None and num_proposals <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="num_proposals must be greater than 0"
+        )
+
 
 def setup_mock_availability(
     user_id: str,
@@ -64,6 +94,11 @@ def setup_mock_availability(
 @router.post("/agents/test/evaluate")
 def test_agent_evaluation(request: AgentTestRequest):
     try:
+        validate_agent_test_request(
+            request.scheduling_style,
+            request.duration_minutes
+        )
+
         setup_mock_availability(
             request.user_id,
             request.session_id,
@@ -91,6 +126,13 @@ def test_agent_evaluation(request: AgentTestRequest):
             "decision": decision
         }
 
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -100,6 +142,12 @@ def test_agent_evaluation(request: AgentTestRequest):
 @router.post("/agents/test/host")
 def test_host_proposals(request: HostTestRequest):
     try:
+        validate_agent_test_request(
+            request.scheduling_style,
+            request.duration_minutes,
+            request.num_proposals
+        )
+
         free_slots = setup_mock_availability(
             request.user_id,
             request.session_id,
@@ -128,6 +176,13 @@ def test_host_proposals(request: HostTestRequest):
             "total_available_slots": len(free_slots)
         }
 
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=500,
