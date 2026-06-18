@@ -9,75 +9,94 @@
   <body>
     <main class="shell">
       <section class="phone" aria-label="Scheduling conversation demo">
-        <div class="status-bar" aria-hidden="true">
-          <span>9:41</span>
-          <span class="system-icons">5G ▰</span>
-        </div>
-        <header class="phone-header">
-          <button class="back-pill" type="button" aria-label="Back">
-            <span>‹</span>
-            <strong>3</strong>
-          </button>
-          <div class="chat-title">
-            <div class="group-avatar">
-              <span>☀</span>
-            </div>
-            <h1>Scheduler Demo</h1>
+        <section class="messages-screen" aria-label="iMessage conversation">
+          <div class="status-bar" aria-hidden="true">
+            <span class="time-pill">8:11</span>
+            <span class="system-icons">▮▮▮  Wi-Fi  ◖</span>
           </div>
-          <button class="video-button" type="button" aria-label="Video call"></button>
-        </header>
+          <header class="phone-header">
+            <button class="back-pill" type="button" aria-label="Back">
+              <span>‹</span>
+              <strong>29</strong>
+            </button>
+            <div class="chat-title">
+              <div class="group-avatar">M</div>
+              <h1>Me</h1>
+            </div>
+            <button class="video-button" type="button" aria-label="Video call"></button>
+          </header>
 
-        <section id="thread" class="thread" aria-live="polite"></section>
+          <section id="thread" class="thread" aria-live="polite"></section>
 
-        <form id="demo-form" class="composer">
           <div class="imessage-input">
             <button class="plus-button" type="button" aria-label="Add attachment">+</button>
-            <div class="message-field">AI Meeting Scheduler</div>
+            <div class="message-field">iMessage</div>
             <button class="audio-button" type="button" aria-label="Audio message"></button>
           </div>
+        </section>
 
+        <form id="demo-form" class="extension-sheet">
+          <div class="grabber" aria-hidden="true"></div>
           <section class="extension-card" aria-label="iMessage app extension controls">
             <div class="extension-header">
-              <div class="app-icon">AI</div>
               <div>
                 <p class="extension-title">Meeting Scheduler</p>
-                <p class="extension-subtitle">iMessage extension demo · live backend</p>
+                <p class="extension-subtitle">Hi Clely · early style</p>
               </div>
             </div>
 
-          <div class="field-grid">
+            <div class="field-stack">
             <label>
-              Meeting
+              Meeting Title
               <input id="meeting-title" value="Portfolio Demo Meeting" required>
             </label>
-            <label>
-              Duration
-              <select id="duration-minutes">
-                <option value="30">30 min</option>
-                <option value="60" selected>60 min</option>
-                <option value="90">90 min</option>
-              </select>
-            </label>
-            <label>
-              Host style
-              <select id="host-style">
-                <option value="balanced" selected>Balanced</option>
-                <option value="early">Early</option>
-                <option value="flexible">Flexible</option>
-              </select>
-            </label>
-            <label>
-              Invitee mix
-              <select id="invitee-mix">
-                <option value="early-flexible" selected>Early + Flexible</option>
-                <option value="balanced-balanced">Balanced + Balanced</option>
-                <option value="early-balanced">Early + Balanced</option>
-              </select>
-            </label>
-          </div>
+
+              <fieldset class="duration-field">
+                <legend>Duration</legend>
+                <div class="duration-control">
+                  <label>
+                    <input type="radio" name="duration-minutes" value="30">
+                    <span>30 min</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="duration-minutes" value="60" checked>
+                    <span>60 min</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="duration-minutes" value="90">
+                    <span>90 min</span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <label>
+                Invitee User IDs
+                <span class="hint">Demo creates UUIDs automatically</span>
+                <input id="invitee-user-ids" value="" placeholder="uuid1, uuid2..." readonly>
+              </label>
+
+              <div class="hidden-controls" aria-label="Demo agent preferences">
+                <label>
+                  Host style
+                  <select id="host-style">
+                    <option value="early" selected>Early</option>
+                    <option value="balanced">Balanced</option>
+                    <option value="flexible">Flexible</option>
+                  </select>
+                </label>
+                <label>
+                  Invitees
+                  <select id="invitee-mix">
+                    <option value="early-flexible" selected>Early + Flexible</option>
+                    <option value="balanced-balanced">Balanced + Balanced</option>
+                    <option value="early-balanced">Early + Balanced</option>
+                  </select>
+                </label>
+              </div>
+            </div>
 
           <div class="composer-actions">
-            <button id="run-demo" type="submit">Send scheduling request</button>
+            <button id="run-demo" type="submit">Find a Time</button>
             <button id="reset-demo" type="button" class="secondary">Reset</button>
           </div>
           </section>

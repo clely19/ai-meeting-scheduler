@@ -50,11 +50,9 @@ function removeTypingIndicator() {
 
 function setInitialConversation() {
   thread.innerHTML = "";
-  addMessage("user", "Maya", "Can we find a time for a planning meeting next week?");
-  addMessage("agent", "Alex", "I can do early slots if possible.");
-  addMessage("agent", "Jordan", "Flexible, but I prefer less crowded calendar windows.");
-  addAppCard("Meeting Scheduler", "The iMessage app can coordinate this with personal scheduling agents.");
-  addMessage("system", "Today 3:34 PM", "Configure the app drawer, then send the scheduling request.");
+  addMessage("agent", "Me", "Testing Meeting Scheduler Extension");
+  addMessage("user", "Clely", "Testing Meeting Scheduler Extension");
+  addMessage("system", "Sat, Feb 28 at 6:01 PM", "Configure the extension sheet, then tap Find a Time.");
 }
 
 function formatSlot(slot) {
@@ -151,13 +149,15 @@ async function runDemo(event) {
   setInitialConversation();
 
   const meetingTitle = document.querySelector("#meeting-title").value;
-  const durationMinutes = Number(document.querySelector("#duration-minutes").value);
+  const durationMinutes = Number(
+    document.querySelector("input[name='duration-minutes']:checked").value
+  );
   const hostStyle = document.querySelector("#host-style").value;
   const [inviteeStyleOne, inviteeStyleTwo] = getInviteeStyles();
 
   try {
-    addMessage("user", "Maya", `Let's schedule: ${meetingTitle}.`);
-    addAppCard("Creating participants", "Setting up host and invitee profiles for this live scheduling thread.");
+    addMessage("user", "Clely", meetingTitle);
+    addAppCard("Meeting Scheduler", "Setting up host and invitee profiles for this live scheduling thread.");
     const timestamp = new Date().toISOString().slice(11, 19);
     const host = await registerUser(`Demo Host ${timestamp}`, hostStyle);
     const inviteeOne = await registerUser(`Demo Invitee A ${timestamp}`, inviteeStyleOne);
