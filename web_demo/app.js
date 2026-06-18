@@ -53,8 +53,8 @@ function setInitialConversation() {
   addMessage("user", "Maya", "Can we find a time for a planning meeting next week?");
   addMessage("agent", "Alex", "I can do early slots if possible.");
   addMessage("agent", "Jordan", "Flexible, but I prefer less crowded calendar windows.");
-  addAppCard("Meeting Scheduler", "The iMessage extension can coordinate this with personal scheduling agents.");
-  addMessage("system", "Live demo", "Configure the extension drawer, then send the scheduling request.");
+  addAppCard("Meeting Scheduler", "The iMessage app can coordinate this with personal scheduling agents.");
+  addMessage("system", "Today 3:34 PM", "Configure the app drawer, then send the scheduling request.");
 }
 
 function formatSlot(slot) {
@@ -157,7 +157,7 @@ async function runDemo(event) {
 
   try {
     addMessage("user", "Maya", `Let's schedule: ${meetingTitle}.`);
-    addAppCard("Creating participants", "Registering the host and invitee profiles in Supabase.");
+    addAppCard("Creating participants", "Setting up host and invitee profiles for this live scheduling thread.");
     const timestamp = new Date().toISOString().slice(11, 19);
     const host = await registerUser(`Demo Host ${timestamp}`, hostStyle);
     const inviteeOne = await registerUser(`Demo Invitee A ${timestamp}`, inviteeStyleOne);
@@ -203,7 +203,7 @@ async function runDemo(event) {
       `${negotiation.status.replace("_", " ")}`,
       `Suggested slot: ${formatSlot(negotiation.agreed_slot)}. Completed in ${negotiation.rounds_completed} round(s).`
     );
-    addMessage("agent", "Storage", `Saved session status: ${saved.status}.`);
+    addMessage("system", "Saved", `Session status: ${saved.status}.`);
   } catch (error) {
     removeTypingIndicator();
     resultStatus.textContent = "Error";
