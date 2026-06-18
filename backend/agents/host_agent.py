@@ -1,15 +1,10 @@
-import os
 import json
-from google import genai
 from agents.personal_scheduling_agent import (
-    PersonalSchedulingAgent
+    PersonalSchedulingAgent,
+    _get_gemini_client
 )
 from calendar_service.availability_store import (
     get_availability
-)
-
-client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY")
 )
 
 class HostAgent(PersonalSchedulingAgent):
@@ -41,6 +36,10 @@ class HostAgent(PersonalSchedulingAgent):
 
         if not free_slots:
             return []
+
+        client = _get_gemini_client()
+        if not client:
+            return self._rank_slots(free_slots)[:num_proposals]
 
         prompt = f"""You are a host scheduling agent 
 for {self.display_name}.
@@ -100,6 +99,26 @@ no additional text:
 
         if not free_slots:
             return []
+
+        client = _get_gemini_client()
+        if not client:
+            available_by_start = {
+                slot.get("start"): slot for slot in free_slots
+            }
+            counter_starts = []
+            for item in previous_responses:
+                response = item.get("response", {})
+                for slot in response.get("counter_slots", []):
+                    counter_starts.append(slot.get("start"))
+
+            refined = [
+                available_by_start[start]
+                for start in counter_starts
+                if start in available_by_start
+            ]
+            if refined:
+                return refined[:num_proposals]
+            return self._rank_slots(free_slots)[:num_proposals]
 
         prompt = f"""You are a host scheduling agent 
 for {self.display_name}.

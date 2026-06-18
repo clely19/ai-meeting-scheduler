@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from database import get_db
 from api.users import router as users_router
 from api.calendar import router as calendar_router
 from api.agents import router as agents_router
 from api.negotiation import router as negotiation_router
+from database import get_db
 
 app = FastAPI(title="Personal Scheduling Agent API")
 

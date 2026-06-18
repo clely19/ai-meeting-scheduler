@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import List, Dict
+import hashlib
 import random
 
 def generate_mock_busy_blocks(
@@ -9,7 +10,11 @@ def generate_mock_busy_blocks(
     density: str = "medium"
 ) -> List[Dict]:
     
-    random.seed(hash(user_id) % 1000)
+    seed = int(
+        hashlib.sha256(user_id.encode("utf-8")).hexdigest()[:8],
+        16
+    )
+    random.seed(seed)
     
     density_map = {
         "light":  2,

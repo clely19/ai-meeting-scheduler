@@ -107,19 +107,15 @@ class NetworkService {
             forHTTPHeaderField: "Content-Type"
         )
         
-        var body: [String: Any] = [
+        let body: [String: Any] = [
             "user_id": userID,
             "session_id": sessionID,
             "date_range_start": dateRangeStart,
             "date_range_end": dateRangeEnd,
             "duration_minutes": durationMinutes,
-            "density": "medium"
+            "density": "medium",
+            "busy_blocks": busyBlocks
         ]
-        
-        // If no real busy blocks, backend uses mock data
-        if !busyBlocks.isEmpty {
-            body["busy_blocks"] = busyBlocks
-        }
         
         request.httpBody = try? JSONSerialization
             .data(withJSONObject: body)
@@ -140,6 +136,74 @@ class NetworkService {
                         from: data
                     )
                 completion(.success(availability))
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+    
+    // MARK: - Start Negotiation
+    func startNegotiation(
+        hostUserID: String,
+        hostDisplayName: String,
+        hostSchedulingStyle: String,
+        invitees: [[String: String]],
+        meetingTitle: String,
+        durationMinutes: Int,
+        completion: @escaping (Result<NegotiationResult, Error>) -> Void
+    ) {
+        guard let url = URL(
+            string: "\(baseURL)/negotiation/start"
+        ) else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField: "Content-Type"
+        )
+        
+        let now = Date()
+        let twoWeeksLater = Calendar.current.date(
+            byAdding: .day,
+            value: 14,
+            to: now
+        ) ?? now
+        
+        let formatter = ISO8601DateFormatter()
+        
+        let body: [String: Any] = [
+            "host_user_id": hostUserID,
+            "host_display_name": hostDisplayName,
+            "host_scheduling_style": hostSchedulingStyle,
+            "invitees": invitees,
+            "meeting_title": meetingTitle,
+            "duration_minutes": durationMinutes,
+            "date_range_start": formatter.string(from: now),
+            "date_range_end": formatter.string(
+                from: twoWeeksLater
+            )
+        ]
+        
+        request.httpBody = try? JSONSerialization
+            .data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(
+            with: request
+        ) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let data = data else { return }
+            
+            do {
+                let result = try JSONDecoder()
+                    .decode(
+                        NegotiationResult.self,
+                        from: data
+                    )
+                completion(.success(result))
             } catch {
                 completion(.failure(error))
             }

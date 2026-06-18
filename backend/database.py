@@ -1,16 +1,25 @@
 import os
-from supabase import create_client, Client
+from typing import Any
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+supabase: Any | None = None
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError(
-        "Missing Supabase credentials. "
-        "Check your Replit Secrets tab."
-    )
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+def get_db() -> Any:
+    global supabase
 
-def get_db() -> Client:
+    if supabase:
+        return supabase
+
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_key = os.environ.get("SUPABASE_KEY")
+
+    if not supabase_url or not supabase_key:
+        raise ValueError(
+            "Missing Supabase credentials. Set SUPABASE_URL "
+            "and SUPABASE_KEY in the hosting environment."
+        )
+
+    from supabase import create_client
+
+    supabase = create_client(supabase_url, supabase_key)
     return supabase

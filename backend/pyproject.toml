@@ -5,6 +5,6 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "python-dotenv",
-    "anthropic",
+    "google-genai",
     "supabase"
 ]

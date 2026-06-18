@@ -1,11 +1,20 @@
 import os
 import json
-from google import genai
+from datetime import datetime
 from calendar_service.availability_store import get_availability
 
-client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY")
-)
+def _get_gemini_client():
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return None
+
+    try:
+        from google import genai
+    except ImportError:
+        return None
+
+    return genai.Client(api_key=api_key)
+
 class PersonalSchedulingAgent:
 
     def __init__(
@@ -87,7 +96,82 @@ no markdown, no explanation outside the JSON:
         }}
     ],
     "reasoning": "One clear sentence explaining your decision"
-}}"""
+    }}"""
+
+    def _rank_slots(self, slots: list) -> list:
+        reverse = self.scheduling_style == "flexible"
+        return sorted(
+            slots,
+            key=lambda slot: slot.get("start", ""),
+            reverse=reverse
+        )
+
+    def _slot_works(self, proposal: dict, free_slot: dict) -> bool:
+        try:
+            proposal_start = datetime.fromisoformat(
+                proposal["start"]
+            )
+            proposal_end = datetime.fromisoformat(
+                proposal["end"]
+            )
+            free_start = datetime.fromisoformat(
+                free_slot["start"]
+            )
+            free_end = datetime.fromisoformat(
+                free_slot["end"]
+            )
+        except (KeyError, TypeError, ValueError):
+            return False
+
+        return free_start <= proposal_start and proposal_end <= free_end
+
+    def _evaluate_without_ai(
+        self,
+        proposals: list,
+        free_slots: list
+    ) -> dict:
+        ranked_free_slots = self._rank_slots(free_slots)
+
+        for proposal in proposals:
+            for free_slot in ranked_free_slots:
+                if self._slot_works(proposal, free_slot):
+                    return {
+                        "decision": "ACCEPT",
+                        "accepted_slot": {
+                            "start": proposal["start"],
+                            "end": proposal["end"]
+                        },
+                        "counter_slots": [],
+                        "reasoning": (
+                            "The proposed slot fits the user's "
+                            "available calendar window."
+                        )
+                    }
+
+        counter_slots = [
+            {
+                "start": slot["start"],
+                "end": slot["end"]
+            }
+            for slot in ranked_free_slots[:3]
+        ]
+        if counter_slots:
+            return {
+                "decision": "COUNTER",
+                "accepted_slot": None,
+                "counter_slots": counter_slots,
+                "reasoning": (
+                    "None of the proposed slots fit, so the "
+                    "agent suggested available alternatives."
+                )
+            }
+
+        return {
+            "decision": "REJECT",
+            "accepted_slot": None,
+            "counter_slots": [],
+            "reasoning": "No available alternatives were found."
+        }
 
     def evaluate_proposals(
         self,
@@ -122,6 +206,13 @@ Please evaluate these meeting proposals for
 
 Check each proposed slot against your available 
 times and respond with your decision."""
+
+        client = _get_gemini_client()
+        if not client:
+            return self._evaluate_without_ai(
+                proposals,
+                free_slots
+            )
 
         try:
             response = client.models.generate_content(

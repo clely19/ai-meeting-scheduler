@@ -14,17 +14,39 @@ class AvailabilityRequest(BaseModel):
     date_range_end: str
     duration_minutes: int
     density: Optional[str] = "medium"
+    busy_blocks: Optional[List[dict]] = None
+
+
+def _validate_availability_request(req: AvailabilityRequest) -> None:
+    if req.duration_minutes <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="duration_minutes must be greater than 0"
+        )
+
+    if req.density not in {"light", "medium", "heavy"}:
+        raise HTTPException(
+            status_code=400,
+            detail="density must be one of: light, medium, heavy"
+        )
+
 
 @router.post("/calendar/availability")
 def fetch_and_calculate_slots(req: AvailabilityRequest):
     try:
-        # 1. Generate mock busy blocks
-        busy_blocks = generate_mock_busy_blocks(
-            req.user_id,
-            req.date_range_start,
-            req.date_range_end,
-            req.density
-        )
+        _validate_availability_request(req)
+
+        if req.busy_blocks is not None:
+            busy_blocks = req.busy_blocks
+            availability_source = "calendar"
+        else:
+            busy_blocks = generate_mock_busy_blocks(
+                req.user_id,
+                req.date_range_start,
+                req.date_range_end,
+                req.density
+            )
+            availability_source = "mock"
         
         # 2. Calculate free slots
         free_slots = get_free_slots(
@@ -40,9 +62,14 @@ def fetch_and_calculate_slots(req: AvailabilityRequest):
         return {
             "user_id": req.user_id,
             "session_id": req.session_id,
+            "availability_source": availability_source,
             "slots_count": len(free_slots),
             "free_slots": free_slots
         }
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
