@@ -61,6 +61,13 @@ Expected result:
 
 - `/health` returns `{"status":"alive","project":"ai-meeting-scheduler"}`
 - `/calendar/availability` returns calculated free slots
+- `/demo/` serves the public browser demo
+
+Open the demo in a browser:
+
+```text
+https://your-service.onrender.com/demo/
+```
 
 ## What This Does Not Prove Yet
 
@@ -69,4 +76,3 @@ The smoke test does not test Supabase-backed routes like `/users/register` or `/
 ```text
 https://your-service.onrender.com/docs
 ```
-

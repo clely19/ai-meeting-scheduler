@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Meeting Scheduler Demo</title>
+    <link rel="stylesheet" href="/demo/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="phone" aria-label="Scheduling conversation demo">
+        <header class="phone-header">
+          <div class="contact-mark">AI</div>
+          <div>
+            <h1>AI Meeting Scheduler</h1>
+            <p>Live multi-agent scheduling demo</p>
+          </div>
+        </header>
+
+        <section id="thread" class="thread" aria-live="polite"></section>
+
+        <form id="demo-form" class="composer">
+          <div class="field-grid">
+            <label>
+              Meeting
+              <input id="meeting-title" value="Portfolio Demo Meeting" required>
+            </label>
+            <label>
+              Duration
+              <select id="duration-minutes">
+                <option value="30">30 min</option>
+                <option value="60" selected>60 min</option>
+                <option value="90">90 min</option>
+              </select>
+            </label>
+            <label>
+              Host style
+              <select id="host-style">
+                <option value="balanced" selected>Balanced</option>
+                <option value="early">Early</option>
+                <option value="flexible">Flexible</option>
+              </select>
+            </label>
+            <label>
+              Invitee mix
+              <select id="invitee-mix">
+                <option value="early-flexible" selected>Early + Flexible</option>
+                <option value="balanced-balanced">Balanced + Balanced</option>
+                <option value="early-balanced">Early + Balanced</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="composer-actions">
+            <button id="run-demo" type="submit">Run live negotiation</button>
+            <button id="reset-demo" type="button" class="secondary">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="panel" aria-label="Result details">
+        <div>
+          <p class="eyebrow">Live API</p>
+          <h2>Render backend</h2>
+          <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+        </div>
+
+        <dl class="status-list">
+          <div>
+            <dt>Backend</dt>
+            <dd id="backend-status">Checking</dd>
+          </div>
+          <div>
+            <dt>Session</dt>
+            <dd id="session-id">Not started</dd>
+          </div>
+          <div>
+            <dt>Result</dt>
+            <dd id="result-status">Waiting</dd>
+          </div>
+        </dl>
+
+        <section class="result-card">
+          <h3>Suggested slot</h3>
+          <p id="slot-output">Run the negotiation to see the selected time.</p>
+        </section>
+
+        <section class="rounds">
+          <h3>Negotiation rounds</h3>
+          <div id="rounds-output" class="round-list"></div>
+        </section>
+      </aside>
+    </main>
+
+    <script src="/demo/app.js"></script>
+  </body>
+</html>

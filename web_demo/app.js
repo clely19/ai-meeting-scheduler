@@ -1,0 +1,201 @@
+const API_BASE = window.location.origin;
+
+const thread = document.querySelector("#thread");
+const form = document.querySelector("#demo-form");
+const runButton = document.querySelector("#run-demo");
+const resetButton = document.querySelector("#reset-demo");
+const backendStatus = document.querySelector("#backend-status");
+const sessionId = document.querySelector("#session-id");
+const resultStatus = document.querySelector("#result-status");
+const slotOutput = document.querySelector("#slot-output");
+const roundsOutput = document.querySelector("#rounds-output");
+
+const dateRangeStart = "2026-03-02T09:00:00";
+const dateRangeEnd = "2026-03-06T18:00:00";
+
+function addMessage(kind, author, text) {
+  const message = document.createElement("article");
+  message.className = `message ${kind}`;
+  message.innerHTML = `<strong>${author}</strong>${text}`;
+  thread.appendChild(message);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function setInitialConversation() {
+  thread.innerHTML = "";
+  addMessage("user", "Host", "Can we find a time for a planning meeting?");
+  addMessage("agent", "Scheduler", "I can register the participants, compare availability, and run a live negotiation through the Render API.");
+  addMessage("system", "Demo", "Choose the meeting settings, then run the negotiation.");
+}
+
+function formatSlot(slot) {
+  if (!slot) {
+    return "No slot selected";
+  }
+
+  const start = new Date(slot.start);
+  const end = new Date(slot.end);
+  return `${start.toLocaleString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  })} to ${end.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit"
+  })}`;
+}
+
+async function api(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    },
+    ...options
+  });
+
+  const body = await response.json();
+  if (!response.ok) {
+    throw new Error(body.detail || `Request failed with ${response.status}`);
+  }
+
+  return body;
+}
+
+async function registerUser(displayName, schedulingStyle) {
+  return api("/users/register", {
+    method: "POST",
+    body: JSON.stringify({
+      display_name: displayName,
+      scheduling_style: schedulingStyle
+    })
+  });
+}
+
+function getInviteeStyles() {
+  const value = document.querySelector("#invitee-mix").value;
+  if (value === "balanced-balanced") {
+    return ["balanced", "balanced"];
+  }
+  if (value === "early-balanced") {
+    return ["early", "balanced"];
+  }
+  return ["early", "flexible"];
+}
+
+function renderRounds(logs) {
+  roundsOutput.innerHTML = "";
+
+  Object.keys(logs)
+    .filter((key) => key.startsWith("round_"))
+    .sort()
+    .forEach((key) => {
+      const round = logs[key];
+      const accepted = Object.values(round.responses || {})
+        .filter((response) => response.decision === "ACCEPT").length;
+      const counters = Object.values(round.responses || {})
+        .filter((response) => response.decision === "COUNTER").length;
+
+      const card = document.createElement("article");
+      card.className = "round";
+      card.innerHTML = `
+        <div class="round-title">
+          <span>${key.replace("_", " ")}</span>
+          <span>${accepted} accepted, ${counters} countered</span>
+        </div>
+        <p>${round.proposals.length} host proposals evaluated by ${Object.keys(round.responses || {}).length} invitee agents.</p>
+      `;
+      roundsOutput.appendChild(card);
+    });
+}
+
+async function runDemo(event) {
+  event.preventDefault();
+
+  runButton.disabled = true;
+  resultStatus.textContent = "Running";
+  sessionId.textContent = "Creating";
+  slotOutput.textContent = "Negotiating with live agents.";
+  roundsOutput.innerHTML = "";
+  setInitialConversation();
+
+  const meetingTitle = document.querySelector("#meeting-title").value;
+  const durationMinutes = Number(document.querySelector("#duration-minutes").value);
+  const hostStyle = document.querySelector("#host-style").value;
+  const [inviteeStyleOne, inviteeStyleTwo] = getInviteeStyles();
+
+  try {
+    addMessage("system", "API", "Registering host and invitee profiles in Supabase.");
+    const timestamp = new Date().toISOString().slice(11, 19);
+    const host = await registerUser(`Demo Host ${timestamp}`, hostStyle);
+    const inviteeOne = await registerUser(`Demo Invitee A ${timestamp}`, inviteeStyleOne);
+    const inviteeTwo = await registerUser(`Demo Invitee B ${timestamp}`, inviteeStyleTwo);
+
+    addMessage("agent", "Host Agent", `I will propose ${durationMinutes}-minute slots for ${meetingTitle}.`);
+    addMessage("agent", "Invitee Agents", `Evaluating as ${inviteeStyleOne} and ${inviteeStyleTwo} schedulers.`);
+
+    const negotiation = await api("/negotiation/start", {
+      method: "POST",
+      body: JSON.stringify({
+        host_user_id: host.id,
+        host_display_name: host.display_name,
+        host_scheduling_style: host.scheduling_style,
+        invitees: [
+          {
+            user_id: inviteeOne.id,
+            display_name: inviteeOne.display_name,
+            scheduling_style: inviteeOne.scheduling_style
+          },
+          {
+            user_id: inviteeTwo.id,
+            display_name: inviteeTwo.display_name,
+            scheduling_style: inviteeTwo.scheduling_style
+          }
+        ],
+        meeting_title: meetingTitle,
+        duration_minutes: durationMinutes,
+        date_range_start: dateRangeStart,
+        date_range_end: dateRangeEnd
+      })
+    });
+
+    const saved = await api(`/negotiation/${negotiation.session_id}`);
+    sessionId.textContent = negotiation.session_id;
+    resultStatus.textContent = negotiation.status.replace("_", " ");
+    slotOutput.textContent = formatSlot(negotiation.agreed_slot);
+    renderRounds(negotiation.negotiation_logs);
+
+    addMessage("system", "Result", `${negotiation.status.replace("_", " ")} after ${negotiation.rounds_completed} round(s).`);
+    addMessage("agent", "Scheduler", `Suggested slot: ${formatSlot(negotiation.agreed_slot)}.`);
+    addMessage("agent", "Storage", `Saved session status: ${saved.status}.`);
+  } catch (error) {
+    resultStatus.textContent = "Error";
+    slotOutput.textContent = error.message;
+    addMessage("system", "Error", error.message);
+  } finally {
+    runButton.disabled = false;
+  }
+}
+
+async function checkHealth() {
+  try {
+    const health = await api("/health");
+    backendStatus.textContent = health.status;
+  } catch {
+    backendStatus.textContent = "Unavailable";
+  }
+}
+
+resetButton.addEventListener("click", () => {
+  sessionId.textContent = "Not started";
+  resultStatus.textContent = "Waiting";
+  slotOutput.textContent = "Run the negotiation to see the selected time.";
+  roundsOutput.innerHTML = "";
+  setInitialConversation();
+});
+
+form.addEventListener("submit", runDemo);
+setInitialConversation();
+checkHealth();
