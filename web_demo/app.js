@@ -21,11 +21,40 @@ function addMessage(kind, author, text) {
   thread.scrollTop = thread.scrollHeight;
 }
 
+function addAppCard(title, text) {
+  const message = document.createElement("article");
+  message.className = "message card";
+  message.innerHTML = `
+    <div class="card-title">
+      <span class="mini-icon">AI</span>
+      <span>${title}</span>
+    </div>
+    <p>${text}</p>
+  `;
+  thread.appendChild(message);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function addTypingIndicator() {
+  const typing = document.createElement("div");
+  typing.className = "typing";
+  typing.id = "typing-indicator";
+  typing.innerHTML = "<span></span><span></span><span></span>";
+  thread.appendChild(typing);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  document.querySelector("#typing-indicator")?.remove();
+}
+
 function setInitialConversation() {
   thread.innerHTML = "";
-  addMessage("user", "Host", "Can we find a time for a planning meeting?");
-  addMessage("agent", "Scheduler", "I can register the participants, compare availability, and run a live negotiation through the Render API.");
-  addMessage("system", "Demo", "Choose the meeting settings, then run the negotiation.");
+  addMessage("user", "Maya", "Can we find a time for a planning meeting next week?");
+  addMessage("agent", "Alex", "I can do early slots if possible.");
+  addMessage("agent", "Jordan", "Flexible, but I prefer less crowded calendar windows.");
+  addAppCard("Meeting Scheduler", "The iMessage extension can coordinate this with personal scheduling agents.");
+  addMessage("system", "Live demo", "Configure the extension drawer, then send the scheduling request.");
 }
 
 function formatSlot(slot) {
@@ -127,14 +156,16 @@ async function runDemo(event) {
   const [inviteeStyleOne, inviteeStyleTwo] = getInviteeStyles();
 
   try {
-    addMessage("system", "API", "Registering host and invitee profiles in Supabase.");
+    addMessage("user", "Maya", `Let's schedule: ${meetingTitle}.`);
+    addAppCard("Creating participants", "Registering the host and invitee profiles in Supabase.");
     const timestamp = new Date().toISOString().slice(11, 19);
     const host = await registerUser(`Demo Host ${timestamp}`, hostStyle);
     const inviteeOne = await registerUser(`Demo Invitee A ${timestamp}`, inviteeStyleOne);
     const inviteeTwo = await registerUser(`Demo Invitee B ${timestamp}`, inviteeStyleTwo);
 
-    addMessage("agent", "Host Agent", `I will propose ${durationMinutes}-minute slots for ${meetingTitle}.`);
-    addMessage("agent", "Invitee Agents", `Evaluating as ${inviteeStyleOne} and ${inviteeStyleTwo} schedulers.`);
+    addMessage("agent", "Host Agent", `Proposing ${durationMinutes}-minute slots using a ${hostStyle} preference.`);
+    addMessage("agent", "Invitee Agents", `Evaluating availability as ${inviteeStyleOne} and ${inviteeStyleTwo} schedulers.`);
+    addTypingIndicator();
 
     const negotiation = await api("/negotiation/start", {
       method: "POST",
@@ -161,16 +192,20 @@ async function runDemo(event) {
       })
     });
 
+    removeTypingIndicator();
     const saved = await api(`/negotiation/${negotiation.session_id}`);
     sessionId.textContent = negotiation.session_id;
     resultStatus.textContent = negotiation.status.replace("_", " ");
     slotOutput.textContent = formatSlot(negotiation.agreed_slot);
     renderRounds(negotiation.negotiation_logs);
 
-    addMessage("system", "Result", `${negotiation.status.replace("_", " ")} after ${negotiation.rounds_completed} round(s).`);
-    addMessage("agent", "Scheduler", `Suggested slot: ${formatSlot(negotiation.agreed_slot)}.`);
+    addAppCard(
+      `${negotiation.status.replace("_", " ")}`,
+      `Suggested slot: ${formatSlot(negotiation.agreed_slot)}. Completed in ${negotiation.rounds_completed} round(s).`
+    );
     addMessage("agent", "Storage", `Saved session status: ${saved.status}.`);
   } catch (error) {
+    removeTypingIndicator();
     resultStatus.textContent = "Error";
     slotOutput.textContent = error.message;
     addMessage("system", "Error", error.message);

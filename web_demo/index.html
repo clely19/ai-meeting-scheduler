@@ -9,17 +9,42 @@
   <body>
     <main class="shell">
       <section class="phone" aria-label="Scheduling conversation demo">
+        <div class="status-bar" aria-hidden="true">
+          <span>9:41</span>
+          <span>5G 100%</span>
+        </div>
         <header class="phone-header">
-          <div class="contact-mark">AI</div>
+          <button class="nav-icon" type="button" aria-label="Back">‹</button>
           <div>
-            <h1>AI Meeting Scheduler</h1>
-            <p>Live multi-agent scheduling demo</p>
+            <div class="contact-stack">
+              <div class="contact-mark">H</div>
+              <div class="contact-mark green">A</div>
+              <div class="contact-mark violet">B</div>
+            </div>
+            <h1>Planning Group</h1>
+            <p>3 people · iMessage</p>
           </div>
+          <button class="nav-icon" type="button" aria-label="Conversation info">i</button>
         </header>
 
         <section id="thread" class="thread" aria-live="polite"></section>
 
         <form id="demo-form" class="composer">
+          <div class="imessage-input">
+            <button class="plus-button" type="button" aria-label="Add attachment">+</button>
+            <div class="message-field">AI Meeting Scheduler</div>
+            <button class="audio-button" type="button" aria-label="Audio message"></button>
+          </div>
+
+          <section class="extension-card" aria-label="iMessage app extension controls">
+            <div class="extension-header">
+              <div class="app-icon">AI</div>
+              <div>
+                <p class="extension-title">Meeting Scheduler</p>
+                <p class="extension-subtitle">Live Render API · Supabase sessions</p>
+              </div>
+            </div>
+
           <div class="field-grid">
             <label>
               Meeting
@@ -52,16 +77,18 @@
           </div>
 
           <div class="composer-actions">
-            <button id="run-demo" type="submit">Run live negotiation</button>
+            <button id="run-demo" type="submit">Send scheduling request</button>
             <button id="reset-demo" type="button" class="secondary">Reset</button>
           </div>
+          </section>
         </form>
       </section>
 
       <aside class="panel" aria-label="Result details">
         <div>
-          <p class="eyebrow">Live API</p>
-          <h2>Render backend</h2>
+          <p class="eyebrow">Public demo</p>
+          <h2>iMessage extension flow</h2>
+          <p class="panel-copy">This browser version recreates the original iMessage extension experience while calling the same live backend.</p>
           <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
         </div>
 
