@@ -2,6 +2,9 @@ const API_BASE = window.location.origin;
 
 const thread = document.querySelector("#thread");
 const form = document.querySelector("#demo-form");
+const appDrawer = document.querySelector("#app-drawer");
+const openAppsButton = document.querySelector("#open-apps");
+const openSchedulerButton = document.querySelector("#open-scheduler");
 const runButton = document.querySelector("#run-demo");
 const resetButton = document.querySelector("#reset-demo");
 const backendStatus = document.querySelector("#backend-status");
@@ -52,7 +55,21 @@ function setInitialConversation() {
   thread.innerHTML = "";
   addMessage("agent", "Me", "Testing Meeting Scheduler Extension");
   addMessage("user", "Clely", "Testing Meeting Scheduler Extension");
-  addMessage("system", "Sat, Feb 28 at 6:01 PM", "Configure the extension sheet, then tap Find a Time.");
+  addMessage("system", "Sat, Feb 28 at 6:01 PM", "Tap +, choose Meeting Scheduler, then find a time.");
+}
+
+function showAppDrawer() {
+  appDrawer.hidden = false;
+  form.hidden = true;
+}
+
+function hideAppDrawer() {
+  appDrawer.hidden = true;
+}
+
+function showSchedulerSheet() {
+  appDrawer.hidden = true;
+  form.hidden = false;
 }
 
 function formatSlot(slot) {
@@ -228,9 +245,20 @@ resetButton.addEventListener("click", () => {
   resultStatus.textContent = "Waiting";
   slotOutput.textContent = "Run the negotiation to see the selected time.";
   roundsOutput.innerHTML = "";
+  form.hidden = true;
+  appDrawer.hidden = true;
   setInitialConversation();
 });
 
+openAppsButton.addEventListener("click", () => {
+  if (appDrawer.hidden) {
+    showAppDrawer();
+  } else {
+    hideAppDrawer();
+  }
+});
+
+openSchedulerButton.addEventListener("click", showSchedulerSheet);
 form.addEventListener("submit", runDemo);
 setInitialConversation();
 checkHealth();

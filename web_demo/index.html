@@ -29,13 +29,36 @@
           <section id="thread" class="thread" aria-live="polite"></section>
 
           <div class="imessage-input">
-            <button class="plus-button" type="button" aria-label="Add attachment">+</button>
+            <button id="open-apps" class="plus-button" type="button" aria-label="Open iMessage apps">+</button>
             <div class="message-field">iMessage</div>
             <button class="audio-button" type="button" aria-label="Audio message"></button>
           </div>
+
+          <section id="app-drawer" class="app-drawer" aria-label="iMessage apps" hidden>
+            <button class="drawer-row" type="button">
+              <span class="drawer-icon cash">$</span>
+              <span>Apple Cash</span>
+            </button>
+            <button class="drawer-row" type="button">
+              <span class="drawer-icon audio">▥</span>
+              <span>Audio</span>
+            </button>
+            <button class="drawer-row" type="button">
+              <span class="drawer-icon store">A</span>
+              <span>Store</span>
+            </button>
+            <button id="open-scheduler" class="drawer-row" type="button">
+              <span class="drawer-icon scheduler">▦</span>
+              <span>Meeting Scheduler</span>
+            </button>
+            <button class="drawer-row" type="button">
+              <span class="drawer-icon location">•</span>
+              <span>Location</span>
+            </button>
+          </section>
         </section>
 
-        <form id="demo-form" class="extension-sheet">
+        <form id="demo-form" class="extension-sheet" hidden>
           <div class="grabber" aria-hidden="true"></div>
           <section class="extension-card" aria-label="iMessage app extension controls">
             <div class="extension-header">
