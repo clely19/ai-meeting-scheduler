@@ -17,8 +17,18 @@ const roundsOutput = document.querySelector("#rounds-output");
 const dateRangeStart = "2026-03-02T09:00:00";
 const dateRangeEnd = "2026-03-06T18:00:00";
 let sheetDragStartY = 0;
-let sheetDragOffset = 0;
+let sheetDragStartOffset = 162;
+let sheetOffset = 162;
 let isDraggingSheet = false;
+
+const sheetExpandedOffset = 0;
+const sheetCollapsedOffset = 162;
+const sheetCloseOffset = 270;
+
+function updateSheetOffset(offset) {
+  sheetOffset = Math.max(sheetExpandedOffset, Math.min(sheetCloseOffset, offset));
+  phone.style.setProperty("--sheet-offset", `${sheetOffset}px`);
+}
 
 function addMessage(kind, author, text) {
   const message = document.createElement("article");
@@ -75,6 +85,7 @@ function hideAppDrawer() {
 function showSchedulerSheet() {
   appDrawer.hidden = true;
   form.hidden = false;
+  updateSheetOffset(sheetCollapsedOffset);
   phone.classList.add("sheet-open");
 }
 
@@ -82,15 +93,16 @@ function closeSchedulerSheet() {
   form.hidden = true;
   appDrawer.hidden = true;
   phone.classList.remove("sheet-open");
-  form.style.transform = "";
+  updateSheetOffset(sheetCollapsedOffset);
 }
 
 function startSheetDrag(event) {
   isDraggingSheet = true;
   sheetDragStartY = event.clientY;
-  sheetDragOffset = 0;
+  sheetDragStartOffset = sheetOffset;
   closeSheetButton.setPointerCapture?.(event.pointerId);
   form.style.transition = "none";
+  phone.style.setProperty("--sheet-transition", "none");
 }
 
 function dragSheet(event) {
@@ -98,8 +110,7 @@ function dragSheet(event) {
     return;
   }
 
-  sheetDragOffset = Math.max(0, event.clientY - sheetDragStartY);
-  form.style.transform = `translateY(${sheetDragOffset}px)`;
+  updateSheetOffset(sheetDragStartOffset + event.clientY - sheetDragStartY);
 }
 
 function finishSheetDrag() {
@@ -109,13 +120,14 @@ function finishSheetDrag() {
 
   isDraggingSheet = false;
   form.style.transition = "";
+  phone.style.removeProperty("--sheet-transition");
 
-  if (sheetDragOffset > 86) {
+  if (sheetOffset > sheetCollapsedOffset + 82) {
     closeSchedulerSheet();
     return;
   }
 
-  form.style.transform = "";
+  updateSheetOffset(sheetOffset < sheetCollapsedOffset / 2 ? sheetExpandedOffset : sheetCollapsedOffset);
 }
 
 function formatSlot(slot) {
