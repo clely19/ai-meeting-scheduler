@@ -8,6 +8,7 @@ const openAppsButton = document.querySelector("#open-apps");
 const openSchedulerButton = document.querySelector("#open-scheduler");
 const openDemoChatButton = document.querySelector("#open-demo-chat");
 const composeChatButton = document.querySelector("#compose-chat");
+const linkedinPostButtons = document.querySelectorAll(".linkedin-row");
 const backButton = document.querySelector(".back-pill");
 const runButton = document.querySelector("#run-demo");
 const closeSheetButton = document.querySelector("#close-sheet");
@@ -16,6 +17,8 @@ const sessionId = document.querySelector("#session-id");
 const resultStatus = document.querySelector("#result-status");
 const slotOutput = document.querySelector("#slot-output");
 const roundsOutput = document.querySelector("#rounds-output");
+const chatName = document.querySelector(".chat-title h1");
+const groupAvatar = document.querySelector(".group-avatar");
 
 const dateRangeStart = "2026-03-02T09:00:00";
 const dateRangeEnd = "2026-03-06T18:00:00";
@@ -27,6 +30,20 @@ let isDraggingSheet = false;
 const sheetExpandedOffset = 0;
 const sheetCollapsedOffset = 162;
 const sheetCloseOffset = 270;
+const linkedInPosts = {
+  "agentic-ai": {
+    title: "Agentic AI + Data Cloud",
+    subtitle: "Agentic AI, Data Cloud, Salesforce",
+    url: "https://www.linkedin.com/posts/clely-fernandes_agenticai-datacloud-salesforce-ugcPost-7457422569668014080-mlCK/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADcM6rYBYDfuAouEWwFrlY1giwgoCPkgrkI",
+    preview: "A portfolio note on agentic AI, Data Cloud, and Salesforce. Tap this preview to open the original LinkedIn post."
+  },
+  "github-copilot": {
+    title: "GitHub AI Copilot",
+    subtitle: "GitHub, AI, Copilot",
+    url: "https://www.linkedin.com/posts/clely-fernandes_github-ai-copilot-share-7452776419551555584-jveT/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADcM6rYBYDfuAouEWwFrlY1giwgoCPkgrkI",
+    preview: "A portfolio note on GitHub, AI, and Copilot. Tap this preview to open the original LinkedIn post."
+  }
+};
 
 function updateSheetOffset(offset) {
   sheetOffset = Math.max(sheetExpandedOffset, Math.min(sheetCloseOffset, offset));
@@ -64,6 +81,21 @@ function addAppCard(title, text) {
   scrollThreadToLatest();
 }
 
+function addLinkedInPreview(post) {
+  const message = document.createElement("article");
+  message.className = "message card linkedin-preview";
+  message.innerHTML = `
+    <a href="${post.url}" target="_blank" rel="noreferrer">
+      <span class="linkedin-label">LinkedIn post</span>
+      <span class="linkedin-title">${post.title}</span>
+      <span class="linkedin-summary">${post.preview}</span>
+      <span class="linkedin-cta">Open original post</span>
+    </a>
+  `;
+  thread.appendChild(message);
+  scrollThreadToLatest();
+}
+
 function addTypingIndicator() {
   const typing = document.createElement("div");
   typing.className = "typing";
@@ -79,6 +111,9 @@ function removeTypingIndicator() {
 
 function setInitialConversation() {
   thread.innerHTML = "";
+  chatName.textContent = "Me";
+  groupAvatar.textContent = "M";
+  phone.classList.remove("post-chat");
   addMessage("agent", "Me", "Testing Meeting Scheduler Extension");
   addMessage("user", "Clely", "Testing Meeting Scheduler Extension");
   addMessage("system", "Sat, Feb 28 at 6:01 PM", "Tap +, choose Meeting Scheduler, then find a time.");
@@ -86,6 +121,8 @@ function setInitialConversation() {
 
 function showChat() {
   phone.classList.add("in-chat");
+  phone.classList.remove("post-chat");
+  setInitialConversation();
   hideAppDrawer();
   form.hidden = true;
   phone.classList.remove("sheet-open");
@@ -93,10 +130,25 @@ function showChat() {
   scrollThreadToLatest();
 }
 
+function showLinkedInPostChat(post) {
+  phone.classList.add("in-chat");
+  phone.classList.add("post-chat");
+  hideAppDrawer();
+  form.hidden = true;
+  phone.classList.remove("sheet-open");
+  updateSheetOffset(sheetCollapsedOffset);
+  chatName.textContent = post.title;
+  groupAvatar.textContent = "in";
+  thread.innerHTML = "";
+  addMessage("system", "LinkedIn", post.subtitle);
+  addLinkedInPreview(post);
+}
+
 function showMessagesList() {
   form.hidden = true;
   appDrawer.hidden = true;
   phone.classList.remove("sheet-open");
+  phone.classList.remove("post-chat");
   phone.classList.remove("in-chat");
   updateSheetOffset(sheetCollapsedOffset);
 }
@@ -339,6 +391,9 @@ openAppsButton.addEventListener("click", () => {
 openSchedulerButton.addEventListener("click", showSchedulerSheet);
 openDemoChatButton.addEventListener("click", showChat);
 composeChatButton.addEventListener("click", showChat);
+linkedinPostButtons.forEach((button) => {
+  button.addEventListener("click", () => showLinkedInPostChat(linkedInPosts[button.dataset.postId]));
+});
 backButton.addEventListener("click", showMessagesList);
 closeSheetButton.addEventListener("pointerdown", startSheetDrag);
 closeSheetButton.addEventListener("pointermove", dragSheet);
