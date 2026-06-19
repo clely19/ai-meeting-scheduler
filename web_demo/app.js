@@ -21,10 +21,11 @@ const roundsOutput = document.querySelector("#rounds-output");
 const chatName = document.querySelector(".chat-title h1");
 const groupAvatar = document.querySelector(".group-avatar");
 const guideStepCount = document.querySelector("#guide-step-count");
+const guidePanelCount = document.querySelector("#guide-panel-count");
 const guideTitle = document.querySelector("#guide-title");
 const guideCopy = document.querySelector("#guide-copy");
+const guidePanelCopy = document.querySelector("#guide-panel-copy");
 const guideNext = document.querySelector("#guide-next");
-const guideStepsList = document.querySelector("#guide-steps");
 
 const dateRangeStart = "2026-03-02T09:00:00";
 const dateRangeEnd = "2026-03-06T18:00:00";
@@ -88,26 +89,20 @@ const linkedInPosts = {
   }
 };
 
-function renderGuideSteps() {
-  guideStepsList.innerHTML = guideSteps
-    .map((step, index) => `
-      <li class="${index === guideStepIndex ? "active" : ""} ${index < guideStepIndex ? "done" : ""}">
-        <span>${index + 1}</span>
-        <strong>${step.title}</strong>
-      </li>
-    `)
-    .join("");
-}
-
 function setGuideStep(index) {
   guideStepIndex = Math.max(0, Math.min(guideSteps.length - 1, index));
   const step = guideSteps[guideStepIndex];
+  phone.classList.remove(...guideSteps.map((_, stepIndex) => `guide-step-${stepIndex}`));
+  phone.classList.add(`guide-step-${guideStepIndex}`);
   guideStepCount.textContent = `Step ${guideStepIndex + 1} of ${guideSteps.length}`;
+  guidePanelCount.textContent = guideStepCount.textContent;
   guideTitle.textContent = step.title;
   guideCopy.textContent = step.copy;
+  guidePanelCopy.textContent = guideStepIndex === 5
+    ? "The walkthrough is complete. Review the live result or start over."
+    : "Follow the highlighted action inside the phone.";
   guideNext.textContent = step.action;
   guideNext.disabled = guideStepIndex === 4 || (runButton.disabled && guideStepIndex === 3);
-  renderGuideSteps();
 }
 
 function advanceGuide() {
