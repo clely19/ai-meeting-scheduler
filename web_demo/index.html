@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260619-linkedin-chats">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260619-menu-links">
   </head>
   <body>
     <main class="shell">
@@ -16,8 +16,36 @@
           </div>
           <header class="list-header">
             <button class="edit-button" type="button">Edit</button>
-            <button id="compose-chat" class="compose-button" type="button" aria-label="New message"></button>
+            <button id="filter-menu-button" class="filter-menu-button" type="button" aria-label="Open message filters" aria-expanded="false">
+              <img src="/demo/assets/messages-filter-icon.png" alt="">
+            </button>
           </header>
+          <nav id="filter-menu" class="filter-menu" aria-label="Message filters" hidden>
+            <button class="filter-menu-row active" type="button" data-filter-action="all">
+              <span class="filter-mark">✓</span>
+              <span>Messages</span>
+            </button>
+            <button class="filter-menu-row" type="button" data-filter-action="linkedin">
+              <span class="filter-icon">in</span>
+              <span>LinkedIn Posts</span>
+            </button>
+            <button class="filter-menu-row" type="button" data-filter-action="scheduler">
+              <span class="filter-icon">AI</span>
+              <span>Scheduler Demo</span>
+            </button>
+            <a class="filter-menu-row menu-separator" href="/docs" target="_blank" rel="noreferrer">
+              <span class="filter-icon">API</span>
+              <span>Open API Docs</span>
+            </a>
+            <a class="filter-menu-row" href="/health" target="_blank" rel="noreferrer">
+              <span class="filter-icon">OK</span>
+              <span>Backend Health</span>
+            </a>
+            <a class="filter-menu-row" href="https://github.com/clely19/ai-meeting-scheduler" target="_blank" rel="noreferrer">
+              <span class="filter-icon">GH</span>
+              <span>GitHub Repo</span>
+            </a>
+          </nav>
           <h1 class="messages-title">Messages</h1>
           <section class="conversation-list" aria-label="Recent conversations">
             <button id="open-demo-chat" class="conversation-row" type="button">
@@ -205,6 +233,6 @@
       </aside>
     </main>
 
-    <script src="/demo/app.js?v=20260619-linkedin-chats"></script>
+    <script src="/demo/app.js?v=20260619-menu-links"></script>
   </body>
 </html>

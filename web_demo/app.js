@@ -7,8 +7,9 @@ const appDrawer = document.querySelector("#app-drawer");
 const openAppsButton = document.querySelector("#open-apps");
 const openSchedulerButton = document.querySelector("#open-scheduler");
 const openDemoChatButton = document.querySelector("#open-demo-chat");
-const composeChatButton = document.querySelector("#compose-chat");
 const linkedinPostButtons = document.querySelectorAll(".linkedin-row");
+const filterMenuButton = document.querySelector("#filter-menu-button");
+const filterMenu = document.querySelector("#filter-menu");
 const backButton = document.querySelector(".back-pill");
 const runButton = document.querySelector("#run-demo");
 const closeSheetButton = document.querySelector("#close-sheet");
@@ -151,6 +152,16 @@ function showMessagesList() {
   phone.classList.remove("post-chat");
   phone.classList.remove("in-chat");
   updateSheetOffset(sheetCollapsedOffset);
+}
+
+function closeFilterMenu() {
+  filterMenu.hidden = true;
+  filterMenuButton.setAttribute("aria-expanded", "false");
+}
+
+function toggleFilterMenu() {
+  filterMenu.hidden = !filterMenu.hidden;
+  filterMenuButton.setAttribute("aria-expanded", String(!filterMenu.hidden));
 }
 
 function showAppDrawer() {
@@ -390,9 +401,25 @@ openAppsButton.addEventListener("click", () => {
 
 openSchedulerButton.addEventListener("click", showSchedulerSheet);
 openDemoChatButton.addEventListener("click", showChat);
-composeChatButton.addEventListener("click", showChat);
 linkedinPostButtons.forEach((button) => {
   button.addEventListener("click", () => showLinkedInPostChat(linkedInPosts[button.dataset.postId]));
+});
+filterMenuButton.addEventListener("click", toggleFilterMenu);
+filterMenu.addEventListener("click", (event) => {
+  const actionButton = event.target.closest("[data-filter-action]");
+  if (!actionButton) {
+    return;
+  }
+
+  closeFilterMenu();
+  if (actionButton.dataset.filterAction === "scheduler") {
+    showChat();
+    return;
+  }
+  if (actionButton.dataset.filterAction === "linkedin") {
+    const firstPostButton = document.querySelector(".linkedin-row");
+    firstPostButton?.focus();
+  }
 });
 backButton.addEventListener("click", showMessagesList);
 closeSheetButton.addEventListener("pointerdown", startSheetDrag);
