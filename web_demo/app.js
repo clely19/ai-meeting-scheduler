@@ -6,6 +6,9 @@ const form = document.querySelector("#demo-form");
 const appDrawer = document.querySelector("#app-drawer");
 const openAppsButton = document.querySelector("#open-apps");
 const openSchedulerButton = document.querySelector("#open-scheduler");
+const openDemoChatButton = document.querySelector("#open-demo-chat");
+const composeChatButton = document.querySelector("#compose-chat");
+const backButton = document.querySelector(".back-pill");
 const runButton = document.querySelector("#run-demo");
 const closeSheetButton = document.querySelector("#close-sheet");
 const backendStatus = document.querySelector("#backend-status");
@@ -79,6 +82,23 @@ function setInitialConversation() {
   addMessage("agent", "Me", "Testing Meeting Scheduler Extension");
   addMessage("user", "Clely", "Testing Meeting Scheduler Extension");
   addMessage("system", "Sat, Feb 28 at 6:01 PM", "Tap +, choose Meeting Scheduler, then find a time.");
+}
+
+function showChat() {
+  phone.classList.add("in-chat");
+  hideAppDrawer();
+  form.hidden = true;
+  phone.classList.remove("sheet-open");
+  updateSheetOffset(sheetCollapsedOffset);
+  scrollThreadToLatest();
+}
+
+function showMessagesList() {
+  form.hidden = true;
+  appDrawer.hidden = true;
+  phone.classList.remove("sheet-open");
+  phone.classList.remove("in-chat");
+  updateSheetOffset(sheetCollapsedOffset);
 }
 
 function showAppDrawer() {
@@ -317,6 +337,9 @@ openAppsButton.addEventListener("click", () => {
 });
 
 openSchedulerButton.addEventListener("click", showSchedulerSheet);
+openDemoChatButton.addEventListener("click", showChat);
+composeChatButton.addEventListener("click", showChat);
+backButton.addEventListener("click", showMessagesList);
 closeSheetButton.addEventListener("pointerdown", startSheetDrag);
 closeSheetButton.addEventListener("pointermove", dragSheet);
 closeSheetButton.addEventListener("pointerup", finishSheetDrag);

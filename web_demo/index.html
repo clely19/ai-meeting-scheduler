@@ -4,11 +4,52 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260619-card-scroll">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260619-message-list">
   </head>
   <body>
     <main class="shell">
       <section class="phone" aria-label="Scheduling conversation demo">
+        <section class="messages-list-screen" aria-label="Messages list">
+          <div class="status-bar" aria-hidden="true">
+            <span class="time-pill">8:11</span>
+            <span class="system-icons">▮▮▮  Wi-Fi  ◖</span>
+          </div>
+          <header class="list-header">
+            <button class="edit-button" type="button">Edit</button>
+            <button id="compose-chat" class="compose-button" type="button" aria-label="New message"></button>
+          </header>
+          <h1 class="messages-title">Messages</h1>
+          <section class="conversation-list" aria-label="Recent conversations">
+            <button id="open-demo-chat" class="conversation-row" type="button">
+              <span class="conversation-avatar">M</span>
+              <span class="conversation-copy">
+                <span class="conversation-name">AI Meeting Scheduler Demo</span>
+                <span class="conversation-preview">Create a chat, tap +, choose Meeting Scheduler.</span>
+              </span>
+              <span class="conversation-date">Now</span>
+            </button>
+            <button class="conversation-row" type="button">
+              <span class="conversation-avatar muted">AT</span>
+              <span class="conversation-copy">
+                <span class="conversation-name">Annie Thomas</span>
+                <span class="conversation-preview">Correct!</span>
+              </span>
+              <span class="conversation-date">Yesterday</span>
+            </button>
+            <button class="conversation-row" type="button">
+              <span class="conversation-avatar muted">CW</span>
+              <span class="conversation-copy">
+                <span class="conversation-name">Catherine Ward</span>
+                <span class="conversation-preview">Yes, I believe the last flow is ready.</span>
+              </span>
+              <span class="conversation-date">6/10/26</span>
+            </button>
+          </section>
+          <div class="search-bar" aria-hidden="true">
+            <span>Search</span>
+          </div>
+        </section>
+
         <section class="messages-screen" aria-label="iMessage conversation">
           <div class="status-bar" aria-hidden="true">
             <span class="time-pill">8:11</span>
@@ -164,6 +205,6 @@
       </aside>
     </main>
 
-    <script src="/demo/app.js?v=20260619-card-scroll"></script>
+    <script src="/demo/app.js?v=20260619-message-list"></script>
   </body>
 </html>

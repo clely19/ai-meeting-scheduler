@@ -64,6 +64,23 @@ select {
   overflow: hidden;
 }
 
+.phone:not(.in-chat) .messages-screen,
+.phone:not(.in-chat) .extension-sheet {
+  display: none;
+}
+
+.phone.in-chat .messages-list-screen {
+  display: none;
+}
+
+.messages-list-screen {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  overflow: hidden;
+}
+
 .status-bar {
   height: 44px;
   display: flex;
@@ -75,13 +92,7 @@ select {
 }
 
 .time-pill {
-  min-width: 70px;
-  height: 28px;
-  border-radius: 16px;
-  display: grid;
-  place-items: center;
   color: #fff;
-  background: #ff3b30;
   font-size: 16px;
   line-height: 1;
 }
@@ -99,6 +110,149 @@ select {
   align-items: start;
   min-height: 92px;
   padding: 6px 18px 0;
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 26px 0;
+}
+
+.edit-button,
+.compose-button {
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 25px;
+  color: #f5f5f7;
+  background: rgba(30, 30, 32, 0.92);
+}
+
+.edit-button {
+  padding: 0 19px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.compose-button {
+  position: relative;
+  width: 48px;
+}
+
+.compose-button::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 15px;
+  width: 19px;
+  height: 18px;
+  border: 2px solid #f5f5f7;
+  border-radius: 5px;
+}
+
+.compose-button::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 11px;
+  width: 13px;
+  height: 2px;
+  border-radius: 999px;
+  background: #f5f5f7;
+  transform: rotate(-35deg);
+}
+
+.messages-title {
+  padding: 34px 26px 28px;
+  color: #fff;
+  background: transparent;
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.conversation-list {
+  display: grid;
+  padding-left: 25px;
+}
+
+.conversation-row {
+  min-height: 96px;
+  display: grid;
+  grid-template-columns: 61px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 0 22px 0 0;
+  border: 0;
+  border-radius: 0;
+  color: #f5f5f7;
+  background: transparent;
+  text-align: left;
+}
+
+.conversation-row + .conversation-row {
+  border-top: 1px solid #242428;
+}
+
+.conversation-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #3a3158;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.conversation-avatar.muted {
+  font-size: 19px;
+  background: #4a4168;
+}
+
+.conversation-copy {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.conversation-name {
+  color: #fff;
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.conversation-preview,
+.conversation-date {
+  color: #8e8e93;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.conversation-preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-date {
+  align-self: start;
+  padding-top: 23px;
+}
+
+.search-bar {
+  height: 52px;
+  margin: auto 27px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 27px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  color: #8e8e93;
+  background: rgba(30, 30, 32, 0.94);
+  font-size: 24px;
 }
 
 .back-pill {
@@ -594,6 +748,11 @@ input::placeholder {
 button {
   border: 0;
   cursor: pointer;
+}
+
+.edit-button,
+.compose-button {
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .plus-button {
