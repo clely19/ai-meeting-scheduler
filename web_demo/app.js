@@ -36,13 +36,16 @@ const linkedInPosts = {
     title: "Agentic AI + Data Cloud",
     subtitle: "Agentic AI, Data Cloud, Salesforce",
     url: "https://www.linkedin.com/posts/clely-fernandes_agenticai-datacloud-salesforce-ugcPost-7457422569668014080-mlCK/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADcM6rYBYDfuAouEWwFrlY1giwgoCPkgrkI",
-    preview: "A portfolio note on agentic AI, Data Cloud, and Salesforce. Tap this preview to open the original LinkedIn post."
+    preview: "I didn't expect a sketch of Mickey Mouse to change how I think about data.",
+    image: "/demo/assets/linkedin-agentic-preview.png",
+    imageAlt: "LinkedIn post preview about Salesforce and agentic AI"
   },
   "github-copilot": {
     title: "GitHub AI Copilot",
     subtitle: "GitHub, AI, Copilot",
     url: "https://www.linkedin.com/posts/clely-fernandes_github-ai-copilot-share-7452776419551555584-jveT/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADcM6rYBYDfuAouEWwFrlY1giwgoCPkgrkI",
-    preview: "A portfolio note on GitHub, AI, and Copilot. Tap this preview to open the original LinkedIn post."
+    preview: "A portfolio note on GitHub, AI, and Copilot.",
+    imageAlt: "LinkedIn post preview about GitHub Copilot"
   }
 };
 
@@ -85,12 +88,26 @@ function addAppCard(title, text) {
 function addLinkedInPreview(post) {
   const message = document.createElement("article");
   message.className = "message card linkedin-preview";
+  const media = post.image
+    ? `<img class="linkedin-post-media" src="${post.image}" alt="${post.imageAlt}">`
+    : `<span class="linkedin-post-media linkedin-post-placeholder" aria-label="${post.imageAlt}">
+        <span>GitHub</span>
+        <strong>AI Copilot</strong>
+      </span>`;
   message.innerHTML = `
-    <a href="${post.url}" target="_blank" rel="noreferrer">
-      <span class="linkedin-label">LinkedIn post</span>
-      <span class="linkedin-title">${post.title}</span>
-      <span class="linkedin-summary">${post.preview}</span>
-      <span class="linkedin-cta">Open original post</span>
+    <a class="linkedin-post-card" href="${post.url}" target="_blank" rel="noreferrer">
+      <span class="linkedin-post-header">
+        <span class="linkedin-profile-photo">CF</span>
+        <span class="linkedin-profile-copy">
+          <span class="linkedin-author">Clely Fernandes</span>
+          <span class="linkedin-role">Software Engineer | Backend & Agentic AI</span>
+          <span class="linkedin-time">1mo - Public</span>
+        </span>
+        <span class="linkedin-brand">in</span>
+      </span>
+      <span class="linkedin-post-text">${post.preview}</span>
+      ${media}
+      <span class="linkedin-cta">Open original LinkedIn post</span>
     </a>
   `;
   thread.appendChild(message);
