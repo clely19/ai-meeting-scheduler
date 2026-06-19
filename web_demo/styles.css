@@ -138,16 +138,25 @@ select {
   width: 48px;
   height: 48px;
   padding: 0;
+  display: grid;
+  place-items: center;
   overflow: hidden;
-  background: transparent;
+  background: rgba(30, 30, 32, 0.92);
 }
 
 .filter-menu-button img {
-  width: 100%;
-  height: 100%;
+  display: none;
+}
+
+.filter-menu-button::before {
+  content: "";
+  width: 27px;
+  height: 20px;
   display: block;
-  object-fit: contain;
-  object-position: center;
+  background:
+    linear-gradient(#f5f5f7, #f5f5f7) 50% 3px / 25px 2px no-repeat,
+    linear-gradient(#f5f5f7, #f5f5f7) 50% 10px / 19px 2px no-repeat,
+    linear-gradient(#f5f5f7, #f5f5f7) 50% 17px / 13px 2px no-repeat;
 }
 
 .filter-menu {
@@ -483,10 +492,11 @@ h1 {
 .linkedin-preview {
   padding: 0;
   overflow: hidden;
-  max-width: 92%;
-  color: #1d1d1f;
-  background: #fff;
-  border-radius: 15px;
+  max-width: 86%;
+  color: #f5f5f7;
+  background: var(--bubble-in);
+  border-radius: 20px;
+  border-bottom-left-radius: 5px;
 }
 
 .linkedin-preview .linkedin-post-card {
@@ -495,87 +505,13 @@ h1 {
   text-decoration: none;
 }
 
-.linkedin-post-header {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) 24px;
-  gap: 10px;
-  align-items: center;
-  padding: 13px 13px 8px;
-}
-
-.linkedin-profile-photo {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  background:
-    radial-gradient(circle at 48% 42%, #946d60 0 18%, transparent 19%),
-    linear-gradient(145deg, #6f8f5a, #2d6c42 55%, #204a35);
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.linkedin-profile-copy {
-  min-width: 0;
-  display: grid;
-  gap: 1px;
-}
-
-.linkedin-author {
-  color: #111;
-  font-size: 16px;
-  line-height: 1.1;
-  font-weight: 800;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.linkedin-role,
-.linkedin-time {
-  color: #6f6f75;
-  font-size: 12px;
-  line-height: 1.18;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.linkedin-brand {
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
-  display: grid;
-  place-items: center;
-  align-self: start;
-  color: #fff;
-  background: #0a66c2;
-  font-size: 13px;
-  font-weight: 900;
-  font-family: Arial, sans-serif;
-}
-
-.linkedin-post-text {
-  display: block;
-  padding: 0 13px 11px;
-  color: #1d1d1f;
-  font-size: 15px;
-  line-height: 1.32;
-  font-weight: 800;
-  font-style: italic;
-}
-
 .linkedin-post-media {
   display: block;
   width: 100%;
-  max-height: 300px;
+  height: 176px;
   object-fit: cover;
   object-position: top center;
-  border-top: 1px solid #ececf0;
-  border-bottom: 1px solid #ececf0;
-  background: #f5f5f7;
+  background: #111113;
 }
 
 .linkedin-post-placeholder {
@@ -595,6 +531,33 @@ h1 {
 .linkedin-post-placeholder strong {
   font-size: 28px;
   line-height: 1;
+}
+
+.linkedin-link-copy {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px 12px;
+}
+
+.linkedin-domain {
+  color: #9b9ba1;
+  font-size: 12px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.linkedin-title {
+  color: #f5f5f7;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.linkedin-summary {
+  color: #d1d1d6;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .linkedin-cta {

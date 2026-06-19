@@ -82,7 +82,8 @@ const linkedInPosts = {
     title: "GitHub AI Copilot",
     subtitle: "GitHub, AI, Copilot",
     url: "https://www.linkedin.com/posts/clely-fernandes_github-ai-copilot-share-7452776419551555584-jveT/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADcM6rYBYDfuAouEWwFrlY1giwgoCPkgrkI",
-    preview: "A portfolio note on GitHub, AI, and Copilot.",
+    preview: "A practical note on GitHub Copilot privacy, model training, and the setting every developer should actively decide.",
+    image: "/demo/assets/linkedin-github-copilot-preview.png",
     imageAlt: "LinkedIn post preview about GitHub Copilot"
   }
 };
@@ -185,18 +186,12 @@ function addLinkedInPreview(post) {
       </span>`;
   message.innerHTML = `
     <a class="linkedin-post-card" href="${post.url}" target="_blank" rel="noreferrer">
-      <span class="linkedin-post-header">
-        <span class="linkedin-profile-photo">CF</span>
-        <span class="linkedin-profile-copy">
-          <span class="linkedin-author">Clely Fernandes</span>
-          <span class="linkedin-role">Software Engineer | Backend & Agentic AI</span>
-          <span class="linkedin-time">1mo - Public</span>
-        </span>
-        <span class="linkedin-brand">in</span>
-      </span>
-      <span class="linkedin-post-text">${post.preview}</span>
       ${media}
-      <span class="linkedin-cta">Open original LinkedIn post</span>
+      <span class="linkedin-link-copy">
+        <span class="linkedin-domain">linkedin.com</span>
+        <span class="linkedin-title">${post.title}</span>
+        <span class="linkedin-summary">${post.preview}</span>
+      </span>
     </a>
   `;
   thread.appendChild(message);
