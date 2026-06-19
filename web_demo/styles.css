@@ -192,20 +192,17 @@ h1 {
 
 .thread {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 9px;
-  padding: 8px 16px 74px;
+  padding: 8px 16px 12px;
   overflow-y: auto;
   scrollbar-width: none;
 }
 
 .thread::-webkit-scrollbar {
   display: none;
-}
-
-.phone.sheet-open .thread {
-  padding-bottom: calc(var(--sheet-current-height) + 74px);
 }
 
 .message {
@@ -290,22 +287,21 @@ h1 {
 }
 
 .imessage-input {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
   z-index: 8;
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: 42px 1fr;
   align-items: center;
   gap: 9px;
   padding: 9px 16px 14px;
   background: transparent;
-  transition: bottom var(--sheet-transition);
+  margin-bottom: 0;
+  transition: margin-bottom var(--sheet-transition);
 }
 
 .phone.sheet-open .imessage-input {
-  bottom: var(--sheet-current-height);
+  margin-bottom: var(--sheet-current-height);
 }
 
 .app-drawer {
@@ -452,7 +448,7 @@ h1 {
   z-index: 7;
   transform: translateY(var(--sheet-offset));
   transition: transform var(--sheet-transition);
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 .grabber {
@@ -470,9 +466,13 @@ h1 {
 
 .extension-card {
   height: calc(100% - 14px);
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
   padding-top: 32px;
+  touch-action: pan-y;
 }
 
 .extension-card::-webkit-scrollbar {
