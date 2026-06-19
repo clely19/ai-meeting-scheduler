@@ -30,8 +30,10 @@
 
           <div class="imessage-input">
             <button id="open-apps" class="plus-button" type="button" aria-label="Open iMessage apps">+</button>
-            <div class="message-field">iMessage</div>
-            <button class="audio-button" type="button" aria-label="Audio message"></button>
+            <div class="message-field">
+              <span>iMessage</span>
+              <button class="audio-button" type="button" aria-label="Audio message"></button>
+            </div>
           </div>
 
           <section id="app-drawer" class="app-drawer" aria-label="iMessage apps" hidden>
@@ -59,7 +61,7 @@
         </section>
 
         <form id="demo-form" class="extension-sheet" hidden>
-          <div class="grabber" aria-hidden="true"></div>
+          <button id="close-sheet" class="grabber" type="button" aria-label="Close Meeting Scheduler"></button>
           <section class="extension-card" aria-label="iMessage app extension controls">
             <div class="extension-header">
               <div>
@@ -120,7 +122,6 @@
 
           <div class="composer-actions">
             <button id="run-demo" type="submit">Find a Time</button>
-            <button id="reset-demo" type="button" class="secondary">Reset</button>
           </div>
           </section>
         </form>

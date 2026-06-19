@@ -1,12 +1,13 @@
 const API_BASE = window.location.origin;
 
+const phone = document.querySelector(".phone");
 const thread = document.querySelector("#thread");
 const form = document.querySelector("#demo-form");
 const appDrawer = document.querySelector("#app-drawer");
 const openAppsButton = document.querySelector("#open-apps");
 const openSchedulerButton = document.querySelector("#open-scheduler");
 const runButton = document.querySelector("#run-demo");
-const resetButton = document.querySelector("#reset-demo");
+const closeSheetButton = document.querySelector("#close-sheet");
 const backendStatus = document.querySelector("#backend-status");
 const sessionId = document.querySelector("#session-id");
 const resultStatus = document.querySelector("#result-status");
@@ -61,6 +62,7 @@ function setInitialConversation() {
 function showAppDrawer() {
   appDrawer.hidden = false;
   form.hidden = true;
+  phone.classList.remove("sheet-open");
 }
 
 function hideAppDrawer() {
@@ -70,6 +72,13 @@ function hideAppDrawer() {
 function showSchedulerSheet() {
   appDrawer.hidden = true;
   form.hidden = false;
+  phone.classList.add("sheet-open");
+}
+
+function closeSchedulerSheet() {
+  form.hidden = true;
+  appDrawer.hidden = true;
+  phone.classList.remove("sheet-open");
 }
 
 function formatSlot(slot) {
@@ -240,16 +249,6 @@ async function checkHealth() {
   }
 }
 
-resetButton.addEventListener("click", () => {
-  sessionId.textContent = "Not started";
-  resultStatus.textContent = "Waiting";
-  slotOutput.textContent = "Run the negotiation to see the selected time.";
-  roundsOutput.innerHTML = "";
-  form.hidden = true;
-  appDrawer.hidden = true;
-  setInitialConversation();
-});
-
 openAppsButton.addEventListener("click", () => {
   if (appDrawer.hidden) {
     showAppDrawer();
@@ -259,6 +258,7 @@ openAppsButton.addEventListener("click", () => {
 });
 
 openSchedulerButton.addEventListener("click", showSchedulerSheet);
+closeSheetButton.addEventListener("click", closeSchedulerSheet);
 form.addEventListener("submit", runDemo);
 setInitialConversation();
 checkHealth();
