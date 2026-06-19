@@ -79,13 +79,13 @@ const linkedInPosts = {
     image: "/demo/assets/linkedin-agentic-preview.png",
     imageAlt: "LinkedIn post preview about Salesforce and agentic AI"
   },
-  "github-copilot": {
-    title: "GitHub AI Copilot",
-    subtitle: "GitHub, AI, Copilot",
-    url: "https://www.linkedin.com/posts/clely-fernandes_github-ai-copilot-share-7452776419551555584-jveT/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADcM6rYBYDfuAouEWwFrlY1giwgoCPkgrkI",
-    preview: "A practical note on GitHub Copilot privacy, model training, and the setting every developer should actively decide.",
-    image: "/demo/assets/linkedin-github-copilot-preview.png",
-    imageAlt: "LinkedIn post preview about GitHub Copilot"
+  "vibe-coding": {
+    title: "Vibe Coding",
+    subtitle: "Vibe coding, building in public, AI",
+    url: "https://www.linkedin.com/posts/clely-fernandes_vibecoding-buildinginpublic-ai-share-7441626369769308160-J6gb/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADcM6rYBYDfuAouEWwFrlY1giwgoCPkgrkI",
+    preview: "I've been trying to build something new. A skill, and a project.",
+    image: "/demo/assets/linkedin-vibe-coding-preview.png",
+    imageAlt: "LinkedIn post preview about vibe coding"
   }
 };
 
@@ -176,8 +176,8 @@ function addLinkedInPreview(post) {
   const media = post.image
     ? `<img class="linkedin-post-media" src="${post.image}" alt="${post.imageAlt}">`
     : `<span class="linkedin-post-media linkedin-post-placeholder" aria-label="${post.imageAlt}">
-        <span>GitHub</span>
-        <strong>AI Copilot</strong>
+        <span>LinkedIn</span>
+        <strong>Post</strong>
       </span>`;
   message.innerHTML = `
     <a class="linkedin-post-card" href="${post.url}" target="_blank" rel="noreferrer">
