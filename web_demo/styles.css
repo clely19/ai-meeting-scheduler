@@ -465,7 +465,7 @@ h1 {
 }
 
 .extension-card {
-  height: calc(100% - 14px);
+  height: calc(var(--sheet-current-height) - 14px);
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
