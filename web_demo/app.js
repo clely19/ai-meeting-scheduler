@@ -20,6 +20,11 @@ const slotOutput = document.querySelector("#slot-output");
 const roundsOutput = document.querySelector("#rounds-output");
 const chatName = document.querySelector(".chat-title h1");
 const groupAvatar = document.querySelector(".group-avatar");
+const guideStepCount = document.querySelector("#guide-step-count");
+const guideTitle = document.querySelector("#guide-title");
+const guideCopy = document.querySelector("#guide-copy");
+const guideNext = document.querySelector("#guide-next");
+const guideStepsList = document.querySelector("#guide-steps");
 
 const dateRangeStart = "2026-03-02T09:00:00";
 const dateRangeEnd = "2026-03-06T18:00:00";
@@ -27,10 +32,43 @@ let sheetDragStartY = 0;
 let sheetDragStartOffset = 162;
 let sheetOffset = 162;
 let isDraggingSheet = false;
+let guideStepIndex = 0;
 
 const sheetExpandedOffset = 0;
 const sheetCollapsedOffset = 162;
 const sheetCloseOffset = 270;
+const guideSteps = [
+  {
+    title: "Start from Messages",
+    copy: "Begin on the Messages list, then open the AI Meeting Scheduler demo chat.",
+    action: "Continue: Open demo chat"
+  },
+  {
+    title: "Open iMessage apps",
+    copy: "Use the plus button to reveal the iMessage app drawer, just like the original extension flow.",
+    action: "Next: Open app drawer"
+  },
+  {
+    title: "Choose Meeting Scheduler",
+    copy: "Select Meeting Scheduler from the app drawer so the extension sheet appears below the text box.",
+    action: "Next: Open scheduler"
+  },
+  {
+    title: "Review meeting details",
+    copy: "The demo is prefilled for a portfolio meeting. Run the live scheduling negotiation when ready.",
+    action: "Continue: Find a time"
+  },
+  {
+    title: "Live negotiation running",
+    copy: "The host and invitee agents are registering users, proposing slots, and saving the session.",
+    action: "Running..."
+  },
+  {
+    title: "Review the result",
+    copy: "Read the suggested slot and negotiation rounds. The result came from the live Render backend.",
+    action: "Start over"
+  }
+];
 const linkedInPosts = {
   "agentic-ai": {
     title: "Agentic AI + Data Cloud",
@@ -48,6 +86,57 @@ const linkedInPosts = {
     imageAlt: "LinkedIn post preview about GitHub Copilot"
   }
 };
+
+function renderGuideSteps() {
+  guideStepsList.innerHTML = guideSteps
+    .map((step, index) => `
+      <li class="${index === guideStepIndex ? "active" : ""} ${index < guideStepIndex ? "done" : ""}">
+        <span>${index + 1}</span>
+        <strong>${step.title}</strong>
+      </li>
+    `)
+    .join("");
+}
+
+function setGuideStep(index) {
+  guideStepIndex = Math.max(0, Math.min(guideSteps.length - 1, index));
+  const step = guideSteps[guideStepIndex];
+  guideStepCount.textContent = `Step ${guideStepIndex + 1} of ${guideSteps.length}`;
+  guideTitle.textContent = step.title;
+  guideCopy.textContent = step.copy;
+  guideNext.textContent = step.action;
+  guideNext.disabled = guideStepIndex === 4 || (runButton.disabled && guideStepIndex === 3);
+  renderGuideSteps();
+}
+
+function advanceGuide() {
+  if (guideStepIndex === 0) {
+    showChat();
+    setGuideStep(1);
+    return;
+  }
+
+  if (guideStepIndex === 1) {
+    showAppDrawer();
+    setGuideStep(2);
+    return;
+  }
+
+  if (guideStepIndex === 2) {
+    showSchedulerSheet();
+    setGuideStep(3);
+    return;
+  }
+
+  if (guideStepIndex === 3) {
+    setGuideStep(4);
+    form.requestSubmit();
+    return;
+  }
+
+  showMessagesList();
+  setGuideStep(0);
+}
 
 function updateSheetOffset(offset) {
   sheetOffset = Math.max(sheetExpandedOffset, Math.min(sheetCloseOffset, offset));
@@ -146,6 +235,7 @@ function showChat() {
   phone.classList.remove("sheet-open");
   updateSheetOffset(sheetCollapsedOffset);
   scrollThreadToLatest();
+  setGuideStep(1);
 }
 
 function showLinkedInPostChat(post) {
@@ -160,6 +250,7 @@ function showLinkedInPostChat(post) {
   thread.innerHTML = "";
   addMessage("system", "LinkedIn", post.subtitle);
   addLinkedInPreview(post);
+  setGuideStep(0);
 }
 
 function showMessagesList() {
@@ -169,6 +260,7 @@ function showMessagesList() {
   phone.classList.remove("post-chat");
   phone.classList.remove("in-chat");
   updateSheetOffset(sheetCollapsedOffset);
+  setGuideStep(0);
 }
 
 function closeFilterMenu() {
@@ -185,6 +277,7 @@ function showAppDrawer() {
   appDrawer.hidden = false;
   form.hidden = true;
   phone.classList.remove("sheet-open");
+  setGuideStep(2);
 }
 
 function hideAppDrawer() {
@@ -197,6 +290,7 @@ function showSchedulerSheet() {
   updateSheetOffset(sheetCollapsedOffset);
   phone.classList.add("sheet-open");
   scrollThreadToLatest();
+  setGuideStep(3);
 }
 
 function closeSchedulerSheet() {
@@ -204,6 +298,7 @@ function closeSchedulerSheet() {
   appDrawer.hidden = true;
   phone.classList.remove("sheet-open");
   updateSheetOffset(sheetCollapsedOffset);
+  setGuideStep(2);
 }
 
 function startSheetDrag(event) {
@@ -327,6 +422,7 @@ async function runDemo(event) {
   event.preventDefault();
 
   runButton.disabled = true;
+  setGuideStep(4);
   resultStatus.textContent = "Running";
   sessionId.textContent = "Creating";
   slotOutput.textContent = "Negotiating with live agents.";
@@ -389,13 +485,16 @@ async function runDemo(event) {
       `Suggested slot: ${formatSlot(negotiation.agreed_slot)}. Completed in ${negotiation.rounds_completed} round(s).`
     );
     addMessage("system", "Saved", `Session status: ${saved.status}.`);
+    setGuideStep(5);
   } catch (error) {
     removeTypingIndicator();
     resultStatus.textContent = "Error";
     slotOutput.textContent = error.message;
     addMessage("system", "Error", error.message);
+    setGuideStep(3);
   } finally {
     runButton.disabled = false;
+    setGuideStep(guideStepIndex);
   }
 }
 
@@ -444,5 +543,7 @@ closeSheetButton.addEventListener("pointermove", dragSheet);
 closeSheetButton.addEventListener("pointerup", finishSheetDrag);
 closeSheetButton.addEventListener("pointercancel", finishSheetDrag);
 form.addEventListener("submit", runDemo);
+guideNext.addEventListener("click", advanceGuide);
 setInitialConversation();
+setGuideStep(0);
 checkHealth();

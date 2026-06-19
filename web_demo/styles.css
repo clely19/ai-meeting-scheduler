@@ -1008,6 +1008,104 @@ button.secondary {
   font-weight: 800;
 }
 
+.guide-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #2c2c2e;
+  border-radius: 16px;
+  background: #1c1c1e;
+}
+
+.guide-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.guide-count {
+  color: #d1d1d6;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.guide-card h3 {
+  color: #fff;
+  font-size: 19px;
+  line-height: 1.18;
+}
+
+.guide-card p:not(.eyebrow):not(.guide-count) {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.guide-next {
+  height: 46px;
+  border-radius: 13px;
+  color: #fff;
+  background: #0a84ff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.guide-next:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.guide-steps {
+  display: grid;
+  gap: 7px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-steps li {
+  display: grid;
+  grid-template-columns: 25px 1fr;
+  align-items: center;
+  gap: 9px;
+  color: #8e8e93;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.guide-steps span {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #3a3a3c;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #8e8e93;
+  background: #111113;
+  font-size: 12px;
+}
+
+.guide-steps li.active {
+  color: #fff;
+}
+
+.guide-steps li.active span {
+  color: #fff;
+  border-color: #0a84ff;
+  background: #0a84ff;
+}
+
+.guide-steps li.done {
+  color: #d1d1d6;
+}
+
+.guide-steps li.done span {
+  color: #fff;
+  border-color: #34c759;
+  background: #1f7a3f;
+}
+
 .status-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

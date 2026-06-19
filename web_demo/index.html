@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260619-linkedin-preview">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260619-guided-flow">
   </head>
   <body>
     <main class="shell">
@@ -206,6 +206,17 @@
           <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
         </div>
 
+        <section class="guide-card" aria-label="Guided demo flow">
+          <div class="guide-heading">
+            <p class="eyebrow">Guided flow</p>
+            <p id="guide-step-count" class="guide-count">Step 1 of 6</p>
+          </div>
+          <h3 id="guide-title">Start from Messages</h3>
+          <p id="guide-copy">Begin on the Messages list, then open the AI Meeting Scheduler demo chat.</p>
+          <button id="guide-next" class="guide-next" type="button">Continue</button>
+          <ol id="guide-steps" class="guide-steps" aria-label="Demo steps"></ol>
+        </section>
+
         <dl class="status-list">
           <div>
             <dt>Backend</dt>
@@ -233,6 +244,6 @@
       </aside>
     </main>
 
-    <script src="/demo/app.js?v=20260619-linkedin-preview"></script>
+    <script src="/demo/app.js?v=20260619-guided-flow"></script>
   </body>
 </html>
