@@ -49,6 +49,7 @@ select {
   border-radius: 2px;
   overflow: hidden;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.58);
+  --sheet-height: 358px;
 }
 
 .messages-screen {
@@ -57,10 +58,6 @@ select {
   flex-direction: column;
   background: #000;
   overflow: hidden;
-}
-
-.phone.sheet-open .messages-screen {
-  height: 538px;
 }
 
 .status-bar {
@@ -207,8 +204,12 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 9px;
-  padding: 8px 16px 12px;
+  padding: 8px 16px 74px;
   overflow: hidden;
+}
+
+.phone.sheet-open .thread {
+  padding-bottom: calc(var(--sheet-height) + 74px);
 }
 
 .message {
@@ -293,11 +294,22 @@ h1 {
 }
 
 .imessage-input {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8;
   display: grid;
   grid-template-columns: 42px 1fr;
   align-items: center;
   gap: 9px;
   padding: 9px 16px 14px;
+  background: transparent;
+  transition: bottom 180ms ease;
+}
+
+.phone.sheet-open .imessage-input {
+  bottom: var(--sheet-height);
 }
 
 .app-drawer {
@@ -373,7 +385,6 @@ h1 {
 .audio-button {
   width: 38px;
   height: 38px;
-  border: 0;
   border-radius: 50%;
   background: transparent;
   color: #f5f5f7;
@@ -412,7 +423,7 @@ h1 {
   justify-content: space-between;
   padding: 0 6px 0 16px;
   color: #6f6f76;
-  background: #1c1c1e;
+  background: transparent;
   font-size: 18px;
 }
 
@@ -425,13 +436,15 @@ h1 {
   position: absolute;
   left: 6px;
   right: 6px;
-  bottom: 8px;
-  min-height: 318px;
+  bottom: 0;
+  height: var(--sheet-height);
   border: 1px solid #3a3a3c;
   border-radius: 32px;
   background: radial-gradient(circle at 50% 30%, #3a3a3c 0%, #242426 58%, #1c1c1e 100%);
   overflow: hidden;
-  z-index: 6;
+  z-index: 7;
+  transition: transform 180ms ease;
+  touch-action: none;
 }
 
 .grabber {
@@ -443,6 +456,8 @@ h1 {
   border: 0;
   border-radius: 999px;
   background: #8b8b91;
+  cursor: grab;
+  touch-action: none;
 }
 
 .extension-card {
@@ -564,6 +579,11 @@ input::placeholder {
 button {
   border: 0;
   cursor: pointer;
+}
+
+.plus-button {
+  border: 1px solid #2c2c2e;
+  color: #f5f5f7;
 }
 
 #run-demo {

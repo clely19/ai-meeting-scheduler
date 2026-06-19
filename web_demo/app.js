@@ -16,6 +16,9 @@ const roundsOutput = document.querySelector("#rounds-output");
 
 const dateRangeStart = "2026-03-02T09:00:00";
 const dateRangeEnd = "2026-03-06T18:00:00";
+let sheetDragStartY = 0;
+let sheetDragOffset = 0;
+let isDraggingSheet = false;
 
 function addMessage(kind, author, text) {
   const message = document.createElement("article");
@@ -79,6 +82,40 @@ function closeSchedulerSheet() {
   form.hidden = true;
   appDrawer.hidden = true;
   phone.classList.remove("sheet-open");
+  form.style.transform = "";
+}
+
+function startSheetDrag(event) {
+  isDraggingSheet = true;
+  sheetDragStartY = event.clientY;
+  sheetDragOffset = 0;
+  closeSheetButton.setPointerCapture?.(event.pointerId);
+  form.style.transition = "none";
+}
+
+function dragSheet(event) {
+  if (!isDraggingSheet) {
+    return;
+  }
+
+  sheetDragOffset = Math.max(0, event.clientY - sheetDragStartY);
+  form.style.transform = `translateY(${sheetDragOffset}px)`;
+}
+
+function finishSheetDrag() {
+  if (!isDraggingSheet) {
+    return;
+  }
+
+  isDraggingSheet = false;
+  form.style.transition = "";
+
+  if (sheetDragOffset > 86) {
+    closeSchedulerSheet();
+    return;
+  }
+
+  form.style.transform = "";
 }
 
 function formatSlot(slot) {
@@ -258,7 +295,10 @@ openAppsButton.addEventListener("click", () => {
 });
 
 openSchedulerButton.addEventListener("click", showSchedulerSheet);
-closeSheetButton.addEventListener("click", closeSchedulerSheet);
+closeSheetButton.addEventListener("pointerdown", startSheetDrag);
+closeSheetButton.addEventListener("pointermove", dragSheet);
+closeSheetButton.addEventListener("pointerup", finishSheetDrag);
+closeSheetButton.addEventListener("pointercancel", finishSheetDrag);
 form.addEventListener("submit", runDemo);
 setInitialConversation();
 checkHealth();
