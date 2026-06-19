@@ -28,6 +28,15 @@ const sheetCloseOffset = 270;
 function updateSheetOffset(offset) {
   sheetOffset = Math.max(sheetExpandedOffset, Math.min(sheetCloseOffset, offset));
   phone.style.setProperty("--sheet-offset", `${sheetOffset}px`);
+  if (phone.classList.contains("sheet-open")) {
+    scrollThreadToLatest();
+  }
+}
+
+function scrollThreadToLatest() {
+  requestAnimationFrame(() => {
+    thread.scrollTop = thread.scrollHeight;
+  });
 }
 
 function addMessage(kind, author, text) {
@@ -35,7 +44,7 @@ function addMessage(kind, author, text) {
   message.className = `message ${kind}`;
   message.innerHTML = `<strong>${author}</strong>${text}`;
   thread.appendChild(message);
-  thread.scrollTop = thread.scrollHeight;
+  scrollThreadToLatest();
 }
 
 function addAppCard(title, text) {
@@ -49,7 +58,7 @@ function addAppCard(title, text) {
     <p>${text}</p>
   `;
   thread.appendChild(message);
-  thread.scrollTop = thread.scrollHeight;
+  scrollThreadToLatest();
 }
 
 function addTypingIndicator() {
@@ -58,7 +67,7 @@ function addTypingIndicator() {
   typing.id = "typing-indicator";
   typing.innerHTML = "<span></span><span></span><span></span>";
   thread.appendChild(typing);
-  thread.scrollTop = thread.scrollHeight;
+  scrollThreadToLatest();
 }
 
 function removeTypingIndicator() {
@@ -87,6 +96,7 @@ function showSchedulerSheet() {
   form.hidden = false;
   updateSheetOffset(sheetCollapsedOffset);
   phone.classList.add("sheet-open");
+  scrollThreadToLatest();
 }
 
 function closeSchedulerSheet() {

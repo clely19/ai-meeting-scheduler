@@ -178,34 +178,16 @@ h1 {
   justify-self: end;
   width: 52px;
   height: 52px;
-  border: 1.5px solid rgba(10, 132, 255, 0.9);
   border-radius: 50%;
   background: transparent;
   box-shadow: none;
 }
 
-.video-button::before {
-  content: "";
-  position: absolute;
-  left: 12px;
-  top: 17px;
-  width: 24px;
-  height: 17px;
-  border: 2.5px solid #9eefff;
-  border-radius: 5px;
-}
-
-.video-button::after {
-  content: "";
-  position: absolute;
-  right: 9px;
-  top: 20px;
-  width: 10px;
-  height: 13px;
-  border: 2.5px solid #9eefff;
-  border-left: 0;
-  border-radius: 0 4px 4px 0;
-  transform: skewY(-18deg);
+.video-button img {
+  width: 52px;
+  height: 52px;
+  display: block;
+  object-fit: contain;
 }
 
 .thread {
@@ -214,7 +196,12 @@ h1 {
   flex-direction: column;
   gap: 9px;
   padding: 8px 16px 74px;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.thread::-webkit-scrollbar {
+  display: none;
 }
 
 .phone.sheet-open .thread {
@@ -406,10 +393,10 @@ h1 {
   content: "";
   position: absolute;
   left: 50%;
-  top: 5px;
-  width: 9px;
-  height: 16px;
-  border: 2px solid #7a7a80;
+  top: 4px;
+  width: 7px;
+  height: 13px;
+  border: 1.8px solid #7a7a80;
   border-radius: 9px;
   background: transparent;
   transform: translateX(-50%);
@@ -419,12 +406,12 @@ h1 {
   content: "";
   position: absolute;
   left: 50%;
-  top: 18px;
-  width: 18px;
-  height: 9px;
-  border-right: 2px solid #7a7a80;
-  border-bottom: 2px solid #7a7a80;
-  border-left: 2px solid #7a7a80;
+  top: 15px;
+  width: 14px;
+  height: 7px;
+  border-right: 1.8px solid #7a7a80;
+  border-bottom: 1.8px solid #7a7a80;
+  border-left: 1.8px solid #7a7a80;
   border-radius: 0 0 10px 10px;
   transform: translateX(-50%);
 }
@@ -444,12 +431,12 @@ h1 {
 
 .message-field .audio-button {
   position: relative;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   background-image: linear-gradient(#7a7a80, #7a7a80);
   background-repeat: no-repeat;
-  background-position: 50% 26px;
-  background-size: 2px 4px;
+  background-position: 50% 22px;
+  background-size: 1.8px 4px;
 }
 
 .extension-sheet {
@@ -482,7 +469,14 @@ h1 {
 }
 
 .extension-card {
+  height: calc(100% - 14px);
+  overflow-y: auto;
+  scrollbar-width: none;
   padding-top: 32px;
+}
+
+.extension-card::-webkit-scrollbar {
+  display: none;
 }
 
 .extension-header {
@@ -600,10 +594,6 @@ input::placeholder {
 button {
   border: 0;
   cursor: pointer;
-}
-
-.video-button {
-  border: 1.5px solid rgba(10, 132, 255, 0.9);
 }
 
 .plus-button {
