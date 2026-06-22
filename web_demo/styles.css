@@ -1236,9 +1236,11 @@ button.secondary {
   }
 
   .phone {
+    --desktop-sidebar-width: 330px;
+    --desktop-extension-height: 300px;
     height: min(760px, calc(100vh - 40px));
     display: grid;
-    grid-template-columns: minmax(275px, 330px) minmax(0, 1fr);
+    grid-template-columns: var(--desktop-sidebar-width) minmax(0, 1fr);
     border: 1px solid #2c2c2e;
     border-radius: 14px;
     background: #0b0b0c;
@@ -1464,7 +1466,7 @@ button.secondary {
   }
 
   .phone.sheet-open .imessage-input {
-    margin-bottom: 0;
+    margin-bottom: var(--desktop-extension-height);
   }
 
   .plus-button {
@@ -1479,7 +1481,7 @@ button.secondary {
   }
 
   .app-drawer {
-    left: calc(320px + 18px);
+    left: calc(var(--desktop-sidebar-width) + 18px);
     right: auto;
     bottom: 64px;
     width: 310px;
@@ -1502,20 +1504,23 @@ button.secondary {
   }
 
   .extension-sheet {
-    left: auto;
-    right: 22px;
-    bottom: 70px;
-    width: min(390px, calc(100% - 370px));
-    height: auto;
-    max-height: calc(100% - 130px);
-    border-radius: 22px;
+    left: var(--desktop-sidebar-width);
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: var(--desktop-extension-height);
+    max-height: none;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 22px 22px 0 0;
     transform: none;
-    box-shadow: 0 22px 80px rgba(0, 0, 0, 0.62);
+    box-shadow: 0 -18px 55px rgba(0, 0, 0, 0.58);
   }
 
   .extension-card {
-    height: auto;
-    max-height: calc(100vh - 190px);
+    height: calc(var(--desktop-extension-height) - 14px);
+    max-height: none;
     padding-top: 18px;
   }
 
@@ -1528,8 +1533,20 @@ button.secondary {
   }
 
   .field-stack {
+    grid-template-columns: 1.1fr 1fr;
+    align-items: end;
     gap: 16px;
     padding: 18px 20px 0;
+  }
+
+  .field-stack > label:first-child,
+  .field-stack > label:nth-of-type(2) {
+    grid-column: 1;
+  }
+
+  .duration-field {
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .composer-actions {
@@ -1560,9 +1577,9 @@ button.secondary {
   }
 
   .phone.guide-step-3 .guide-callout {
-    right: 36px;
+    right: 28px;
     left: auto;
-    bottom: 150px;
+    bottom: 84px;
   }
 
   .phone.guide-step-4 .guide-callout,
