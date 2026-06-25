@@ -168,7 +168,9 @@ function scrollThreadToLatest() {
 function addMessage(kind, author, text) {
   const message = document.createElement("article");
   message.className = `message ${kind}`;
-  message.innerHTML = `<strong>${author}</strong>${text}`;
+  const authorElement = document.createElement("strong");
+  authorElement.textContent = author;
+  message.append(authorElement, document.createTextNode(String(text)));
   thread.appendChild(message);
   scrollThreadToLatest();
 }
@@ -344,12 +346,16 @@ function finishSheetDrag() {
 }
 
 function formatSlot(slot) {
-  if (!slot) {
+  if (!slot || !slot.start || !slot.end) {
     return "No slot selected";
   }
 
   const start = new Date(slot.start);
   const end = new Date(slot.end);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return "No valid slot returned";
+  }
+
   return `${start.toLocaleString([], {
     weekday: "short",
     month: "short",
@@ -362,6 +368,37 @@ function formatSlot(slot) {
   })}`;
 }
 
+function formatApiError(errorDetail, fallback) {
+  if (!errorDetail) {
+    return fallback;
+  }
+
+  if (typeof errorDetail === "string") {
+    return errorDetail;
+  }
+
+  if (Array.isArray(errorDetail)) {
+    return errorDetail
+      .map((item) => formatApiError(item, fallback))
+      .join("; ");
+  }
+
+  if (typeof errorDetail === "object") {
+    const location = Array.isArray(errorDetail.loc)
+      ? `${errorDetail.loc.join(".")}: `
+      : "";
+    if (errorDetail.msg) {
+      return `${location}${errorDetail.msg}`;
+    }
+    if (errorDetail.message) {
+      return `${location}${errorDetail.message}`;
+    }
+    return JSON.stringify(errorDetail);
+  }
+
+  return String(errorDetail);
+}
+
 async function api(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
@@ -371,9 +408,18 @@ async function api(path, options = {}) {
     ...options
   });
 
-  const body = await response.json();
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    body = null;
+  }
+
   if (!response.ok) {
-    throw new Error(body.detail || `Request failed with ${response.status}`);
+    throw new Error(formatApiError(
+      body?.detail || body,
+      `Request failed with ${response.status}`
+    ));
   }
 
   return body;
@@ -403,10 +449,16 @@ function getInviteeStyles() {
 function renderRounds(logs) {
   roundsOutput.innerHTML = "";
 
-  Object.keys(logs)
+  const roundKeys = Object.keys(logs || {})
     .filter((key) => key.startsWith("round_"))
-    .sort()
-    .forEach((key) => {
+    .sort();
+
+  if (!roundKeys.length) {
+    roundsOutput.textContent = "No negotiation rounds returned.";
+    return;
+  }
+
+  roundKeys.forEach((key) => {
       const round = logs[key];
       const accepted = Object.values(round.responses || {})
         .filter((response) => response.decision === "ACCEPT").length;
@@ -422,8 +474,8 @@ function renderRounds(logs) {
         </div>
         <p>${round.proposals.length} host proposals evaluated by ${Object.keys(round.responses || {}).length} invitee agents.</p>
       `;
-      roundsOutput.appendChild(card);
-    });
+    roundsOutput.appendChild(card);
+  });
 }
 
 async function runDemo(event) {
@@ -518,7 +570,14 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     });
 
     removeTypingIndicator();
-    const saved = await api(`/negotiation/${negotiation.session_id}`);
+    let savedStatus = "saved";
+    try {
+      const saved = await api(`/negotiation/${negotiation.session_id}`);
+      savedStatus = saved.status;
+    } catch (saveError) {
+      savedStatus = "created, status refresh unavailable";
+    }
+
     sessionId.textContent = negotiation.session_id;
     resultStatus.textContent = `${useAi ? "AI" : "Demo"}: ${negotiation.status.replace("_", " ")}`;
     slotOutput.textContent = formatSlot(negotiation.agreed_slot);
@@ -528,7 +587,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
       `${negotiation.status.replace("_", " ")}`,
       `Suggested slot: ${formatSlot(negotiation.agreed_slot)}. Completed in ${negotiation.rounds_completed} round(s).`
     );
-    addMessage("system", "Saved", `Session status: ${saved.status}.`);
+    addMessage("system", "Saved", `Session status: ${savedStatus}.`);
     if (!useAi) {
       aiUpgradeCard.hidden = false;
       addMessage("system", "Demo Mode", "No model API key was used for this run.");
@@ -540,13 +599,13 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
   } catch (error) {
     removeTypingIndicator();
     resultStatus.textContent = "Error";
-    slotOutput.textContent = error.message;
-    addMessage("system", "Error", error.message);
+    const message = error.message || "The demo run could not complete.";
+    slotOutput.textContent = message;
+    addMessage("system", "Error", message);
     setGuideStep(3);
   } finally {
     runButton.disabled = false;
     runAiDemoButton.disabled = false;
-    setGuideStep(guideStepIndex);
   }
 }
 
