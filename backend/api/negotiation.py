@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
 from typing import List
 from negotiation.orchestrator import (
@@ -22,10 +22,23 @@ class NegotiationRequest(BaseModel):
     duration_minutes: int
     date_range_start: str
     date_range_end: str
+    use_ai: bool = False
 
 @router.post("/negotiation/start")
-def start_negotiation(request: NegotiationRequest):
+def start_negotiation(
+    request: NegotiationRequest,
+    x_user_gemini_key: str | None = Header(default=None)
+):
     try:
+        if request.use_ai and not x_user_gemini_key:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Add X-User-Gemini-Key to run the personalized "
+                    "AI flow, or set use_ai to false for demo mode."
+                )
+            )
+
         db = get_db()
         session_response = db.table(
             "negotiation_sessions"
@@ -55,7 +68,9 @@ def start_negotiation(request: NegotiationRequest):
             meeting_title=request.meeting_title,
             duration_minutes=request.duration_minutes,
             date_range_start=request.date_range_start,
-            date_range_end=request.date_range_end
+            date_range_end=request.date_range_end,
+            enable_ai=request.use_ai,
+            ai_api_key=x_user_gemini_key
         )
 
         result = orchestrator.run_negotiation(

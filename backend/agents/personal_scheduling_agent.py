@@ -3,8 +3,8 @@ import json
 from datetime import datetime
 from calendar_service.availability_store import get_availability
 
-def _get_gemini_client():
-    api_key = os.environ.get("GEMINI_API_KEY")
+def _get_gemini_client(api_key: str | None = None):
+    api_key = api_key or os.environ.get("GEMINI_API_KEY")
     if not api_key:
         return None
 
@@ -21,11 +21,15 @@ class PersonalSchedulingAgent:
         self,
         user_id: str,
         display_name: str,
-        scheduling_style: str
+        scheduling_style: str,
+        enable_ai: bool = False,
+        ai_api_key: str | None = None
     ):
         self.user_id = user_id
         self.display_name = display_name
         self.scheduling_style = scheduling_style
+        self.enable_ai = enable_ai
+        self.ai_api_key = ai_api_key
 
     def _get_style_description(self) -> str:
         descriptions = {
@@ -207,7 +211,9 @@ Please evaluate these meeting proposals for
 Check each proposed slot against your available 
 times and respond with your decision."""
 
-        client = _get_gemini_client()
+        client = _get_gemini_client(
+            self.ai_api_key
+        ) if self.enable_ai else None
         if not client:
             return self._evaluate_without_ai(
                 proposals,

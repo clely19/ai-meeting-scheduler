@@ -241,6 +241,17 @@
           <p id="slot-output">Run the negotiation to see the selected time.</p>
         </section>
 
+        <section id="ai-upgrade-card" class="ai-upgrade-card" hidden>
+          <p class="eyebrow">Optional AI mode</p>
+          <h3>Try your own Gemini key</h3>
+          <p>The first demo uses deterministic agents and does not spend any model tokens. Add your key to rerun this session with AI reasoning.</p>
+          <label>
+            Gemini API key
+            <input id="gemini-api-key" type="password" autocomplete="off" placeholder="Paste key for this browser session">
+          </label>
+          <button id="run-ai-demo" type="button">Run Personalized AI Flow</button>
+        </section>
+
         <section class="rounds">
           <h3>Negotiation rounds</h3>
           <div id="rounds-output" class="round-list"></div>

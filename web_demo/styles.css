@@ -1165,6 +1165,7 @@ button.secondary {
 
 .status-list div,
 .result-card,
+.ai-upgrade-card,
 .rounds {
   border: 1px solid #2c2c2e;
   border-radius: 14px;
@@ -1186,6 +1187,7 @@ button.secondary {
 }
 
 .result-card h3,
+.ai-upgrade-card h3,
 .rounds h3 {
   font-size: 15px;
   margin-bottom: 8px;
@@ -1194,6 +1196,49 @@ button.secondary {
 #slot-output {
   color: #d1d1d6;
   line-height: 1.5;
+}
+
+.ai-upgrade-card {
+  display: grid;
+  gap: 10px;
+}
+
+.ai-upgrade-card[hidden] {
+  display: none;
+}
+
+.ai-upgrade-card p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ai-upgrade-card label {
+  display: grid;
+  gap: 6px;
+  color: #d1d1d6;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ai-upgrade-card input {
+  height: 38px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+#run-ai-demo {
+  height: 42px;
+  border-radius: 12px;
+  color: #fff;
+  background: #0a84ff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+#run-ai-demo:disabled {
+  cursor: wait;
+  opacity: 0.62;
 }
 
 .round-list {

@@ -13,12 +13,16 @@ class HostAgent(PersonalSchedulingAgent):
         self,
         user_id: str,
         display_name: str,
-        scheduling_style: str
+        scheduling_style: str,
+        enable_ai: bool = False,
+        ai_api_key: str | None = None
     ):
         super().__init__(
             user_id,
             display_name,
-            scheduling_style
+            scheduling_style,
+            enable_ai,
+            ai_api_key
         )
 
     def generate_initial_proposals(
@@ -37,7 +41,9 @@ class HostAgent(PersonalSchedulingAgent):
         if not free_slots:
             return []
 
-        client = _get_gemini_client()
+        client = _get_gemini_client(
+            self.ai_api_key
+        ) if self.enable_ai else None
         if not client:
             return self._rank_slots(free_slots)[:num_proposals]
 
@@ -100,7 +106,9 @@ no additional text:
         if not free_slots:
             return []
 
-        client = _get_gemini_client()
+        client = _get_gemini_client(
+            self.ai_api_key
+        ) if self.enable_ai else None
         if not client:
             available_by_start = {
                 slot.get("start"): slot for slot in free_slots

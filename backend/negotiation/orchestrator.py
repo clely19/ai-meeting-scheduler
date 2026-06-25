@@ -26,13 +26,17 @@ class NegotiationOrchestrator:
         meeting_title: str,
         duration_minutes: int,
         date_range_start: str,
-        date_range_end: str
+        date_range_end: str,
+        enable_ai: bool = False,
+        ai_api_key: str | None = None
     ):
         self.session_id = session_id
         self.meeting_title = meeting_title
         self.duration_minutes = duration_minutes
         self.date_range_start = date_range_start
         self.date_range_end = date_range_end
+        self.enable_ai = enable_ai
+        self.ai_api_key = ai_api_key
         self.negotiation_logs = {}
         self.current_round = 0
 
@@ -139,7 +143,9 @@ class NegotiationOrchestrator:
         host = HostAgent(
             user_id=host_user_id,
             display_name=host_display_name,
-            scheduling_style=host_scheduling_style
+            scheduling_style=host_scheduling_style,
+            enable_ai=self.enable_ai,
+            ai_api_key=self.ai_api_key
         )
 
         invitee_agents = []
@@ -149,7 +155,9 @@ class NegotiationOrchestrator:
                 display_name=invitee["display_name"],
                 scheduling_style=invitee[
                     "scheduling_style"
-                ]
+                ],
+                enable_ai=self.enable_ai,
+                ai_api_key=self.ai_api_key
             )
             invitee_agents.append(agent)
 

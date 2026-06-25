@@ -1,6 +1,7 @@
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
@@ -203,6 +204,43 @@ class AgentFallbackTests(unittest.TestCase):
             decision["accepted_slot"]["start"],
             "2026-03-02T09:00:00",
         )
+
+    def test_agent_does_not_use_server_ai_key_in_demo_mode(self):
+        store_availability(
+            "invitee-1",
+            "session-1",
+            [
+                {
+                    "start": "2026-03-02T09:00:00",
+                    "end": "2026-03-02T10:00:00",
+                }
+            ],
+        )
+
+        agent = PersonalSchedulingAgent(
+            user_id="invitee-1",
+            display_name="Invitee",
+            scheduling_style="balanced",
+            enable_ai=False,
+        )
+
+        with patch(
+            "agents.personal_scheduling_agent._get_gemini_client"
+        ) as get_client:
+            decision = agent.evaluate_proposals(
+                proposals=[
+                    {
+                        "start": "2026-03-02T09:00:00",
+                        "end": "2026-03-02T10:00:00",
+                    }
+                ],
+                session_id="session-1",
+                meeting_duration=60,
+                meeting_title="Planning",
+            )
+
+        get_client.assert_not_called()
+        self.assertEqual(decision["decision"], "ACCEPT")
 
     def test_agent_counters_when_proposal_does_not_fit(self):
         store_availability(

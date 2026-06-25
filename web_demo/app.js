@@ -12,12 +12,15 @@ const filterMenuButton = document.querySelector("#filter-menu-button");
 const filterMenu = document.querySelector("#filter-menu");
 const backButton = document.querySelector(".back-pill");
 const runButton = document.querySelector("#run-demo");
+const runAiDemoButton = document.querySelector("#run-ai-demo");
 const closeSheetButton = document.querySelector("#close-sheet");
 const backendStatus = document.querySelector("#backend-status");
 const sessionId = document.querySelector("#session-id");
 const resultStatus = document.querySelector("#result-status");
 const slotOutput = document.querySelector("#slot-output");
 const roundsOutput = document.querySelector("#rounds-output");
+const aiUpgradeCard = document.querySelector("#ai-upgrade-card");
+const geminiApiKeyInput = document.querySelector("#gemini-api-key");
 const chatName = document.querySelector(".chat-title h1");
 const groupAvatar = document.querySelector(".group-avatar");
 const guideStepCount = document.querySelector("#guide-step-count");
@@ -29,6 +32,7 @@ const guideNext = document.querySelector("#guide-next");
 
 const dateRangeStart = "2026-03-02T09:00:00";
 const dateRangeEnd = "2026-03-06T18:00:00";
+const geminiKeyStorageName = "meetingSchedulerGeminiKey";
 let sheetDragStartY = 0;
 let sheetDragStartOffset = 162;
 let sheetOffset = 162;
@@ -410,13 +414,32 @@ function renderRounds(logs) {
 
 async function runDemo(event) {
   event.preventDefault();
+  await runSchedulingFlow({ useAi: false });
+}
 
+async function runPersonalizedAiDemo() {
+  const geminiApiKey = geminiApiKeyInput.value.trim();
+  if (!geminiApiKey) {
+    slotOutput.textContent = "Paste a Gemini API key to run the personalized AI flow.";
+    geminiApiKeyInput.focus();
+    return;
+  }
+
+  sessionStorage.setItem(geminiKeyStorageName, geminiApiKey);
+  await runSchedulingFlow({ useAi: true, geminiApiKey });
+}
+
+async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
   runButton.disabled = true;
+  runAiDemoButton.disabled = true;
   setGuideStep(4);
-  resultStatus.textContent = "Running";
+  resultStatus.textContent = useAi ? "Running with AI" : "Running demo";
   sessionId.textContent = "Creating";
-  slotOutput.textContent = "Negotiating with live agents.";
+  slotOutput.textContent = useAi
+    ? "Negotiating with AI-enabled agents using your key."
+    : "Negotiating with deterministic demo agents.";
   roundsOutput.innerHTML = "";
+  aiUpgradeCard.hidden = true;
   setInitialConversation();
 
   const meetingTitle = document.querySelector("#meeting-title").value;
@@ -428,7 +451,12 @@ async function runDemo(event) {
 
   try {
     addMessage("user", "Clely", meetingTitle);
-    addAppCard("Meeting Scheduler", "Setting up host and invitee profiles for this live scheduling thread.");
+    addAppCard(
+      "Meeting Scheduler",
+      useAi
+        ? "Setting up a personalized AI scheduling thread with your Gemini key for this run."
+        : "Setting up a no-token public demo with mock calendars and deterministic agents."
+    );
     const timestamp = new Date().toISOString().slice(11, 19);
     const host = await registerUser(`Demo Host ${timestamp}`, hostStyle);
     const inviteeOne = await registerUser(`Demo Invitee A ${timestamp}`, inviteeStyleOne);
@@ -440,6 +468,7 @@ async function runDemo(event) {
 
     const negotiation = await api("/negotiation/start", {
       method: "POST",
+      headers: useAi ? { "X-User-Gemini-Key": geminiApiKey } : {},
       body: JSON.stringify({
         host_user_id: host.id,
         host_display_name: host.display_name,
@@ -459,7 +488,8 @@ async function runDemo(event) {
         meeting_title: meetingTitle,
         duration_minutes: durationMinutes,
         date_range_start: dateRangeStart,
-        date_range_end: dateRangeEnd
+        date_range_end: dateRangeEnd,
+        use_ai: useAi
       })
     });
 
@@ -475,6 +505,10 @@ async function runDemo(event) {
       `Suggested slot: ${formatSlot(negotiation.agreed_slot)}. Completed in ${negotiation.rounds_completed} round(s).`
     );
     addMessage("system", "Saved", `Session status: ${saved.status}.`);
+    if (!useAi) {
+      aiUpgradeCard.hidden = false;
+      addMessage("system", "Demo Mode", "No model API key was used for this run.");
+    }
     setGuideStep(5);
   } catch (error) {
     removeTypingIndicator();
@@ -484,6 +518,7 @@ async function runDemo(event) {
     setGuideStep(3);
   } finally {
     runButton.disabled = false;
+    runAiDemoButton.disabled = false;
     setGuideStep(guideStepIndex);
   }
 }
@@ -533,7 +568,9 @@ closeSheetButton.addEventListener("pointermove", dragSheet);
 closeSheetButton.addEventListener("pointerup", finishSheetDrag);
 closeSheetButton.addEventListener("pointercancel", finishSheetDrag);
 form.addEventListener("submit", runDemo);
+runAiDemoButton.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
+geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
 setInitialConversation();
 setGuideStep(0);
 checkHealth();
