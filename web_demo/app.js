@@ -17,10 +17,14 @@ const closeSheetButton = document.querySelector("#close-sheet");
 const backendStatus = document.querySelector("#backend-status");
 const sessionId = document.querySelector("#session-id");
 const resultStatus = document.querySelector("#result-status");
+const modeStatus = document.querySelector("#mode-status");
 const slotOutput = document.querySelector("#slot-output");
 const roundsOutput = document.querySelector("#rounds-output");
 const aiUpgradeCard = document.querySelector("#ai-upgrade-card");
 const geminiApiKeyInput = document.querySelector("#gemini-api-key");
+const demoModeCard = document.querySelector("#demo-mode-card");
+const aiModeCard = document.querySelector("#ai-mode-card");
+const resultModeLabel = document.querySelector("#result-mode-label");
 const chatName = document.querySelector(".chat-title h1");
 const groupAvatar = document.querySelector(".group-avatar");
 const guideStepCount = document.querySelector("#guide-step-count");
@@ -60,8 +64,8 @@ const guideSteps = [
   },
   {
     title: "Review meeting details",
-    copy: "The demo is prefilled for a portfolio meeting. Run the live scheduling negotiation when ready.",
-    action: "Continue: Find a time"
+    copy: "The first run is Demo Mode: mock calendars, deterministic agents, and no model API key.",
+    action: "Continue: Run demo mode"
   },
   {
     title: "Live negotiation running",
@@ -70,7 +74,7 @@ const guideSteps = [
   },
   {
     title: "Review the result",
-    copy: "Read the suggested slot and negotiation rounds. The result came from the live Render backend.",
+    copy: "Read the suggested slot and negotiation rounds. Then choose whether to rerun the same workflow with your own Gemini key.",
     action: "Start over"
   }
 ];
@@ -107,6 +111,15 @@ function setGuideStep(index) {
     : "Follow the highlighted action inside the phone.";
   guideNext.textContent = step.action;
   guideNext.disabled = guideStepIndex === 4 || (runButton.disabled && guideStepIndex === 3);
+}
+
+function setModePresentation(useAi) {
+  const modeName = useAi ? "Personalized AI Mode" : "Demo Mode";
+  modeStatus.textContent = modeName;
+  resultModeLabel.textContent = modeName;
+  demoModeCard.classList.toggle("active", !useAi);
+  aiModeCard.classList.toggle("active", useAi);
+  runButton.textContent = "Run Demo Mode";
 }
 
 function advanceGuide() {
@@ -254,6 +267,7 @@ function showMessagesList() {
   phone.classList.remove("post-chat");
   phone.classList.remove("in-chat");
   updateSheetOffset(sheetCollapsedOffset);
+  setModePresentation(false);
   setGuideStep(0);
 }
 
@@ -430,14 +444,17 @@ async function runPersonalizedAiDemo() {
 }
 
 async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
+  setModePresentation(useAi);
   runButton.disabled = true;
   runAiDemoButton.disabled = true;
   setGuideStep(4);
-  resultStatus.textContent = useAi ? "Running with AI" : "Running demo";
+  resultStatus.textContent = useAi
+    ? "Personalized AI running"
+    : "Demo running";
   sessionId.textContent = "Creating";
   slotOutput.textContent = useAi
-    ? "Negotiating with AI-enabled agents using your key."
-    : "Negotiating with deterministic demo agents.";
+    ? "Using the same scheduling flow with AI-enabled agents and your Gemini key."
+    : "Using mock calendars and deterministic agents. No model API key is used.";
   roundsOutput.innerHTML = "";
   aiUpgradeCard.hidden = true;
   setInitialConversation();
@@ -452,10 +469,10 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
   try {
     addMessage("user", "Clely", meetingTitle);
     addAppCard(
-      "Meeting Scheduler",
+      useAi ? "Personalized AI Mode" : "Demo Mode",
       useAi
-        ? "Setting up a personalized AI scheduling thread with your Gemini key for this run."
-        : "Setting up a no-token public demo with mock calendars and deterministic agents."
+        ? "Rerunning the same scheduling workflow with your Gemini key for this browser session."
+        : "Running the public first-visit flow with mock calendars, deterministic agents, and no model API key."
     );
     const timestamp = new Date().toISOString().slice(11, 19);
     const host = await registerUser(`Demo Host ${timestamp}`, hostStyle);
@@ -464,6 +481,13 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
 
     addMessage("agent", "Host Agent", `Proposing ${durationMinutes}-minute slots using a ${hostStyle} preference.`);
     addMessage("agent", "Invitee Agents", `Evaluating availability as ${inviteeStyleOne} and ${inviteeStyleTwo} schedulers.`);
+    addMessage(
+      "system",
+      "Mode",
+      useAi
+        ? "Personalized AI Mode: same workflow, user-provided Gemini key."
+        : "Demo Mode: same workflow, mock data, no model key."
+    );
     addTypingIndicator();
 
     const negotiation = await api("/negotiation/start", {
@@ -496,7 +520,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     removeTypingIndicator();
     const saved = await api(`/negotiation/${negotiation.session_id}`);
     sessionId.textContent = negotiation.session_id;
-    resultStatus.textContent = negotiation.status.replace("_", " ");
+    resultStatus.textContent = `${useAi ? "AI" : "Demo"}: ${negotiation.status.replace("_", " ")}`;
     slotOutput.textContent = formatSlot(negotiation.agreed_slot);
     renderRounds(negotiation.negotiation_logs);
 
@@ -508,6 +532,9 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     if (!useAi) {
       aiUpgradeCard.hidden = false;
       addMessage("system", "Demo Mode", "No model API key was used for this run.");
+    } else {
+      aiUpgradeCard.hidden = true;
+      addMessage("system", "Personalized AI Mode", "This run used your Gemini key for AI reasoning.");
     }
     setGuideStep(5);
   } catch (error) {
@@ -571,6 +598,7 @@ form.addEventListener("submit", runDemo);
 runAiDemoButton.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
 geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
+setModePresentation(false);
 setInitialConversation();
 setGuideStep(0);
 checkHealth();

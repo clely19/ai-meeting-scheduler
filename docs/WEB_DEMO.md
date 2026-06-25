@@ -8,6 +8,8 @@ The original product interface is the iMessage extension. The web demo recreates
 
 The first public run uses deterministic demo agents, mock calendar availability, and no model API key. After a visitor completes one cycle, the demo offers an optional personalized AI rerun where the visitor can enter their own Gemini key for the current browser session.
 
+Both modes keep the original product flow intact: register a host and invitees, generate availability, run the negotiation, save the session, and display the suggested slot and negotiation rounds. The only difference is the agent reasoning mode.
+
 ## Local URL
 
 Start the backend from the project root:
@@ -48,7 +50,7 @@ https://ai-meeting-scheduler-api.onrender.com
 
 The demo is served by FastAPI under `/demo`, so browser requests call the same origin as the API. This avoids CORS setup for the first public version and keeps deployment to one Render service.
 
-Public demo runs send `use_ai: false` to `/negotiation/start`, which prevents the backend from using any server-side model key. Personalized reruns send `use_ai: true` plus an `X-User-Gemini-Key` header. That key is used only for the request and is not stored in Supabase.
+Public demo runs send `use_ai: false` to `/negotiation/start`, which prevents the backend from using any server-side model key. Personalized reruns use the same endpoint and payload shape, but send `use_ai: true` plus an `X-User-Gemini-Key` header. That key is used only for the request and is not stored in Supabase.
 
 ## Verification
 
