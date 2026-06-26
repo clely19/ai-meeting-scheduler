@@ -73,8 +73,8 @@ const guideSteps = [
     action: "Running..."
   },
   {
-    title: "Review the result",
-    copy: "Read the suggested slot and negotiation rounds. Then choose whether to rerun the same workflow with your own Gemini key.",
+    title: "Demo complete",
+    copy: "Review the result, then enter your Gemini key in the Personalized AI Mode card to rerun the same workflow.",
     action: "Start over"
   }
 ];
@@ -107,7 +107,7 @@ function setGuideStep(index) {
   guideTitle.textContent = step.title;
   guideCopy.textContent = step.copy;
   guidePanelCopy.textContent = guideStepIndex === 5
-    ? "The walkthrough is complete. Review the live result or start over."
+    ? "Demo Mode is complete. The Personalized AI Mode card is ready for your Gemini key."
     : "Follow the highlighted action inside the phone.";
   guideNext.textContent = step.action;
   guideNext.disabled = guideStepIndex === 4 || (runButton.disabled && guideStepIndex === 3);
@@ -400,12 +400,13 @@ function formatApiError(errorDetail, fallback) {
 }
 
 async function api(path, options = {}) {
+  const { headers = {}, ...requestOptions } = options;
   const response = await fetch(`${API_BASE}${path}`, {
+    ...requestOptions,
     headers: {
       "Content-Type": "application/json",
-      ...(options.headers || {})
-    },
-    ...options
+      ...headers
+    }
   });
 
   let body;
@@ -544,7 +545,9 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
 
     const negotiation = await api("/negotiation/start", {
       method: "POST",
-      headers: useAi ? { "X-User-Gemini-Key": geminiApiKey } : {},
+      ...(useAi ? {
+        headers: { "X-User-Gemini-Key": geminiApiKey }
+      } : {}),
       body: JSON.stringify({
         host_user_id: host.id,
         host_display_name: host.display_name,
