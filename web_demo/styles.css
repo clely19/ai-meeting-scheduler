@@ -575,6 +575,15 @@ h1 {
   display: none;
 }
 
+.message.agent strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #b7b7bd;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
 .message.user {
   align-self: flex-end;
   color: #fff;
@@ -623,6 +632,20 @@ h1 {
   color: #fff;
   background: linear-gradient(180deg, #0a84ff, #34c759);
   font-size: 11px;
+}
+
+.round-summary ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.round-summary li {
+  color: #d1d1d6;
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .linkedin-preview {

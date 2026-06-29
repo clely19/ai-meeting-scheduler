@@ -73,7 +73,7 @@ const guideSteps = [
   },
   {
     title: "Demo complete",
-    copy: "Review the result, then enter your Gemini key in the Personalized AI Mode card to rerun the same workflow.",
+    copy: "Review the selected time and round-by-round explanation in the group chat.",
     action: "Start over"
   }
 ];
@@ -106,7 +106,7 @@ function setGuideStep(index) {
   guideTitle.textContent = step.title;
   guideCopy.textContent = step.copy;
   guidePanelCopy.textContent = guideStepIndex === 4
-    ? "Demo Mode is complete. The Personalized AI Mode card is ready for your Gemini key."
+    ? "Demo Mode is complete. The result is visible inside the chat."
     : "Follow the highlighted action inside the phone.";
   guideNext.textContent = step.action;
   guideNext.disabled = guideStepIndex === 3 || (runButton.disabled && guideStepIndex === 2);
@@ -180,6 +180,31 @@ function addAppCard(title, text) {
   scrollThreadToLatest();
 }
 
+function addRoundSummaryMessage(title, lines) {
+  const message = document.createElement("article");
+  message.className = "message card round-summary";
+
+  const header = document.createElement("div");
+  header.className = "card-title";
+  const icon = document.createElement("span");
+  icon.className = "mini-icon";
+  icon.textContent = "AI";
+  const label = document.createElement("span");
+  label.textContent = title;
+  header.append(icon, label);
+
+  const list = document.createElement("ul");
+  lines.forEach((line) => {
+    const item = document.createElement("li");
+    item.textContent = line;
+    list.appendChild(item);
+  });
+
+  message.append(header, list);
+  thread.appendChild(message);
+  scrollThreadToLatest();
+}
+
 function addLinkedInPreview(post) {
   const message = document.createElement("article");
   message.className = "message card linkedin-preview";
@@ -218,13 +243,14 @@ function removeTypingIndicator() {
 
 function setInitialConversation() {
   thread.innerHTML = "";
-  chatName.textContent = "Me";
-  groupAvatar.textContent = "M";
+  chatName.textContent = "Project Sync";
+  groupAvatar.textContent = "3";
   phone.classList.remove("post-chat");
-  addMessage("agent", "Meeting Scheduler", "Welcome to the Meeting Scheduler demo.");
-  addMessage("agent", "Meeting Scheduler", "Tap + below, choose Meeting Scheduler, and try Demo Mode with mock calendars. No API key needed.");
-  addMessage("user", "Clely", "Let's find a time.");
-  addMessage("system", "Demo", "The scheduler opens only after you choose it from the iMessage app drawer.");
+  addMessage("system", "Group", "Clely, Maya, and Jordan");
+  addMessage("agent", "Maya", "I can make time this week, but mornings are easiest for me.");
+  addMessage("agent", "Jordan", "Afternoons are better on my side. Let's see what overlaps.");
+  addMessage("user", "Clely", "I'll use Meeting Scheduler to find a time that works for everyone.");
+  addMessage("agent", "Meeting Scheduler", "Tap + below, choose Meeting Scheduler, and I will explain each negotiation round here in the chat.");
 }
 
 function showChat() {
@@ -439,7 +465,21 @@ function getInviteeStyles() {
   return ["early", "flexible"];
 }
 
-function renderRounds(logs) {
+function getDecisionText(response, displayName) {
+  const decision = response?.decision || "REVIEWED";
+  const decisionText = decision.toLowerCase().replace("_", " ");
+  const reasoning = response?.reasoning ? ` ${response.reasoning}` : "";
+  const slot = response?.accepted_slot
+    ? ` Preferred slot: ${formatSlot(response.accepted_slot)}.`
+    : "";
+  const counterSlots = Array.isArray(response?.counter_slots) && response.counter_slots.length
+    ? ` Countered with ${response.counter_slots.length} alternate time${response.counter_slots.length === 1 ? "" : "s"}.`
+    : "";
+
+  return `${displayName} ${decisionText}.${reasoning}${slot}${counterSlots}`;
+}
+
+function renderRounds(logs, participantNames = {}) {
   roundsOutput.innerHTML = "";
 
   const roundKeys = Object.keys(logs || {})
@@ -448,25 +488,40 @@ function renderRounds(logs) {
 
   if (!roundKeys.length) {
     roundsOutput.textContent = "No negotiation rounds returned.";
+    addRoundSummaryMessage("Negotiation rounds", [
+      "No round-by-round details came back from the scheduler."
+    ]);
     return;
   }
 
   roundKeys.forEach((key) => {
-      const round = logs[key];
-      const accepted = Object.values(round.responses || {})
-        .filter((response) => response.decision === "ACCEPT").length;
-      const counters = Object.values(round.responses || {})
-        .filter((response) => response.decision === "COUNTER").length;
+    const round = logs[key];
+    const responses = Object.entries(round.responses || {});
+    const accepted = responses
+      .filter(([, response]) => response.decision === "ACCEPT").length;
+    const counters = responses
+      .filter(([, response]) => response.decision === "COUNTER").length;
+    const roundLabel = key.replace("_", " ");
+    const lines = [
+      `Clely's scheduler proposed ${round.proposals?.length || 0} possible time${round.proposals?.length === 1 ? "" : "s"}.`,
+      `${accepted} accepted, ${counters} countered.`
+    ];
 
-      const card = document.createElement("article");
-      card.className = "round";
-      card.innerHTML = `
-        <div class="round-title">
-          <span>${key.replace("_", " ")}</span>
-          <span>${accepted} accepted, ${counters} countered</span>
-        </div>
-        <p>${round.proposals.length} host proposals evaluated by ${Object.keys(round.responses || {}).length} invitee agents.</p>
-      `;
+    responses.forEach(([userId, response]) => {
+      lines.push(getDecisionText(response, participantNames[userId] || "Invitee"));
+    });
+
+    addRoundSummaryMessage(`${roundLabel}: checking overlap`, lines);
+
+    const card = document.createElement("article");
+    card.className = "round";
+    card.innerHTML = `
+      <div class="round-title">
+        <span>${roundLabel}</span>
+        <span>${accepted} accepted, ${counters} countered</span>
+      </div>
+      <p>${round.proposals?.length || 0} host proposals evaluated by ${responses.length} invitee agents.</p>
+    `;
     roundsOutput.appendChild(card);
   });
 }
@@ -522,12 +577,18 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
         : "Running the public first-visit flow with mock calendars, deterministic agents, and no model API key."
     );
     const timestamp = new Date().toISOString().slice(11, 19);
-    const host = await registerUser(`Demo Host ${timestamp}`, hostStyle);
-    const inviteeOne = await registerUser(`Demo Invitee A ${timestamp}`, inviteeStyleOne);
-    const inviteeTwo = await registerUser(`Demo Invitee B ${timestamp}`, inviteeStyleTwo);
+    const host = await registerUser(`Clely ${timestamp}`, hostStyle);
+    const inviteeOne = await registerUser(`Maya ${timestamp}`, inviteeStyleOne);
+    const inviteeTwo = await registerUser(`Jordan ${timestamp}`, inviteeStyleTwo);
+    const participantNames = {
+      [host.id]: "Clely",
+      [inviteeOne.id]: "Maya",
+      [inviteeTwo.id]: "Jordan"
+    };
 
-    addMessage("agent", "Host Agent", `Proposing ${durationMinutes}-minute slots using a ${hostStyle} preference.`);
-    addMessage("agent", "Invitee Agents", `Evaluating availability as ${inviteeStyleOne} and ${inviteeStyleTwo} schedulers.`);
+    addMessage("agent", "Meeting Scheduler", `I created scheduling agents for Clely, Maya, and Jordan.`);
+    addMessage("agent", "Clely's Agent", `Proposing ${durationMinutes}-minute slots using a ${hostStyle} preference.`);
+    addMessage("agent", "Maya + Jordan's Agents", `Evaluating availability as ${inviteeStyleOne} and ${inviteeStyleTwo} schedulers.`);
     addMessage(
       "system",
       "Mode",
@@ -578,7 +639,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     sessionId.textContent = negotiation.session_id;
     resultStatus.textContent = `${useAi ? "AI" : "Demo"}: ${negotiation.status.replace("_", " ")}`;
     slotOutput.textContent = formatSlot(negotiation.agreed_slot);
-    renderRounds(negotiation.negotiation_logs);
+    renderRounds(negotiation.negotiation_logs, participantNames);
 
     addAppCard(
       `${negotiation.status.replace("_", " ")}`,
