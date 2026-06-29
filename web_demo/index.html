@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260629-chat-first">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260629-focused-app">
   </head>
   <body>
     <main class="shell">
@@ -205,78 +205,8 @@
         </aside>
       </section>
 
-      <aside class="panel" aria-label="Result details">
-        <div>
-          <p class="eyebrow">Public demo</p>
-          <h2>iMessage extension flow</h2>
-          <p class="panel-copy">This browser version recreates the original iMessage extension experience while calling the same live backend.</p>
-          <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
-        </div>
-
-        <section class="mode-summary" aria-label="Demo and personalized AI modes">
-          <article id="demo-mode-card" class="mode-card active">
-            <p class="mode-label">First visit</p>
-            <h3>Demo Mode</h3>
-            <p>Mock calendars, deterministic agents, no model API key, no token spend.</p>
-          </article>
-          <article id="ai-mode-card" class="mode-card">
-            <p class="mode-label">After completion</p>
-            <h3>Personalized AI Mode</h3>
-            <p>The same scheduling workflow, rerun with the visitor's Gemini key.</p>
-          </article>
-        </section>
-
-        <section class="guide-card" aria-label="Guided demo flow">
-          <div class="guide-heading">
-            <p class="eyebrow">Guided flow</p>
-            <p id="guide-panel-count" class="guide-count">Step 1 of 5</p>
-          </div>
-          <p id="guide-panel-copy">Follow the highlighted action inside the phone.</p>
-        </section>
-
-        <dl class="status-list">
-          <div>
-            <dt>Backend</dt>
-            <dd id="backend-status">Checking</dd>
-          </div>
-          <div>
-            <dt>Session</dt>
-            <dd id="session-id">Not started</dd>
-          </div>
-          <div>
-            <dt>Result</dt>
-            <dd id="result-status">Waiting</dd>
-          </div>
-          <div>
-            <dt>Mode</dt>
-            <dd id="mode-status">Demo Mode</dd>
-          </div>
-        </dl>
-
-        <section class="result-card">
-          <p id="result-mode-label" class="eyebrow">Demo Mode</p>
-          <h3>Suggested slot</h3>
-          <p id="slot-output">Run the negotiation to see the selected time.</p>
-        </section>
-
-        <section id="ai-upgrade-card" class="ai-upgrade-card" hidden>
-          <p class="eyebrow">Next step</p>
-          <h3>Run the same flow with your own Gemini key</h3>
-          <p>Demo Mode is complete. To try Personalized AI Mode, enter your key and rerun the same host, invitee, proposal, negotiation, and result workflow with AI reasoning enabled.</p>
-          <label>
-            Gemini API key
-            <input id="gemini-api-key" type="password" autocomplete="off" placeholder="Paste key for this browser session">
-          </label>
-          <button id="run-ai-demo" type="button">Run Personalized AI Flow</button>
-        </section>
-
-        <section class="rounds">
-          <h3>Negotiation rounds</h3>
-          <div id="rounds-output" class="round-list"></div>
-        </section>
-      </aside>
     </main>
 
-    <script src="/demo/app.js?v=20260629-chat-first"></script>
+    <script src="/demo/app.js?v=20260629-focused-app"></script>
   </body>
 </html>

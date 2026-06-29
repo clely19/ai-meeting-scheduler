@@ -14,24 +14,28 @@ const backButton = document.querySelector(".back-pill");
 const runButton = document.querySelector("#run-demo");
 const runAiDemoButton = document.querySelector("#run-ai-demo");
 const closeSheetButton = document.querySelector("#close-sheet");
-const backendStatus = document.querySelector("#backend-status");
-const sessionId = document.querySelector("#session-id");
-const resultStatus = document.querySelector("#result-status");
-const modeStatus = document.querySelector("#mode-status");
-const slotOutput = document.querySelector("#slot-output");
-const roundsOutput = document.querySelector("#rounds-output");
-const aiUpgradeCard = document.querySelector("#ai-upgrade-card");
-const geminiApiKeyInput = document.querySelector("#gemini-api-key");
+const createStateNode = () => document.createElement("span");
+const backendStatus = document.querySelector("#backend-status") || createStateNode();
+const sessionId = document.querySelector("#session-id") || createStateNode();
+const resultStatus = document.querySelector("#result-status") || createStateNode();
+const modeStatus = document.querySelector("#mode-status") || createStateNode();
+const slotOutput = document.querySelector("#slot-output") || createStateNode();
+const roundsOutput = document.querySelector("#rounds-output") || document.createElement("div");
+const aiUpgradeCard = document.querySelector("#ai-upgrade-card") || { hidden: true };
+const geminiApiKeyInput = document.querySelector("#gemini-api-key") || {
+  value: "",
+  focus() {}
+};
 const demoModeCard = document.querySelector("#demo-mode-card");
 const aiModeCard = document.querySelector("#ai-mode-card");
-const resultModeLabel = document.querySelector("#result-mode-label");
+const resultModeLabel = document.querySelector("#result-mode-label") || createStateNode();
 const chatName = document.querySelector(".chat-title h1");
 const groupAvatar = document.querySelector(".group-avatar");
 const guideStepCount = document.querySelector("#guide-step-count");
-const guidePanelCount = document.querySelector("#guide-panel-count");
+const guidePanelCount = document.querySelector("#guide-panel-count") || createStateNode();
 const guideTitle = document.querySelector("#guide-title");
 const guideCopy = document.querySelector("#guide-copy");
-const guidePanelCopy = document.querySelector("#guide-panel-copy");
+const guidePanelCopy = document.querySelector("#guide-panel-copy") || createStateNode();
 const guideNext = document.querySelector("#guide-next");
 
 const dateRangeStart = "2026-03-02T09:00:00";
@@ -112,8 +116,8 @@ function setModePresentation(useAi) {
   const modeName = useAi ? "Personalized AI Mode" : "Demo Mode";
   modeStatus.textContent = modeName;
   resultModeLabel.textContent = modeName;
-  demoModeCard.classList.toggle("active", !useAi);
-  aiModeCard.classList.toggle("active", useAi);
+  demoModeCard?.classList.toggle("active", !useAi);
+  aiModeCard?.classList.toggle("active", useAi);
   runButton.textContent = "Run Demo Mode";
 }
 
@@ -487,7 +491,9 @@ async function runPersonalizedAiDemo() {
 async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
   setModePresentation(useAi);
   runButton.disabled = true;
-  runAiDemoButton.disabled = true;
+  if (runAiDemoButton) {
+    runAiDemoButton.disabled = true;
+  }
   setGuideStep(3);
   resultStatus.textContent = useAi
     ? "Personalized AI running"
@@ -596,7 +602,9 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     setGuideStep(2);
   } finally {
     runButton.disabled = false;
-    runAiDemoButton.disabled = false;
+    if (runAiDemoButton) {
+      runAiDemoButton.disabled = false;
+    }
   }
 }
 
@@ -646,7 +654,7 @@ closeSheetButton.addEventListener("pointermove", dragSheet);
 closeSheetButton.addEventListener("pointerup", finishSheetDrag);
 closeSheetButton.addEventListener("pointercancel", finishSheetDrag);
 form.addEventListener("submit", runDemo);
-runAiDemoButton.addEventListener("click", runPersonalizedAiDemo);
+runAiDemoButton?.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
 geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
 setModePresentation(false);
