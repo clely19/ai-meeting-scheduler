@@ -119,61 +119,58 @@ select {
 }
 
 .phone.guide-step-0 .guide-callout {
-  top: 150px;
-  left: 87px;
-}
-
-.phone.guide-step-0 .guide-callout::after {
-  left: 30px;
-  bottom: -7px;
-}
-
-.phone.guide-step-1 .guide-callout {
   left: 54px;
   bottom: 78px;
 }
 
-.phone.guide-step-1 .guide-callout::after {
+.phone.guide-step-0 .guide-callout::after {
   left: 18px;
+  bottom: -7px;
+}
+
+.phone.guide-step-1 .guide-callout {
+  left: 72px;
+  bottom: 284px;
+}
+
+.phone.guide-step-1 .guide-callout::after {
+  left: 44px;
   bottom: -7px;
 }
 
 .phone.guide-step-2 .guide-callout {
   left: 72px;
-  bottom: 284px;
-}
-
-.phone.guide-step-2 .guide-callout::after {
-  left: 44px;
-  bottom: -7px;
-}
-
-.phone.guide-step-3 .guide-callout {
-  left: 72px;
   bottom: 260px;
 }
 
-.phone.guide-step-3 .guide-callout::after {
+.phone.guide-step-2 .guide-callout::after {
   left: 132px;
   bottom: -7px;
 }
 
-.phone.guide-step-4 .guide-callout,
-.phone.guide-step-5 .guide-callout {
+.phone.guide-step-3 .guide-callout {
   left: 84px;
   top: 250px;
 }
 
-.phone.guide-step-4 .guide-callout::after,
-.phone.guide-step-5 .guide-callout::after {
+.phone.guide-step-3 .guide-callout::after {
   left: 50%;
   bottom: -7px;
 }
 
-.phone.guide-step-0 #open-demo-chat,
-.phone.guide-step-1 #open-apps,
-.phone.guide-step-2 #open-scheduler,
-.phone.guide-step-3 #run-demo {
+.phone.guide-step-4 .guide-callout {
+  left: 84px;
+  top: 250px;
+}
+
+.phone.guide-step-4 .guide-callout::after {
+  left: 50%;
+  bottom: -7px;
+}
+
+.phone.guide-step-0 #open-apps,
+.phone.guide-step-1 #open-scheduler,
+.phone.guide-step-2 #run-demo {
   position: relative;
   z-index: 24;
   outline: 2px solid #0a84ff;
@@ -1646,28 +1643,23 @@ button.secondary {
   }
 
   .phone.guide-step-0 .guide-callout {
-    top: 126px;
-    left: 232px;
-  }
-
-  .phone.guide-step-1 .guide-callout {
     left: 360px;
     bottom: 62px;
   }
 
-  .phone.guide-step-2 .guide-callout {
+  .phone.guide-step-1 .guide-callout {
     left: 374px;
     bottom: 260px;
   }
 
-  .phone.guide-step-3 .guide-callout {
+  .phone.guide-step-2 .guide-callout {
     right: 28px;
     left: auto;
     bottom: 84px;
   }
 
-  .phone.guide-step-4 .guide-callout,
-  .phone.guide-step-5 .guide-callout {
+  .phone.guide-step-3 .guide-callout,
+  .phone.guide-step-4 .guide-callout {
     left: 50%;
     top: 210px;
     transform: translateX(-10%);

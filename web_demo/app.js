@@ -48,19 +48,14 @@ const sheetCollapsedOffset = 162;
 const sheetCloseOffset = 270;
 const guideSteps = [
   {
-    title: "Start from Messages",
-    copy: "Begin on the Messages list, then open the AI Meeting Scheduler demo chat.",
-    action: "Continue: Open demo chat"
-  },
-  {
     title: "Open iMessage apps",
-    copy: "Use the plus button to reveal the iMessage app drawer, just like the original extension flow.",
-    action: "Next: Open app drawer"
+    copy: "Tap the + button below to reveal the iMessage app drawer.",
+    action: "Tap + in the phone"
   },
   {
     title: "Choose Meeting Scheduler",
-    copy: "Select Meeting Scheduler from the app drawer so the extension sheet appears below the text box.",
-    action: "Next: Open scheduler"
+    copy: "Choose Meeting Scheduler from the drawer to open the extension sheet.",
+    action: "Choose the scheduler"
   },
   {
     title: "Review meeting details",
@@ -106,11 +101,11 @@ function setGuideStep(index) {
   guidePanelCount.textContent = guideStepCount.textContent;
   guideTitle.textContent = step.title;
   guideCopy.textContent = step.copy;
-  guidePanelCopy.textContent = guideStepIndex === 5
+  guidePanelCopy.textContent = guideStepIndex === 4
     ? "Demo Mode is complete. The Personalized AI Mode card is ready for your Gemini key."
     : "Follow the highlighted action inside the phone.";
   guideNext.textContent = step.action;
-  guideNext.disabled = guideStepIndex === 4 || (runButton.disabled && guideStepIndex === 3);
+  guideNext.disabled = guideStepIndex === 3 || (runButton.disabled && guideStepIndex === 2);
 }
 
 function setModePresentation(useAi) {
@@ -124,30 +119,22 @@ function setModePresentation(useAi) {
 
 function advanceGuide() {
   if (guideStepIndex === 0) {
-    showChat();
-    setGuideStep(1);
+    openAppsButton.focus();
     return;
   }
 
   if (guideStepIndex === 1) {
-    showAppDrawer();
-    setGuideStep(2);
+    openSchedulerButton.focus();
     return;
   }
 
   if (guideStepIndex === 2) {
-    showSchedulerSheet();
     setGuideStep(3);
-    return;
-  }
-
-  if (guideStepIndex === 3) {
-    setGuideStep(4);
     form.requestSubmit();
     return;
   }
 
-  showMessagesList();
+  showChat();
   setGuideStep(0);
 }
 
@@ -230,9 +217,10 @@ function setInitialConversation() {
   chatName.textContent = "Me";
   groupAvatar.textContent = "M";
   phone.classList.remove("post-chat");
-  addMessage("agent", "Me", "Testing Meeting Scheduler Extension");
-  addMessage("user", "Clely", "Testing Meeting Scheduler Extension");
-  addMessage("system", "Sat, Feb 28 at 6:01 PM", "Tap +, choose Meeting Scheduler, then find a time.");
+  addMessage("agent", "Meeting Scheduler", "Welcome to the Meeting Scheduler demo.");
+  addMessage("agent", "Meeting Scheduler", "Tap + below, choose Meeting Scheduler, and try Demo Mode with mock calendars. No API key needed.");
+  addMessage("user", "Clely", "Let's find a time.");
+  addMessage("system", "Demo", "The scheduler opens only after you choose it from the iMessage app drawer.");
 }
 
 function showChat() {
@@ -244,7 +232,7 @@ function showChat() {
   phone.classList.remove("sheet-open");
   updateSheetOffset(sheetCollapsedOffset);
   scrollThreadToLatest();
-  setGuideStep(1);
+  setGuideStep(0);
 }
 
 function showLinkedInPostChat(post) {
@@ -287,7 +275,7 @@ function showAppDrawer() {
   appDrawer.hidden = false;
   form.hidden = true;
   phone.classList.remove("sheet-open");
-  setGuideStep(2);
+  setGuideStep(1);
 }
 
 function hideAppDrawer() {
@@ -300,7 +288,7 @@ function showSchedulerSheet() {
   updateSheetOffset(sheetCollapsedOffset);
   phone.classList.add("sheet-open");
   scrollThreadToLatest();
-  setGuideStep(3);
+  setGuideStep(2);
 }
 
 function closeSchedulerSheet() {
@@ -308,7 +296,7 @@ function closeSchedulerSheet() {
   appDrawer.hidden = true;
   phone.classList.remove("sheet-open");
   updateSheetOffset(sheetCollapsedOffset);
-  setGuideStep(2);
+  setGuideStep(1);
 }
 
 function startSheetDrag(event) {
@@ -500,7 +488,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
   setModePresentation(useAi);
   runButton.disabled = true;
   runAiDemoButton.disabled = true;
-  setGuideStep(4);
+  setGuideStep(3);
   resultStatus.textContent = useAi
     ? "Personalized AI running"
     : "Demo running";
@@ -598,14 +586,14 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
       aiUpgradeCard.hidden = true;
       addMessage("system", "Personalized AI Mode", "This run used your Gemini key for AI reasoning.");
     }
-    setGuideStep(5);
+    setGuideStep(4);
   } catch (error) {
     removeTypingIndicator();
     resultStatus.textContent = "Error";
     const message = error.message || "The demo run could not complete.";
     slotOutput.textContent = message;
     addMessage("system", "Error", message);
-    setGuideStep(3);
+    setGuideStep(2);
   } finally {
     runButton.disabled = false;
     runAiDemoButton.disabled = false;
@@ -626,6 +614,7 @@ openAppsButton.addEventListener("click", () => {
     showAppDrawer();
   } else {
     hideAppDrawer();
+    setGuideStep(0);
   }
 });
 
@@ -661,6 +650,5 @@ runAiDemoButton.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
 geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
 setModePresentation(false);
-setInitialConversation();
-setGuideStep(0);
+showChat();
 checkHealth();
