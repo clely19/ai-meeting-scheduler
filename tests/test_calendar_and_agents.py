@@ -13,6 +13,7 @@ from calendar_service.availability_store import (
 )
 from calendar_service.free_slot_calculator import get_free_slots
 from calendar_service.mock_generator import generate_mock_busy_blocks
+from negotiation.orchestrator import NegotiationOrchestrator
 
 try:
     from api.calendar import AvailabilityRequest, fetch_and_calculate_slots
@@ -276,6 +277,55 @@ class AgentFallbackTests(unittest.TestCase):
             decision["counter_slots"][0]["start"],
             "2026-03-02T11:00:00",
         )
+
+    def test_consensus_requires_slot_available_for_all_participants(self):
+        session_id = "session-consensus-guard"
+        proposal = {
+            "start": "2026-03-02T09:00:00",
+            "end": "2026-03-02T10:00:00",
+        }
+
+        store_availability("host", session_id, [proposal])
+        store_availability("maya", session_id, [proposal])
+        store_availability(
+            "jordan",
+            session_id,
+            [
+                {
+                    "start": "2026-03-02T11:00:00",
+                    "end": "2026-03-02T12:00:00",
+                }
+            ],
+        )
+
+        orchestrator = NegotiationOrchestrator(
+            session_id=session_id,
+            meeting_title="Planning",
+            duration_minutes=60,
+            date_range_start="2026-03-02T09:00:00",
+            date_range_end="2026-03-02T18:00:00",
+        )
+        orchestrator.participant_user_ids = [
+            "host",
+            "maya",
+            "jordan",
+        ]
+
+        consensus = orchestrator._check_consensus(
+            proposals=[proposal],
+            responses={
+                "maya": {
+                    "decision": "ACCEPT",
+                    "accepted_slot": proposal,
+                },
+                "jordan": {
+                    "decision": "ACCEPT",
+                    "accepted_slot": proposal,
+                },
+            },
+        )
+
+        self.assertIsNone(consensus)
 
 
 if __name__ == "__main__":

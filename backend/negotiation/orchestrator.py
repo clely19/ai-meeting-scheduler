@@ -39,6 +39,7 @@ class NegotiationOrchestrator:
         self.enable_ai = enable_ai
         self.ai_api_key = ai_api_key
         self.participant_busy_blocks = participant_busy_blocks or {}
+        self.participant_user_ids = []
         self.negotiation_logs = {}
         self.current_round = 0
 
@@ -68,6 +69,41 @@ class NegotiationOrchestrator:
         )
         return free_slots
 
+    def _slot_fits_free_slot(
+        self,
+        slot: Dict,
+        free_slot: Dict
+    ) -> bool:
+        try:
+            slot_start = datetime.fromisoformat(slot["start"])
+            slot_end = datetime.fromisoformat(slot["end"])
+            free_start = datetime.fromisoformat(free_slot["start"])
+            free_end = datetime.fromisoformat(free_slot["end"])
+        except (KeyError, TypeError, ValueError):
+            return False
+
+        return free_start <= slot_start and slot_end <= free_end
+
+    def _slot_available_for_all_participants(
+        self,
+        slot: Dict
+    ) -> bool:
+        if not self.participant_user_ids:
+            return True
+
+        for user_id in self.participant_user_ids:
+            free_slots = get_availability(
+                user_id,
+                self.session_id
+            )
+            if not any(
+                self._slot_fits_free_slot(slot, free_slot)
+                for free_slot in free_slots
+            ):
+                return False
+
+        return True
+
     def _check_consensus(
         self,
         proposals: List[Dict],
@@ -90,7 +126,10 @@ class NegotiationOrchestrator:
                 break
 
             if all_accepted and len(responses) > 0:
-                return proposal
+                if self._slot_available_for_all_participants(
+                    proposal
+                ):
+                    return proposal
 
         return None
 
@@ -124,7 +163,12 @@ class NegotiationOrchestrator:
         )
 
         for proposal in proposals:
-            if proposal.get("start") == best_slot_start:
+            if (
+                proposal.get("start") == best_slot_start
+                and self._slot_available_for_all_participants(
+                    proposal
+                )
+            ):
                 return proposal
 
         return None
@@ -136,6 +180,14 @@ class NegotiationOrchestrator:
         host_scheduling_style: str,
         invitees: List[Dict]
     ) -> Dict:
+
+        self.participant_user_ids = [
+            host_user_id,
+            *[
+                invitee["user_id"]
+                for invitee in invitees
+            ]
+        ]
 
         self._setup_agent_availability(host_user_id)
 
