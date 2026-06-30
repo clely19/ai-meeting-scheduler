@@ -104,6 +104,31 @@ class NegotiationOrchestrator:
 
         return True
 
+    def _slot_start_datetime(self, slot: Dict) -> datetime:
+        try:
+            return datetime.fromisoformat(slot["start"])
+        except (KeyError, TypeError, ValueError):
+            return datetime.max
+
+    def _find_next_common_available_slot(self) -> Optional[Dict]:
+        if not self.participant_user_ids:
+            return None
+
+        host_user_id = self.participant_user_ids[0]
+        host_free_slots = get_availability(
+            host_user_id,
+            self.session_id
+        )
+
+        for slot in sorted(
+            host_free_slots,
+            key=self._slot_start_datetime
+        ):
+            if self._slot_available_for_all_participants(slot):
+                return slot
+
+        return None
+
     def _check_consensus(
         self,
         proposals: List[Dict],
@@ -322,6 +347,34 @@ class NegotiationOrchestrator:
             return {
                 "status": "PARTIAL_CONSENSUS",
                 "agreed_slot": best_slot,
+                "rounds_completed": MAX_ROUNDS,
+                "negotiation_logs": \
+                    self.negotiation_logs
+            }
+
+        next_available_slot = self._find_next_common_available_slot()
+
+        if next_available_slot:
+            print("📅 Next common availability found")
+            self.negotiation_logs[
+                "final_result"
+            ] = "NEXT_AVAILABLE"
+            self.negotiation_logs[
+                "agreed_slot"
+            ] = next_available_slot
+            self.negotiation_logs[
+                "rounds_completed"
+            ] = MAX_ROUNDS
+            self.negotiation_logs[
+                "fallback_reason"
+            ] = (
+                "No proposed slot reached consensus, so the scheduler "
+                "selected the next slot that is free for every participant."
+            )
+
+            return {
+                "status": "NEXT_AVAILABLE",
+                "agreed_slot": next_available_slot,
                 "rounds_completed": MAX_ROUNDS,
                 "negotiation_logs": \
                     self.negotiation_logs

@@ -88,7 +88,10 @@ def start_negotiation(
         final_status = result["status"].lower()
         if final_status == "consensus":
             db_status = "pending_approval"
-        elif final_status == "partial_consensus":
+        elif final_status in [
+            "partial_consensus",
+            "next_available"
+        ]:
             db_status = "pending_approval"
         else:
             db_status = "failed"

@@ -170,6 +170,15 @@ class CalendarApiTests(unittest.TestCase):
 class AgentFallbackTests(unittest.TestCase):
     def tearDown(self):
         clear_availability("invitee-1", "session-1")
+        clear_availability("host", "session-next-common")
+        clear_availability("maya", "session-next-common")
+        clear_availability("jordan", "session-next-common")
+        clear_availability("host", "session-no-common")
+        clear_availability("maya", "session-no-common")
+        clear_availability("jordan", "session-no-common")
+        clear_availability("host", "session-consensus-guard")
+        clear_availability("maya", "session-consensus-guard")
+        clear_availability("jordan", "session-consensus-guard")
 
     def test_agent_accepts_matching_slot_without_ai_client(self):
         store_availability(
@@ -326,6 +335,96 @@ class AgentFallbackTests(unittest.TestCase):
         )
 
         self.assertIsNone(consensus)
+
+    def test_finds_next_common_available_slot_after_proposals_fail(self):
+        session_id = "session-next-common"
+        early_slot = {
+            "start": "2026-06-30T09:00:00",
+            "end": "2026-06-30T10:00:00",
+        }
+        shared_slot = {
+            "start": "2026-07-01T11:00:00",
+            "end": "2026-07-01T12:00:00",
+        }
+
+        store_availability(
+            "host",
+            session_id,
+            [early_slot, shared_slot],
+        )
+        store_availability("maya", session_id, [shared_slot])
+        store_availability("jordan", session_id, [shared_slot])
+
+        orchestrator = NegotiationOrchestrator(
+            session_id=session_id,
+            meeting_title="Planning",
+            duration_minutes=60,
+            date_range_start="2026-06-30T09:00:00",
+            date_range_end="2026-07-03T18:00:00",
+        )
+        orchestrator.participant_user_ids = [
+            "host",
+            "maya",
+            "jordan",
+        ]
+
+        next_slot = orchestrator._find_next_common_available_slot()
+
+        self.assertEqual(
+            next_slot["start"],
+            "2026-07-01T11:00:00",
+        )
+
+    def test_next_common_available_slot_returns_none_when_none_fit(self):
+        session_id = "session-no-common"
+
+        store_availability(
+            "host",
+            session_id,
+            [
+                {
+                    "start": "2026-06-30T09:00:00",
+                    "end": "2026-06-30T10:00:00",
+                }
+            ],
+        )
+        store_availability(
+            "maya",
+            session_id,
+            [
+                {
+                    "start": "2026-07-01T11:00:00",
+                    "end": "2026-07-01T12:00:00",
+                }
+            ],
+        )
+        store_availability(
+            "jordan",
+            session_id,
+            [
+                {
+                    "start": "2026-07-02T13:00:00",
+                    "end": "2026-07-02T14:00:00",
+                }
+            ],
+        )
+
+        orchestrator = NegotiationOrchestrator(
+            session_id=session_id,
+            meeting_title="Planning",
+            duration_minutes=60,
+            date_range_start="2026-06-30T09:00:00",
+            date_range_end="2026-07-03T18:00:00",
+        )
+        orchestrator.participant_user_ids = [
+            "host",
+            "maya",
+            "jordan",
+        ]
+
+        self.assertIsNone(
+            orchestrator._find_next_common_available_slot()
+        )
 
 
 if __name__ == "__main__":
