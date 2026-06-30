@@ -38,8 +38,6 @@ const guideCopy = document.querySelector("#guide-copy");
 const guidePanelCopy = document.querySelector("#guide-panel-copy") || createStateNode();
 const guideNext = document.querySelector("#guide-next");
 
-const dateRangeStart = "2026-03-02T09:00:00";
-const dateRangeEnd = "2026-03-06T18:00:00";
 const geminiKeyStorageName = "meetingSchedulerGeminiKey";
 let sheetDragStartY = 0;
 let sheetDragStartOffset = 162;
@@ -50,6 +48,7 @@ let guideStepIndex = 0;
 const sheetExpandedOffset = 0;
 const sheetCollapsedOffset = 162;
 const sheetCloseOffset = 270;
+const demoWindowDays = 7;
 const guideSteps = [
   {
     title: "Open iMessage apps",
@@ -119,6 +118,33 @@ function setModePresentation(useAi) {
   demoModeCard?.classList.toggle("active", !useAi);
   aiModeCard?.classList.toggle("active", useAi);
   runButton.textContent = "Run Demo Mode";
+}
+
+function formatLocalDateTime(date) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate())
+  ].join("-") + `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+function getDemoDateRange() {
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(9, 0, 0, 0);
+  if (now.getHours() >= 17) {
+    start.setDate(start.getDate() + 1);
+  }
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + demoWindowDays);
+  end.setHours(18, 0, 0, 0);
+
+  return {
+    start: formatLocalDateTime(start),
+    end: formatLocalDateTime(end)
+  };
 }
 
 function advanceGuide() {
@@ -562,6 +588,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
   setInitialConversation();
 
   const meetingTitle = document.querySelector("#meeting-title").value;
+  const demoDateRange = getDemoDateRange();
   const durationMinutes = Number(
     document.querySelector("input[name='duration-minutes']:checked").value
   );
@@ -621,8 +648,8 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
         ],
         meeting_title: meetingTitle,
         duration_minutes: durationMinutes,
-        date_range_start: dateRangeStart,
-        date_range_end: dateRangeEnd,
+        date_range_start: demoDateRange.start,
+        date_range_end: demoDateRange.end,
         use_ai: useAi
       })
     });
