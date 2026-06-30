@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260630-current-dates">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260630-editable-window">
   </head>
   <body>
     <main class="shell">
@@ -165,6 +165,28 @@
                 </div>
               </fieldset>
 
+              <fieldset class="schedule-window-field">
+                <legend>Schedule between</legend>
+                <div class="schedule-window-control">
+                  <label>
+                    Start date
+                    <input id="schedule-start-date" type="date" required>
+                  </label>
+                  <label>
+                    Start time
+                    <input id="schedule-start-time" type="time" required>
+                  </label>
+                  <label>
+                    End date
+                    <input id="schedule-end-date" type="date" required>
+                  </label>
+                  <label>
+                    End time
+                    <input id="schedule-end-time" type="time" required>
+                  </label>
+                </div>
+              </fieldset>
+
               <label>
                 People in this chat
                 <span class="hint">Demo creates participant IDs automatically</span>
@@ -218,6 +240,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260630-external-calendars"></script>
+    <script src="/demo/app.js?v=20260630-editable-window"></script>
   </body>
 </html>

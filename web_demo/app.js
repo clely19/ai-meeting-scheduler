@@ -18,6 +18,10 @@ const backButton = document.querySelector(".back-pill");
 const runButton = document.querySelector("#run-demo");
 const runAiDemoButton = document.querySelector("#run-ai-demo");
 const closeSheetButton = document.querySelector("#close-sheet");
+const scheduleStartDateInput = document.querySelector("#schedule-start-date");
+const scheduleStartTimeInput = document.querySelector("#schedule-start-time");
+const scheduleEndDateInput = document.querySelector("#schedule-end-date");
+const scheduleEndTimeInput = document.querySelector("#schedule-end-time");
 const createStateNode = () => document.createElement("span");
 const backendStatus = document.querySelector("#backend-status") || createStateNode();
 const sessionId = document.querySelector("#session-id") || createStateNode();
@@ -152,6 +156,20 @@ function formatLocalDateTime(date) {
   ].join("-") + `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
+function formatDateInputValue(date) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate())
+  ].join("-");
+}
+
+function formatTimeInputValue(date) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 function getDemoDateRange() {
   const now = new Date();
   const start = new Date(now);
@@ -170,8 +188,42 @@ function getDemoDateRange() {
   };
 }
 
+function initializeScheduleWindowControls() {
+  const { start, end } = getDemoDateRange();
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  scheduleStartDateInput.value = formatDateInputValue(startDate);
+  scheduleStartTimeInput.value = formatTimeInputValue(startDate);
+  scheduleEndDateInput.value = formatDateInputValue(endDate);
+  scheduleEndTimeInput.value = formatTimeInputValue(endDate);
+}
+
+function getSelectedDateRange() {
+  const start = new Date(`${scheduleStartDateInput.value}T${scheduleStartTimeInput.value || "09:00"}:00`);
+  const end = new Date(`${scheduleEndDateInput.value}T${scheduleEndTimeInput.value || "18:00"}:00`);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    throw new Error("Choose a valid scheduling date and time window.");
+  }
+
+  if (end <= start) {
+    throw new Error("The schedule end must be after the schedule start.");
+  }
+
+  return {
+    start: formatLocalDateTime(start),
+    end: formatLocalDateTime(end)
+  };
+}
+
 function getDemoWeekDays() {
-  const { start } = getDemoDateRange();
+  let start;
+  try {
+    ({ start } = getSelectedDateRange());
+  } catch {
+    ({ start } = getDemoDateRange());
+  }
   const startDate = new Date(start);
   return Array.from({ length: demoWindowDays }, (_, dayIndex) => {
     const date = new Date(startDate);
@@ -755,7 +807,21 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
   setInitialConversation();
 
   const meetingTitle = document.querySelector("#meeting-title").value;
-  const demoDateRange = getDemoDateRange();
+  let demoDateRange;
+  try {
+    demoDateRange = getSelectedDateRange();
+  } catch (error) {
+    const message = error.message || "Choose a valid scheduling date and time window.";
+    resultStatus.textContent = "Error";
+    slotOutput.textContent = message;
+    addMessage("system", "Error", message);
+    runButton.disabled = false;
+    if (runAiDemoButton) {
+      runAiDemoButton.disabled = false;
+    }
+    setGuideStep(2);
+    return;
+  }
   const durationMinutes = Number(
     document.querySelector("input[name='duration-minutes']:checked").value
   );
@@ -935,6 +1001,18 @@ resetCalendarsButton?.addEventListener("click", () => {
   resetCalendarBusyCells();
   renderCalendarPlanner();
 });
+[
+  scheduleStartDateInput,
+  scheduleStartTimeInput,
+  scheduleEndDateInput,
+  scheduleEndTimeInput
+].forEach((input) => {
+  input?.addEventListener("change", () => {
+    if (!calendarPlanner?.hidden) {
+      renderCalendarPlanner();
+    }
+  });
+});
 backButton.addEventListener("click", showMessagesList);
 closeSheetButton.addEventListener("pointerdown", startSheetDrag);
 closeSheetButton.addEventListener("pointermove", dragSheet);
@@ -944,6 +1022,7 @@ form.addEventListener("submit", runDemo);
 runAiDemoButton?.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
 geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
+initializeScheduleWindowControls();
 resetCalendarBusyCells();
 setModePresentation(false);
 showChat();

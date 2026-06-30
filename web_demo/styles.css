@@ -1110,6 +1110,27 @@ input::placeholder {
   margin: 0;
 }
 
+.schedule-window-field {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.schedule-window-control {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.schedule-window-control label {
+  gap: 6px;
+  font-size: 12px;
+}
+
+.schedule-window-control input {
+  font-size: 14px;
+}
+
 .duration-control {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1577,6 +1598,14 @@ button.secondary {
   .duration-field {
     grid-column: 2;
     grid-row: 1;
+  }
+
+  .schedule-window-field {
+    grid-column: 1 / -1;
+  }
+
+  .schedule-window-control {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .composer-actions {
