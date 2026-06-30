@@ -53,18 +53,18 @@ const sheetCloseOffset = 270;
 const guideSteps = [
   {
     title: "Open iMessage apps",
-    copy: "Tap the + button below to reveal the iMessage app drawer.",
-    action: "Tap + in the phone"
+    copy: "Tap the highlighted + button to reveal the iMessage app drawer.",
+    action: "Tap the highlighted +"
   },
   {
     title: "Choose Meeting Scheduler",
-    copy: "Choose Meeting Scheduler from the drawer to open the extension sheet.",
-    action: "Choose the scheduler"
+    copy: "Choose the highlighted Meeting Scheduler row to open the extension sheet.",
+    action: "Choose Meeting Scheduler"
   },
   {
     title: "Review meeting details",
-    copy: "The first run is Demo Mode: mock calendars, deterministic agents, and no model API key.",
-    action: "Continue: Run demo mode"
+    copy: "Review the details, then use the highlighted Run Demo Mode button.",
+    action: "Run Demo Mode"
   },
   {
     title: "Live negotiation running",

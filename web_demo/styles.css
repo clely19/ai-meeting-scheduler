@@ -61,15 +61,16 @@ select {
 .guide-callout {
   position: absolute;
   z-index: 30;
-  width: 262px;
+  width: min(230px, calc(100% - 28px));
   display: grid;
-  gap: 7px;
-  padding: 12px;
+  gap: 6px;
+  padding: 10px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 17px;
+  border-radius: 14px;
   color: #fff;
   background: rgba(10, 132, 255, 0.96);
   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
   transition:
     left 180ms ease,
     top 180ms ease,
@@ -79,12 +80,7 @@ select {
 }
 
 .guide-callout::after {
-  content: "";
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  background: rgba(10, 132, 255, 0.96);
-  transform: rotate(45deg);
+  display: none;
 }
 
 .guide-callout .guide-count {
@@ -97,22 +93,19 @@ select {
   background: transparent;
   padding: 0;
   border-radius: 0;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.2;
 }
 
 .guide-callout p {
   margin: 0;
   color: rgba(255, 255, 255, 0.86);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.35;
 }
 
 .guide-callout .guide-next {
-  height: 37px;
-  margin-top: 2px;
-  color: #0a66d8;
-  background: #fff;
+  display: none;
 }
 
 .guide-callout .guide-next:disabled {
@@ -121,53 +114,34 @@ select {
 }
 
 .phone.guide-step-0 .guide-callout {
-  left: 54px;
-  bottom: 78px;
-}
-
-.phone.guide-step-0 .guide-callout::after {
-  left: 18px;
-  bottom: -7px;
+  left: 52px;
+  bottom: 66px;
 }
 
 .phone.guide-step-1 .guide-callout {
-  left: 72px;
-  bottom: 284px;
-}
-
-.phone.guide-step-1 .guide-callout::after {
-  left: 44px;
-  bottom: -7px;
+  top: 112px;
+  right: 16px;
+  left: auto;
+  bottom: auto;
 }
 
 .phone.guide-step-2 .guide-callout {
-  left: 72px;
-  bottom: 260px;
-}
-
-.phone.guide-step-2 .guide-callout::after {
-  left: 132px;
-  bottom: -7px;
+  top: 112px;
+  right: 16px;
+  left: auto;
+  bottom: auto;
 }
 
 .phone.guide-step-3 .guide-callout {
-  left: 84px;
-  top: 250px;
-}
-
-.phone.guide-step-3 .guide-callout::after {
-  left: 50%;
-  bottom: -7px;
+  top: 112px;
+  right: 16px;
+  left: auto;
 }
 
 .phone.guide-step-4 .guide-callout {
-  left: 84px;
-  top: 250px;
-}
-
-.phone.guide-step-4 .guide-callout::after {
-  left: 50%;
-  bottom: -7px;
+  top: 112px;
+  right: 16px;
+  left: auto;
 }
 
 .phone.guide-step-0 #open-apps,
@@ -559,6 +533,15 @@ h1 {
 
 .thread::-webkit-scrollbar {
   display: none;
+}
+
+.phone.guide-step-0 .thread {
+  padding-bottom: 150px;
+}
+
+.phone.guide-step-3 .thread,
+.phone.guide-step-4 .thread {
+  padding-top: 128px;
 }
 
 .message {
@@ -1450,30 +1433,34 @@ button.secondary {
   }
 
   .guide-callout {
-    width: 246px;
+    width: 230px;
   }
 
   .phone.guide-step-0 .guide-callout {
-    left: calc(var(--desktop-sidebar-width) + 30px);
-    bottom: 62px;
+    left: calc(var(--desktop-sidebar-width) + 54px);
+    bottom: 68px;
   }
 
   .phone.guide-step-1 .guide-callout {
-    left: calc(var(--desktop-sidebar-width) + 44px);
-    bottom: 260px;
+    top: auto;
+    right: auto;
+    left: calc(var(--desktop-sidebar-width) + 342px);
+    bottom: 158px;
   }
 
   .phone.guide-step-2 .guide-callout {
     right: 28px;
     left: auto;
-    bottom: 84px;
+    top: auto;
+    bottom: calc(var(--desktop-extension-height) + 18px);
   }
 
   .phone.guide-step-3 .guide-callout,
   .phone.guide-step-4 .guide-callout {
-    left: 50%;
-    top: 210px;
-    transform: translateX(-10%);
+    right: 28px;
+    left: auto;
+    top: 96px;
+    transform: none;
   }
 }
 
