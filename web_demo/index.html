@@ -197,6 +197,17 @@
           </section>
         </form>
 
+        <section id="calendar-planner" class="calendar-planner" aria-label="Weekly calendar editor" hidden>
+          <header class="calendar-planner-header">
+            <div>
+              <p class="calendar-title">Block busy times</p>
+              <p id="calendar-week-label" class="calendar-subtitle">This week</p>
+            </div>
+            <button id="reset-calendars" class="calendar-reset" type="button">Reset</button>
+          </header>
+          <div id="calendar-grid" class="calendar-grid"></div>
+        </section>
+
         <aside id="guide-callout" class="guide-callout" aria-label="Current guided step">
           <p id="guide-step-count" class="guide-count">Step 1 of 5</p>
           <h3 id="guide-title">Open iMessage apps</h3>
@@ -207,6 +218,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260630-current-dates"></script>
+    <script src="/demo/app.js?v=20260630-calendar-blocks"></script>
   </body>
 </html>

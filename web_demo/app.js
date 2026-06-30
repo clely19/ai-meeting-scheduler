@@ -7,6 +7,10 @@ const appDrawer = document.querySelector("#app-drawer");
 const openAppsButton = document.querySelector("#open-apps");
 const openSchedulerButton = document.querySelector("#open-scheduler");
 const openDemoChatButton = document.querySelector("#open-demo-chat");
+const calendarPlanner = document.querySelector("#calendar-planner");
+const calendarGrid = document.querySelector("#calendar-grid");
+const calendarWeekLabel = document.querySelector("#calendar-week-label");
+const resetCalendarsButton = document.querySelector("#reset-calendars");
 const linkedinPostButtons = document.querySelectorAll(".linkedin-row");
 const filterMenuButton = document.querySelector("#filter-menu-button");
 const filterMenu = document.querySelector("#filter-menu");
@@ -49,6 +53,25 @@ const sheetExpandedOffset = 0;
 const sheetCollapsedOffset = 162;
 const sheetCloseOffset = 270;
 const demoWindowDays = 7;
+const calendarHours = [9, 10, 11, 12, 13, 14, 15, 16, 17];
+const calendarParticipants = [
+  {
+    key: "clely",
+    name: "Clely",
+    defaultBusy: ["0-10", "1-14", "3-11", "4-15"]
+  },
+  {
+    key: "maya",
+    name: "Maya",
+    defaultBusy: ["0-9", "2-13", "2-14", "4-10"]
+  },
+  {
+    key: "jordan",
+    name: "Jordan",
+    defaultBusy: ["1-10", "1-11", "3-15", "5-12"]
+  }
+];
+let calendarBusyCells = {};
 const guideSteps = [
   {
     title: "Open iMessage apps",
@@ -62,7 +85,7 @@ const guideSteps = [
   },
   {
     title: "Review meeting details",
-    copy: "Review the details, then use the highlighted Run Demo Mode button.",
+    copy: "Block busy calendar times if you want, then use the highlighted Run Demo Mode button.",
     action: "Run Demo Mode"
   },
   {
@@ -145,6 +168,142 @@ function getDemoDateRange() {
     start: formatLocalDateTime(start),
     end: formatLocalDateTime(end)
   };
+}
+
+function getDemoWeekDays() {
+  const { start } = getDemoDateRange();
+  const startDate = new Date(start);
+  return Array.from({ length: demoWindowDays }, (_, dayIndex) => {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + dayIndex);
+    return date;
+  });
+}
+
+function formatDayHeader(date) {
+  return date.toLocaleDateString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+function resetCalendarBusyCells() {
+  calendarBusyCells = Object.fromEntries(
+    calendarParticipants.map((participant) => [
+      participant.key,
+      new Set(participant.defaultBusy)
+    ])
+  );
+}
+
+function setCalendarWeekLabel(days) {
+  if (!calendarWeekLabel || !days.length) {
+    return;
+  }
+
+  calendarWeekLabel.textContent = `${formatDayHeader(days[0])} - ${formatDayHeader(days[days.length - 1])}`;
+}
+
+function renderCalendarPlanner() {
+  if (!calendarGrid) {
+    return;
+  }
+
+  const days = getDemoWeekDays();
+  setCalendarWeekLabel(days);
+  calendarGrid.innerHTML = "";
+
+  calendarParticipants.forEach((participant) => {
+    const calendar = document.createElement("article");
+    calendar.className = "participant-calendar";
+
+    const heading = document.createElement("h4");
+    heading.textContent = participant.name;
+
+    const weekGrid = document.createElement("div");
+    weekGrid.className = "week-grid";
+    weekGrid.append(document.createElement("span"));
+
+    days.forEach((day) => {
+      const header = document.createElement("span");
+      header.className = "week-header";
+      header.textContent = day.toLocaleDateString([], {
+        weekday: "short"
+      });
+      header.title = formatDayHeader(day);
+      weekGrid.append(header);
+    });
+
+    calendarHours.forEach((hour) => {
+      const time = document.createElement("span");
+      time.className = "time-label";
+      time.textContent = `${hour}`;
+      weekGrid.append(time);
+
+      days.forEach((day, dayIndex) => {
+        const cellKey = `${dayIndex}-${hour}`;
+        const button = document.createElement("button");
+        button.className = "busy-cell";
+        button.type = "button";
+        button.dataset.participant = participant.key;
+        button.dataset.cell = cellKey;
+        button.setAttribute(
+          "aria-label",
+          `${participant.name} ${formatDayHeader(day)} ${hour}:00 busy`
+        );
+        if (calendarBusyCells[participant.key]?.has(cellKey)) {
+          button.classList.add("is-busy");
+          button.textContent = "Busy";
+        } else {
+          button.textContent = "Free";
+        }
+        weekGrid.append(button);
+      });
+    });
+
+    calendar.append(heading, weekGrid);
+    calendarGrid.append(calendar);
+  });
+}
+
+function getParticipantBusyBlocks(participantKey) {
+  const days = getDemoWeekDays();
+  return Array.from(calendarBusyCells[participantKey] || [])
+    .map((cellKey) => {
+      const [dayIndexText, hourText] = cellKey.split("-");
+      const day = days[Number(dayIndexText)];
+      const hour = Number(hourText);
+      if (!day || Number.isNaN(hour)) {
+        return null;
+      }
+
+      const start = new Date(day);
+      start.setHours(hour, 0, 0, 0);
+      const end = new Date(start);
+      end.setHours(hour + 1, 0, 0, 0);
+
+      return {
+        start: formatLocalDateTime(start),
+        end: formatLocalDateTime(end),
+        title: "Busy"
+      };
+    })
+    .filter(Boolean);
+}
+
+function showCalendarPlanner() {
+  if (!calendarPlanner) {
+    return;
+  }
+  renderCalendarPlanner();
+  calendarPlanner.hidden = false;
+}
+
+function hideCalendarPlanner() {
+  if (calendarPlanner) {
+    calendarPlanner.hidden = true;
+  }
 }
 
 function advanceGuide() {
@@ -284,6 +443,7 @@ function showChat() {
   phone.classList.remove("post-chat");
   setInitialConversation();
   hideAppDrawer();
+  hideCalendarPlanner();
   form.hidden = true;
   phone.classList.remove("sheet-open");
   updateSheetOffset(sheetCollapsedOffset);
@@ -295,6 +455,7 @@ function showLinkedInPostChat(post) {
   phone.classList.add("in-chat");
   phone.classList.add("post-chat");
   hideAppDrawer();
+  hideCalendarPlanner();
   form.hidden = true;
   phone.classList.remove("sheet-open");
   updateSheetOffset(sheetCollapsedOffset);
@@ -309,6 +470,7 @@ function showLinkedInPostChat(post) {
 function showMessagesList() {
   form.hidden = true;
   appDrawer.hidden = true;
+  hideCalendarPlanner();
   phone.classList.remove("sheet-open");
   phone.classList.remove("post-chat");
   phone.classList.remove("in-chat");
@@ -329,6 +491,7 @@ function toggleFilterMenu() {
 
 function showAppDrawer() {
   appDrawer.hidden = false;
+  hideCalendarPlanner();
   form.hidden = true;
   phone.classList.remove("sheet-open");
   setGuideStep(1);
@@ -341,6 +504,7 @@ function hideAppDrawer() {
 function showSchedulerSheet() {
   appDrawer.hidden = true;
   form.hidden = false;
+  showCalendarPlanner();
   updateSheetOffset(sheetCollapsedOffset);
   phone.classList.add("sheet-open");
   scrollThreadToLatest();
@@ -350,6 +514,7 @@ function showSchedulerSheet() {
 function closeSchedulerSheet() {
   form.hidden = true;
   appDrawer.hidden = true;
+  hideCalendarPlanner();
   phone.classList.remove("sheet-open");
   updateSheetOffset(sheetCollapsedOffset);
   setGuideStep(1);
@@ -612,8 +777,13 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
       [inviteeOne.id]: "Maya",
       [inviteeTwo.id]: "Jordan"
     };
+    const participantBusyBlocks = {
+      [host.id]: getParticipantBusyBlocks("clely"),
+      [inviteeOne.id]: getParticipantBusyBlocks("maya"),
+      [inviteeTwo.id]: getParticipantBusyBlocks("jordan")
+    };
 
-    addMessage("agent", "Meeting Scheduler", `I created scheduling agents for Clely, Maya, and Jordan.`);
+    addMessage("agent", "Meeting Scheduler", `I created scheduling agents for Clely, Maya, and Jordan using the busy times you marked on their calendars.`);
     addMessage("agent", "Clely's Agent", `Proposing ${durationMinutes}-minute slots using a ${hostStyle} preference.`);
     addMessage("agent", "Maya + Jordan's Agents", `Evaluating availability as ${inviteeStyleOne} and ${inviteeStyleTwo} schedulers.`);
     addMessage(
@@ -650,6 +820,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
         duration_minutes: durationMinutes,
         date_range_start: demoDateRange.start,
         date_range_end: demoDateRange.end,
+        participant_busy_blocks: participantBusyBlocks,
         use_ai: useAi
       })
     });
@@ -666,7 +837,6 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     sessionId.textContent = negotiation.session_id;
     resultStatus.textContent = `${useAi ? "AI" : "Demo"}: ${negotiation.status.replace("_", " ")}`;
     slotOutput.textContent = formatSlot(negotiation.agreed_slot);
-    renderRounds(negotiation.negotiation_logs, participantNames);
 
     addAppCard(
       `${negotiation.status.replace("_", " ")}`,
@@ -736,6 +906,33 @@ filterMenu.addEventListener("click", (event) => {
     firstPostButton?.focus();
   }
 });
+calendarGrid?.addEventListener("click", (event) => {
+  const cell = event.target.closest(".busy-cell");
+  if (!cell) {
+    return;
+  }
+
+  const participantKey = cell.dataset.participant;
+  const cellKey = cell.dataset.cell;
+  if (!participantKey || !cellKey) {
+    return;
+  }
+
+  if (!calendarBusyCells[participantKey]) {
+    calendarBusyCells[participantKey] = new Set();
+  }
+
+  if (calendarBusyCells[participantKey].has(cellKey)) {
+    calendarBusyCells[participantKey].delete(cellKey);
+  } else {
+    calendarBusyCells[participantKey].add(cellKey);
+  }
+  renderCalendarPlanner();
+});
+resetCalendarsButton?.addEventListener("click", () => {
+  resetCalendarBusyCells();
+  renderCalendarPlanner();
+});
 backButton.addEventListener("click", showMessagesList);
 closeSheetButton.addEventListener("pointerdown", startSheetDrag);
 closeSheetButton.addEventListener("pointermove", dragSheet);
@@ -745,6 +942,7 @@ form.addEventListener("submit", runDemo);
 runAiDemoButton?.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
 geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
+resetCalendarBusyCells();
 setModePresentation(false);
 showChat();
 checkHealth();

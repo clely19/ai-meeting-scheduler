@@ -28,7 +28,8 @@ class NegotiationOrchestrator:
         date_range_start: str,
         date_range_end: str,
         enable_ai: bool = False,
-        ai_api_key: str | None = None
+        ai_api_key: str | None = None,
+        participant_busy_blocks: Dict[str, List[Dict]] | None = None
     ):
         self.session_id = session_id
         self.meeting_title = meeting_title
@@ -37,6 +38,7 @@ class NegotiationOrchestrator:
         self.date_range_end = date_range_end
         self.enable_ai = enable_ai
         self.ai_api_key = ai_api_key
+        self.participant_busy_blocks = participant_busy_blocks or {}
         self.negotiation_logs = {}
         self.current_round = 0
 
@@ -45,12 +47,14 @@ class NegotiationOrchestrator:
         user_id: str,
         use_mock: bool = True
     ):
-        busy_blocks = generate_mock_busy_blocks(
-            user_id=user_id,
-            date_range_start=self.date_range_start,
-            date_range_end=self.date_range_end,
-            density="medium"
-        )
+        busy_blocks = self.participant_busy_blocks.get(user_id)
+        if busy_blocks is None:
+            busy_blocks = generate_mock_busy_blocks(
+                user_id=user_id,
+                date_range_start=self.date_range_start,
+                date_range_end=self.date_range_end,
+                density="medium"
+            )
         free_slots = get_free_slots(
             busy_blocks=busy_blocks,
             date_range_start=self.date_range_start,

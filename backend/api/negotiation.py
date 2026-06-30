@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Header, HTTPException
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field
+from typing import Dict, List
 from negotiation.orchestrator import (
     NegotiationOrchestrator
 )
@@ -23,6 +23,7 @@ class NegotiationRequest(BaseModel):
     date_range_start: str
     date_range_end: str
     use_ai: bool = False
+    participant_busy_blocks: Dict[str, List[dict]] = Field(default_factory=dict)
 
 @router.post("/negotiation/start")
 def start_negotiation(
@@ -70,7 +71,8 @@ def start_negotiation(
             date_range_start=request.date_range_start,
             date_range_end=request.date_range_end,
             enable_ai=request.use_ai,
-            ai_api_key=x_user_gemini_key
+            ai_api_key=x_user_gemini_key,
+            participant_busy_blocks=request.participant_busy_blocks
         )
 
         result = orchestrator.run_negotiation(
