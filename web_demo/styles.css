@@ -31,6 +31,7 @@ select {
 }
 
 .shell {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   width: min(1500px, calc(100% - 40px));
@@ -43,6 +44,7 @@ select {
 
 .phone {
   position: relative;
+  z-index: 2;
   width: 100%;
   max-width: 430px;
   height: 860px;
@@ -633,21 +635,20 @@ h1 {
 
 .calendar-planner {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 126px;
-  z-index: 6;
+  z-index: 1;
+  width: min(340px, calc(100vw - 32px));
   display: grid;
   gap: 10px;
-  max-height: 360px;
+  max-height: min(680px, calc(100vh - 80px));
   padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
   color: #f5f5f7;
-  background: rgba(20, 20, 22, 0.94);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  background: rgba(22, 22, 24, 0.78);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
   backdrop-filter: blur(22px);
   overflow-y: auto;
+  opacity: 0.88;
 }
 
 .calendar-planner[hidden] {
@@ -663,7 +664,7 @@ h1 {
 
 .calendar-title {
   color: #fff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -696,7 +697,7 @@ h1 {
   padding: 9px;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 12px;
-  background: rgba(44, 44, 46, 0.72);
+  background: rgba(44, 44, 46, 0.58);
 }
 
 .participant-calendar h4 {
@@ -1242,6 +1243,16 @@ button.secondary {
     overflow: hidden;
   }
 
+  body.calendars-visible .shell {
+    grid-template-columns: minmax(760px, 1fr) minmax(300px, 340px);
+    gap: 24px;
+    justify-items: stretch;
+  }
+
+  body.calendars-visible .phone {
+    max-width: 1080px;
+  }
+
   .phone::before {
     content: "";
     position: absolute;
@@ -1514,16 +1525,15 @@ button.secondary {
   }
 
   .calendar-planner {
-    left: calc(var(--desktop-sidebar-width) + 18px);
-    right: 18px;
-    top: 94px;
-    bottom: calc(var(--desktop-extension-height) + 14px);
-    max-height: none;
+    position: relative;
+    align-self: center;
+    justify-self: stretch;
+    width: auto;
+    max-height: min(740px, calc(100vh - 56px));
   }
 
   .calendar-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: start;
+    grid-template-columns: 1fr;
   }
 
   .week-grid {
@@ -1613,6 +1623,17 @@ button.secondary {
   .shell {
     align-items: start;
   }
+
+  body.calendars-visible .shell {
+    gap: 14px;
+  }
+
+  .calendar-planner {
+    position: relative;
+    width: 100%;
+    max-height: none;
+    order: 2;
+  }
 }
 
 @media (max-width: 520px) {
@@ -1629,8 +1650,8 @@ button.secondary {
   }
 
   .calendar-planner {
-    top: 104px;
-    max-height: 420px;
+    width: calc(100% - 24px);
+    margin: 0 auto 14px;
   }
 
   .week-grid {

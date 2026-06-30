@@ -298,12 +298,14 @@ function showCalendarPlanner() {
   }
   renderCalendarPlanner();
   calendarPlanner.hidden = false;
+  document.body.classList.add("calendars-visible");
 }
 
 function hideCalendarPlanner() {
   if (calendarPlanner) {
     calendarPlanner.hidden = true;
   }
+  document.body.classList.remove("calendars-visible");
 }
 
 function advanceGuide() {
