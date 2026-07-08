@@ -34,12 +34,12 @@ select {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  width: min(1500px, calc(100% - 40px));
+  width: min(1720px, calc(100% - 24px));
   margin: 0 auto;
-  padding: 20px 0;
+  padding: 12px 0;
   min-height: 100vh;
   justify-items: center;
-  align-items: center;
+  align-items: start;
 }
 
 .phone {
@@ -73,12 +73,20 @@ select {
   background: rgba(10, 132, 255, 0.96);
   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.55);
   pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
   transition:
     left 180ms ease,
     top 180ms ease,
     right 180ms ease,
     bottom 180ms ease,
-    transform 180ms ease;
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.shell.guide-visible .guide-callout {
+  opacity: 1;
+  visibility: visible;
 }
 
 .guide-callout::after {
@@ -115,32 +123,32 @@ select {
   background: rgba(255, 255, 255, 0.72);
 }
 
-.phone.guide-step-0 .guide-callout {
+.shell.guide-step-0 .guide-callout {
   left: 52px;
   bottom: 66px;
 }
 
-.phone.guide-step-1 .guide-callout {
+.shell.guide-step-1 .guide-callout {
   top: 112px;
   right: 16px;
   left: auto;
   bottom: auto;
 }
 
-.phone.guide-step-2 .guide-callout {
+.shell.guide-step-2 .guide-callout {
   top: 112px;
   right: 16px;
   left: auto;
   bottom: auto;
 }
 
-.phone.guide-step-3 .guide-callout {
+.shell.guide-step-3 .guide-callout {
   top: 112px;
   right: 16px;
   left: auto;
 }
 
-.phone.guide-step-4 .guide-callout {
+.shell.guide-step-4 .guide-callout {
   top: 112px;
   right: 16px;
   left: auto;
@@ -641,10 +649,10 @@ h1 {
   gap: 10px;
   max-height: min(680px, calc(100vh - 80px));
   padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 22px;
   color: #f5f5f7;
-  background: rgba(22, 22, 24, 0.78);
+  background: linear-gradient(180deg, rgba(34, 34, 36, 0.86), rgba(18, 18, 20, 0.90));
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
   backdrop-filter: blur(22px);
   overflow-y: auto;
@@ -664,7 +672,7 @@ h1 {
 
 .calendar-title {
   color: #fff;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 800;
 }
 
@@ -678,7 +686,7 @@ h1 {
 .calendar-reset {
   height: 30px;
   padding: 0 11px;
-  border-radius: 999px;
+  border-radius: 15px;
   color: #0a84ff;
   background: rgba(10, 132, 255, 0.14);
   font-size: 12px;
@@ -694,10 +702,10 @@ h1 {
   display: grid;
   gap: 7px;
   min-width: 0;
-  padding: 9px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 12px;
-  background: rgba(44, 44, 46, 0.58);
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(28, 28, 30, 0.86);
 }
 
 .participant-calendar h4 {
@@ -718,7 +726,7 @@ h1 {
 .time-label,
 .busy-cell {
   min-height: 25px;
-  border-radius: 6px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   font-size: 10px;
@@ -727,7 +735,7 @@ h1 {
 
 .week-header {
   color: #d1d1d6;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.07);
   font-weight: 800;
 }
 
@@ -737,14 +745,14 @@ h1 {
 }
 
 .busy-cell {
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.055);
   color: transparent;
-  background: rgba(52, 199, 89, 0.20);
+  background: rgba(48, 209, 88, 0.16);
 }
 
 .busy-cell.is-busy {
   color: #fff;
-  background: rgba(255, 69, 58, 0.84);
+  background: rgba(255, 69, 58, 0.72);
 }
 
 .busy-cell:focus-visible {
@@ -864,10 +872,6 @@ h1 {
 
 .phone.sheet-open .imessage-input {
   margin-bottom: var(--sheet-current-height);
-}
-
-.phone.post-chat .imessage-input {
-  display: none;
 }
 
 .app-drawer {
@@ -1169,7 +1173,9 @@ input::placeholder {
 }
 
 .hidden-controls {
-  display: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .composer-actions {
@@ -1191,6 +1197,12 @@ button {
 .plus-button {
   border: 1px solid #2c2c2e;
   color: #f5f5f7;
+}
+
+.plus-button:disabled,
+.phone.post-chat .audio-button {
+  cursor: default;
+  opacity: 0.42;
 }
 
 #run-demo {
@@ -1247,15 +1259,16 @@ button.secondary {
   }
 
   .shell {
-    width: min(1500px, calc(100% - 40px));
+    width: min(1760px, calc(100% - 24px));
+    padding: 12px 0;
   }
 
   .phone {
     --desktop-sidebar-width: clamp(280px, 26vw, 380px);
-    --desktop-extension-height: clamp(280px, 34vh, 340px);
+    --desktop-extension-height: clamp(300px, 38vh, 380px);
     width: 100%;
-    max-width: 1440px;
-    height: min(820px, calc(100vh - 40px));
+    max-width: none;
+    height: calc(100vh - 24px);
     display: grid;
     grid-template-columns: var(--desktop-sidebar-width) minmax(0, 1fr);
     border: 1px solid #2c2c2e;
@@ -1265,13 +1278,13 @@ button.secondary {
   }
 
   body.calendars-visible .shell {
-    grid-template-columns: minmax(760px, 1fr) minmax(300px, 340px);
-    gap: 24px;
+    grid-template-columns: minmax(760px, 1fr) minmax(360px, 440px);
+    gap: 18px;
     justify-items: stretch;
   }
 
   body.calendars-visible .phone {
-    max-width: 1080px;
+    max-width: none;
   }
 
   .phone::before {
@@ -1547,10 +1560,10 @@ button.secondary {
 
   .calendar-planner {
     position: relative;
-    align-self: center;
+    align-self: stretch;
     justify-self: stretch;
     width: auto;
-    max-height: min(740px, calc(100vh - 56px));
+    max-height: calc(100vh - 24px);
   }
 
   .calendar-grid {
@@ -1617,33 +1630,35 @@ button.secondary {
   }
 
   .guide-callout {
-    width: 230px;
+    width: min(260px, 18vw);
   }
 
-  .phone.guide-step-0 .guide-callout {
-    left: calc(var(--desktop-sidebar-width) + 54px);
-    bottom: 68px;
-  }
-
-  .phone.guide-step-1 .guide-callout {
-    top: auto;
-    right: auto;
-    left: calc(var(--desktop-sidebar-width) + 342px);
-    bottom: 158px;
-  }
-
-  .phone.guide-step-2 .guide-callout {
-    right: 28px;
+  .shell.guide-step-0 .guide-callout {
+    right: 24px;
+    bottom: 46px;
     left: auto;
     top: auto;
-    bottom: calc(var(--desktop-extension-height) + 18px);
   }
 
-  .phone.guide-step-3 .guide-callout,
-  .phone.guide-step-4 .guide-callout {
-    right: 28px;
+  .shell.guide-step-1 .guide-callout {
+    top: auto;
+    right: 24px;
     left: auto;
-    top: 96px;
+    bottom: 138px;
+  }
+
+  .shell.guide-step-2 .guide-callout {
+    right: 24px;
+    left: auto;
+    top: auto;
+    bottom: calc(var(--desktop-extension-height) + 24px);
+  }
+
+  .shell.guide-step-3 .guide-callout,
+  .shell.guide-step-4 .guide-callout {
+    right: 24px;
+    left: auto;
+    top: 24px;
     transform: none;
   }
 }

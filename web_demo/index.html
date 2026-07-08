@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260630-editable-window">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260707-ux-pass">
   </head>
   <body>
     <main class="shell">
@@ -56,6 +56,14 @@
               </span>
               <span class="conversation-date">Now</span>
             </button>
+            <button class="conversation-row simple-chat-row" type="button" data-chat-id="launch-plan">
+              <span class="conversation-avatar muted">2</span>
+              <span class="conversation-copy">
+                <span class="conversation-name">Launch Plan</span>
+                <span class="conversation-preview">Maya: I added the checklist for the demo.</span>
+              </span>
+              <span class="conversation-date">10m</span>
+            </button>
             <button class="conversation-row linkedin-row" type="button" data-post-id="agentic-ai">
               <span class="conversation-avatar linkedin">in</span>
               <span class="conversation-copy">
@@ -71,6 +79,14 @@
                 <span class="conversation-preview">LinkedIn post preview: vibe coding, building in public, AI.</span>
               </span>
               <span class="conversation-date">Post</span>
+            </button>
+            <button class="conversation-row simple-chat-row" type="button" data-chat-id="design-review">
+              <span class="conversation-avatar muted">4</span>
+              <span class="conversation-copy">
+                <span class="conversation-name">Design Review</span>
+                <span class="conversation-preview">Jordan: The calendar view is ready to test.</span>
+              </span>
+              <span class="conversation-date">1h</span>
             </button>
           </section>
           <div class="search-bar" aria-hidden="true">
@@ -137,7 +153,7 @@
             <div class="extension-header">
               <div>
                 <p class="extension-title">Meeting Scheduler</p>
-                <p class="extension-subtitle">Hi Clely · early style</p>
+                <p id="extension-subtitle" class="extension-subtitle">Hi Clely · early style</p>
               </div>
             </div>
 
@@ -219,13 +235,14 @@
           </section>
         </form>
 
-        <aside id="guide-callout" class="guide-callout" aria-label="Current guided step">
-          <p id="guide-step-count" class="guide-count">Step 1 of 5</p>
-          <h3 id="guide-title">Open iMessage apps</h3>
-          <p id="guide-copy">Tap the + button below to reveal the iMessage app drawer.</p>
-          <button id="guide-next" class="guide-next" type="button">Tap + in the phone</button>
-        </aside>
       </section>
+
+      <aside id="guide-callout" class="guide-callout" aria-label="Current guided step">
+        <p id="guide-step-count" class="guide-count">Step 1 of 5</p>
+        <h3 id="guide-title">Open iMessage apps</h3>
+        <p id="guide-copy">Tap the + button below to reveal the iMessage app drawer.</p>
+        <button id="guide-next" class="guide-next" type="button">Tap + in the phone</button>
+      </aside>
 
       <section id="calendar-planner" class="calendar-planner" aria-label="Weekly calendar editor" hidden>
         <header class="calendar-planner-header">
@@ -240,6 +257,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260630-editable-window"></script>
+    <script src="/demo/app.js?v=20260707-ux-pass"></script>
   </body>
 </html>

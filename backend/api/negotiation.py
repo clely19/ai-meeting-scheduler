@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 from typing import Dict, List
@@ -7,6 +9,7 @@ from negotiation.orchestrator import (
 from database import get_db
 
 router = APIRouter()
+LOCAL_DEMO_SESSIONS = {}
 
 class InviteeModel(BaseModel):
     user_id: str
@@ -40,29 +43,33 @@ def start_negotiation(
                 )
             )
 
-        db = get_db()
-        session_response = db.table(
-            "negotiation_sessions"
-        ).insert({
-            "host_user_id": request.host_user_id,
-            "invitee_user_ids": [
-                i.user_id for i in request.invitees
-            ],
-            "meeting_title": request.meeting_title,
-            "duration_minutes": request.duration_minutes,
-            "status": "negotiating",
-            "current_round": 0,
-            "proposals": {},
-            "negotiation_logs": {}
-        }).execute()
+        db = None
+        storage_warning = None
+        try:
+            db = get_db()
+            session_response = db.table(
+                "negotiation_sessions"
+            ).insert({
+                "host_user_id": request.host_user_id,
+                "invitee_user_ids": [
+                    i.user_id for i in request.invitees
+                ],
+                "meeting_title": request.meeting_title,
+                "duration_minutes": request.duration_minutes,
+                "status": "negotiating",
+                "current_round": 0,
+                "proposals": {},
+                "negotiation_logs": {}
+            }).execute()
 
-        if not session_response.data:
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to create session"
-            )
+            if not session_response.data:
+                raise RuntimeError("Failed to create session")
 
-        session_id = session_response.data[0]["id"]
+            session_id = session_response.data[0]["id"]
+        except Exception as e:
+            session_id = f"demo-session-{uuid4()}"
+            storage_warning = str(e)
+            db = None
 
         orchestrator = NegotiationOrchestrator(
             session_id=session_id,
@@ -96,16 +103,34 @@ def start_negotiation(
         else:
             db_status = "failed"
 
-        db.table("negotiation_sessions").update({
+        session_payload = {
+            "id": session_id,
             "status": db_status,
             "current_round": result["rounds_completed"],
             "final_slot": result.get("agreed_slot"),
             "negotiation_logs": result[
                 "negotiation_logs"
             ]
-        }).eq("id", session_id).execute()
+        }
 
-        return {
+        if db is not None:
+            try:
+                db.table("negotiation_sessions").update({
+                    "status": db_status,
+                    "current_round": result["rounds_completed"],
+                    "final_slot": result.get("agreed_slot"),
+                    "negotiation_logs": result[
+                        "negotiation_logs"
+                    ]
+                }).eq("id", session_id).execute()
+            except Exception as e:
+                storage_warning = str(e)
+                LOCAL_DEMO_SESSIONS[session_id] = session_payload
+
+        if db is None:
+            LOCAL_DEMO_SESSIONS[session_id] = session_payload
+
+        response_payload = {
             "session_id": session_id,
             "status": result["status"],
             "agreed_slot": result.get("agreed_slot"),
@@ -116,6 +141,11 @@ def start_negotiation(
                 "negotiation_logs"
             ]
         }
+        if storage_warning:
+            response_payload["storage"] = "temporary_demo"
+            response_payload["storage_warning"] = storage_warning
+
+        return response_payload
 
     except HTTPException:
         raise
@@ -128,6 +158,9 @@ def start_negotiation(
 
 @router.get("/negotiation/{session_id}")
 def get_negotiation_status(session_id: str):
+    if session_id in LOCAL_DEMO_SESSIONS:
+        return LOCAL_DEMO_SESSIONS[session_id]
+
     try:
         db = get_db()
         response = db.table(

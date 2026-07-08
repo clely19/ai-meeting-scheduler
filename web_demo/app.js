@@ -1,5 +1,6 @@
 const API_BASE = window.location.origin;
 
+const shell = document.querySelector(".shell");
 const phone = document.querySelector(".phone");
 const thread = document.querySelector("#thread");
 const form = document.querySelector("#demo-form");
@@ -12,6 +13,7 @@ const calendarGrid = document.querySelector("#calendar-grid");
 const calendarWeekLabel = document.querySelector("#calendar-week-label");
 const resetCalendarsButton = document.querySelector("#reset-calendars");
 const linkedinPostButtons = document.querySelectorAll(".linkedin-row");
+const simpleChatButtons = document.querySelectorAll(".simple-chat-row");
 const filterMenuButton = document.querySelector("#filter-menu-button");
 const filterMenu = document.querySelector("#filter-menu");
 const backButton = document.querySelector(".back-pill");
@@ -22,6 +24,9 @@ const scheduleStartDateInput = document.querySelector("#schedule-start-date");
 const scheduleStartTimeInput = document.querySelector("#schedule-start-time");
 const scheduleEndDateInput = document.querySelector("#schedule-end-date");
 const scheduleEndTimeInput = document.querySelector("#schedule-end-time");
+const hostStyleSelect = document.querySelector("#host-style");
+const durationInputs = document.querySelectorAll("input[name='duration-minutes']");
+const extensionSubtitle = document.querySelector("#extension-subtitle");
 const createStateNode = () => document.createElement("span");
 const backendStatus = document.querySelector("#backend-status") || createStateNode();
 const sessionId = document.querySelector("#session-id") || createStateNode();
@@ -52,6 +57,7 @@ let sheetDragStartOffset = 162;
 let sheetOffset = 162;
 let isDraggingSheet = false;
 let guideStepIndex = 0;
+let guideDelayTimer;
 
 const sheetExpandedOffset = 0;
 const sheetCollapsedOffset = 162;
@@ -121,10 +127,48 @@ const linkedInPosts = {
     imageAlt: "LinkedIn post preview about vibe coding"
   }
 };
+const simpleChats = {
+  "launch-plan": {
+    title: "Launch Plan",
+    avatar: "2",
+    subtitle: "Clely and Maya",
+    messages: [
+      ["agent", "Maya", "I added the checklist for the demo walkthrough."],
+      ["user", "Clely", "Perfect. I want the first screen to feel less crowded."],
+      ["agent", "Maya", "Agreed. The scheduler should feel like something the user opens on purpose."]
+    ]
+  },
+  "design-review": {
+    title: "Design Review",
+    avatar: "4",
+    subtitle: "Clely, Maya, Jordan, Alex",
+    messages: [
+      ["agent", "Jordan", "The calendar view is ready to test beside the Messages app."],
+      ["agent", "Alex", "The main flow should stay focused on the chat."],
+      ["user", "Clely", "Let's keep the calendars useful but secondary."]
+    ]
+  }
+};
+
+function setGuideVisibility(visible) {
+  shell?.classList.toggle("guide-visible", visible);
+}
+
+function scheduleGuideReveal(delay = 3600) {
+  window.clearTimeout(guideDelayTimer);
+  setGuideVisibility(false);
+  guideDelayTimer = window.setTimeout(() => {
+    if (!phone.classList.contains("post-chat")) {
+      setGuideVisibility(true);
+    }
+  }, delay);
+}
 
 function setGuideStep(index) {
   guideStepIndex = Math.max(0, Math.min(guideSteps.length - 1, index));
   const step = guideSteps[guideStepIndex];
+  shell?.classList.remove(...guideSteps.map((_, stepIndex) => `guide-step-${stepIndex}`));
+  shell?.classList.add(`guide-step-${guideStepIndex}`);
   phone.classList.remove(...guideSteps.map((_, stepIndex) => `guide-step-${stepIndex}`));
   phone.classList.add(`guide-step-${guideStepIndex}`);
   guideStepCount.textContent = `Step ${guideStepIndex + 1} of ${guideSteps.length}`;
@@ -197,6 +241,7 @@ function initializeScheduleWindowControls() {
   scheduleStartTimeInput.value = formatTimeInputValue(startDate);
   scheduleEndDateInput.value = formatDateInputValue(endDate);
   scheduleEndTimeInput.value = formatTimeInputValue(endDate);
+  syncEndTimeToDuration();
 }
 
 function getSelectedDateRange() {
@@ -215,6 +260,54 @@ function getSelectedDateRange() {
     start: formatLocalDateTime(start),
     end: formatLocalDateTime(end)
   };
+}
+
+function getSelectedDurationMinutes() {
+  return Number(
+    document.querySelector("input[name='duration-minutes']:checked").value
+  );
+}
+
+function syncEndTimeToDuration() {
+  if (
+    !scheduleStartDateInput?.value ||
+    !scheduleStartTimeInput?.value ||
+    !scheduleEndDateInput ||
+    !scheduleEndTimeInput
+  ) {
+    return;
+  }
+
+  const start = new Date(`${scheduleStartDateInput.value}T${scheduleStartTimeInput.value}:00`);
+  if (Number.isNaN(start.getTime())) {
+    return;
+  }
+
+  const end = new Date(start);
+  end.setMinutes(end.getMinutes() + getSelectedDurationMinutes());
+  scheduleEndTimeInput.value = formatTimeInputValue(end);
+  if (end.toDateString() !== start.toDateString()) {
+    scheduleEndDateInput.value = formatDateInputValue(end);
+  }
+}
+
+function applyHostStyleToScheduler() {
+  const style = hostStyleSelect?.value || "early";
+  const styleStartHours = {
+    early: 9,
+    balanced: 12,
+    flexible: 15
+  };
+
+  extensionSubtitle.textContent = `Hi Clely · ${style} style`;
+  if (scheduleStartTimeInput && styleStartHours[style] !== undefined) {
+    scheduleStartTimeInput.value = `${String(styleStartHours[style]).padStart(2, "0")}:00`;
+    syncEndTimeToDuration();
+  }
+
+  if (!calendarPlanner?.hidden) {
+    renderCalendarPlanner();
+  }
 }
 
 function getDemoWeekDays() {
@@ -485,11 +578,12 @@ function setInitialConversation() {
   chatName.textContent = "Project Sync";
   groupAvatar.textContent = "3";
   phone.classList.remove("post-chat");
+  openAppsButton.disabled = false;
   addMessage("system", "Group", "Clely, Maya, and Jordan");
-  addMessage("agent", "Maya", "I can make time this week, but mornings are easiest for me.");
-  addMessage("agent", "Jordan", "Afternoons are better on my side. Let's see what overlaps.");
-  addMessage("user", "Clely", "I'll use Meeting Scheduler to find a time that works for everyone.");
-  addMessage("agent", "Meeting Scheduler", "Tap + below, choose Meeting Scheduler, and I will explain each negotiation round here in the chat.");
+  addMessage("agent", "Maya", "Hi Clely, I would love to find a time that works for everyone this week.");
+  addMessage("agent", "Jordan", "Same here. My calendar is a little packed, so overlap would really help.");
+  addMessage("user", "Clely", "I'll try the Meeting Scheduler and let it compare our calendars.");
+  addMessage("agent", "Meeting Scheduler", "Sounds good. Tap + below when you're ready, choose Meeting Scheduler, and I will walk through the options with you.");
 }
 
 function showChat() {
@@ -503,11 +597,13 @@ function showChat() {
   updateSheetOffset(sheetCollapsedOffset);
   scrollThreadToLatest();
   setGuideStep(0);
+  scheduleGuideReveal();
 }
 
 function showLinkedInPostChat(post) {
   phone.classList.add("in-chat");
   phone.classList.add("post-chat");
+  setGuideVisibility(false);
   hideAppDrawer();
   hideCalendarPlanner();
   form.hidden = true;
@@ -515,10 +611,29 @@ function showLinkedInPostChat(post) {
   updateSheetOffset(sheetCollapsedOffset);
   chatName.textContent = post.title;
   groupAvatar.textContent = "in";
+  openAppsButton.disabled = true;
   thread.innerHTML = "";
   addMessage("system", "LinkedIn", post.subtitle);
   addLinkedInPreview(post);
-  setGuideStep(0);
+}
+
+function showSimpleChat(chat) {
+  phone.classList.add("in-chat");
+  phone.classList.add("post-chat");
+  setGuideVisibility(false);
+  hideAppDrawer();
+  hideCalendarPlanner();
+  form.hidden = true;
+  phone.classList.remove("sheet-open");
+  updateSheetOffset(sheetCollapsedOffset);
+  chatName.textContent = chat.title;
+  groupAvatar.textContent = chat.avatar;
+  openAppsButton.disabled = true;
+  thread.innerHTML = "";
+  addMessage("system", "Group", chat.subtitle);
+  chat.messages.forEach(([kind, author, text]) => {
+    addMessage(kind, author, text);
+  });
 }
 
 function showMessagesList() {
@@ -528,6 +643,7 @@ function showMessagesList() {
   phone.classList.remove("sheet-open");
   phone.classList.remove("post-chat");
   phone.classList.remove("in-chat");
+  openAppsButton.disabled = false;
   updateSheetOffset(sheetCollapsedOffset);
   setModePresentation(false);
   setGuideStep(0);
@@ -549,6 +665,7 @@ function showAppDrawer() {
   form.hidden = true;
   phone.classList.remove("sheet-open");
   setGuideStep(1);
+  setGuideVisibility(true);
 }
 
 function hideAppDrawer() {
@@ -563,6 +680,7 @@ function showSchedulerSheet() {
   phone.classList.add("sheet-open");
   scrollThreadToLatest();
   setGuideStep(2);
+  setGuideVisibility(true);
 }
 
 function closeSchedulerSheet() {
@@ -795,6 +913,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     runAiDemoButton.disabled = true;
   }
   setGuideStep(3);
+  setGuideVisibility(true);
   resultStatus.textContent = useAi
     ? "Personalized AI running"
     : "Demo running";
@@ -823,7 +942,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     return;
   }
   const durationMinutes = Number(
-    document.querySelector("input[name='duration-minutes']:checked").value
+    getSelectedDurationMinutes()
   );
   const hostStyle = document.querySelector("#host-style").value;
   const [inviteeStyleOne, inviteeStyleTwo] = getInviteeStyles();
@@ -919,6 +1038,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
       addMessage("system", "Personalized AI Mode", "This run used your Gemini key for AI reasoning.");
     }
     setGuideStep(4);
+    setGuideVisibility(true);
   } catch (error) {
     removeTypingIndicator();
     resultStatus.textContent = "Error";
@@ -944,6 +1064,9 @@ async function checkHealth() {
 }
 
 openAppsButton.addEventListener("click", () => {
+  if (openAppsButton.disabled) {
+    return;
+  }
   if (appDrawer.hidden) {
     showAppDrawer();
   } else {
@@ -956,6 +1079,9 @@ openSchedulerButton.addEventListener("click", showSchedulerSheet);
 openDemoChatButton.addEventListener("click", showChat);
 linkedinPostButtons.forEach((button) => {
   button.addEventListener("click", () => showLinkedInPostChat(linkedInPosts[button.dataset.postId]));
+});
+simpleChatButtons.forEach((button) => {
+  button.addEventListener("click", () => showSimpleChat(simpleChats[button.dataset.chatId]));
 });
 filterMenuButton.addEventListener("click", toggleFilterMenu);
 filterMenu.addEventListener("click", (event) => {
@@ -1008,11 +1134,18 @@ resetCalendarsButton?.addEventListener("click", () => {
   scheduleEndTimeInput
 ].forEach((input) => {
   input?.addEventListener("change", () => {
+    if (input === scheduleStartDateInput || input === scheduleStartTimeInput) {
+      syncEndTimeToDuration();
+    }
     if (!calendarPlanner?.hidden) {
       renderCalendarPlanner();
     }
   });
 });
+durationInputs.forEach((input) => {
+  input.addEventListener("change", syncEndTimeToDuration);
+});
+hostStyleSelect?.addEventListener("change", applyHostStyleToScheduler);
 backButton.addEventListener("click", showMessagesList);
 closeSheetButton.addEventListener("pointerdown", startSheetDrag);
 closeSheetButton.addEventListener("pointermove", dragSheet);
@@ -1025,5 +1158,6 @@ geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
 initializeScheduleWindowControls();
 resetCalendarBusyCells();
 setModePresentation(false);
+applyHostStyleToScheduler();
 showChat();
 checkHealth();
