@@ -52,12 +52,16 @@ const guidePanelCopy = document.querySelector("#guide-panel-copy") || createStat
 const guideNext = document.querySelector("#guide-next");
 
 const geminiKeyStorageName = "meetingSchedulerGeminiKey";
+const schedulerStateStorageName = "meetingSchedulerDemoState";
+const maxScheduledMeetings = 3;
 let sheetDragStartY = 0;
 let sheetDragStartOffset = 162;
 let sheetOffset = 162;
 let isDraggingSheet = false;
 let guideStepIndex = 0;
 let guideDelayTimer;
+let currentChatMode = "scheduler";
+let isRestoringSchedulerChat = false;
 
 const sheetExpandedOffset = 0;
 const sheetCollapsedOffset = 162;
@@ -82,6 +86,8 @@ const calendarParticipants = [
   }
 ];
 let calendarBusyCells = {};
+let scheduledMeetings = [];
+let schedulerMessages = [];
 const guideSteps = [
   {
     title: "Open iMessage apps",
@@ -149,6 +155,74 @@ const simpleChats = {
     ]
   }
 };
+
+function getInitialSchedulerMessages() {
+  return [
+    {
+      type: "message",
+      kind: "system",
+      author: "Group",
+      text: "Clely, Maya, and Jordan"
+    },
+    {
+      type: "message",
+      kind: "agent",
+      author: "Maya",
+      text: "Hi Clely, I would love to find a time that works for everyone this week."
+    },
+    {
+      type: "message",
+      kind: "agent",
+      author: "Jordan",
+      text: "Same here. My calendar is a little packed, so overlap would really help."
+    },
+    {
+      type: "message",
+      kind: "user",
+      author: "Clely",
+      text: "I'll try the Meeting Scheduler and let it compare our calendars."
+    },
+    {
+      type: "message",
+      kind: "agent",
+      author: "Meeting Scheduler",
+      text: "Sounds good. Tap + below when you're ready, choose Meeting Scheduler, and I will walk through the options with you."
+    }
+  ];
+}
+
+function loadSchedulerState() {
+  try {
+    const saved = JSON.parse(
+      localStorage.getItem(schedulerStateStorageName) || "{}"
+    );
+    scheduledMeetings = Array.isArray(saved.scheduledMeetings)
+      ? saved.scheduledMeetings.slice(0, maxScheduledMeetings)
+      : [];
+    schedulerMessages = Array.isArray(saved.messages) && saved.messages.length
+      ? saved.messages
+      : getInitialSchedulerMessages();
+  } catch {
+    scheduledMeetings = [];
+    schedulerMessages = getInitialSchedulerMessages();
+  }
+}
+
+function saveSchedulerState() {
+  localStorage.setItem(
+    schedulerStateStorageName,
+    JSON.stringify({
+      scheduledMeetings,
+      messages: schedulerMessages
+    })
+  );
+}
+
+function resetSchedulerState() {
+  scheduledMeetings = [];
+  schedulerMessages = getInitialSchedulerMessages();
+  saveSchedulerState();
+}
 
 function setGuideVisibility(visible) {
   shell?.classList.toggle("guide-visible", visible);
@@ -350,6 +424,26 @@ function setCalendarWeekLabel(days) {
   calendarWeekLabel.textContent = `${formatDayHeader(days[0])} - ${formatDayHeader(days[days.length - 1])}`;
 }
 
+function getScheduledMeetingForCell(day, hour) {
+  const cellStart = new Date(day);
+  cellStart.setHours(hour, 0, 0, 0);
+  const cellEnd = new Date(cellStart);
+  cellEnd.setHours(hour + 1, 0, 0, 0);
+
+  return scheduledMeetings.find((meeting) => {
+    const meetingStart = new Date(meeting.start);
+    const meetingEnd = new Date(meeting.end);
+    if (
+      Number.isNaN(meetingStart.getTime()) ||
+      Number.isNaN(meetingEnd.getTime())
+    ) {
+      return false;
+    }
+
+    return meetingStart < cellEnd && meetingEnd > cellStart;
+  });
+}
+
 function renderCalendarPlanner() {
   if (!calendarGrid) {
     return;
@@ -388,6 +482,7 @@ function renderCalendarPlanner() {
 
       days.forEach((day, dayIndex) => {
         const cellKey = `${dayIndex}-${hour}`;
+        const scheduledMeeting = getScheduledMeetingForCell(day, hour);
         const button = document.createElement("button");
         button.className = "busy-cell";
         button.type = "button";
@@ -397,7 +492,11 @@ function renderCalendarPlanner() {
           "aria-label",
           `${participant.name} ${formatDayHeader(day)} ${hour}:00 busy`
         );
-        if (calendarBusyCells[participant.key]?.has(cellKey)) {
+        if (scheduledMeeting) {
+          button.classList.add("is-scheduled");
+          button.textContent = `Meet ${scheduledMeeting.number}`;
+          button.title = `${scheduledMeeting.title}: ${formatSlot(scheduledMeeting)}`;
+        } else if (calendarBusyCells[participant.key]?.has(cellKey)) {
           button.classList.add("is-busy");
           button.textContent = "Busy";
         } else {
@@ -414,7 +513,7 @@ function renderCalendarPlanner() {
 
 function getParticipantBusyBlocks(participantKey) {
   const days = getDemoWeekDays();
-  return Array.from(calendarBusyCells[participantKey] || [])
+  const manualBusyBlocks = Array.from(calendarBusyCells[participantKey] || [])
     .map((cellKey) => {
       const [dayIndexText, hourText] = cellKey.split("-");
       const day = days[Number(dayIndexText)];
@@ -435,6 +534,51 @@ function getParticipantBusyBlocks(participantKey) {
       };
     })
     .filter(Boolean);
+
+  const scheduledBusyBlocks = scheduledMeetings.map((meeting) => ({
+    start: meeting.start,
+    end: meeting.end,
+    title: meeting.title
+  }));
+
+  return [
+    ...manualBusyBlocks,
+    ...scheduledBusyBlocks
+  ];
+}
+
+function addScheduledMeeting(title, slot) {
+  if (!slot?.start || !slot?.end) {
+    return null;
+  }
+
+  const meeting = {
+    number: scheduledMeetings.length + 1,
+    title,
+    start: slot.start,
+    end: slot.end
+  };
+  scheduledMeetings = [
+    ...scheduledMeetings,
+    meeting
+  ].slice(0, maxScheduledMeetings);
+  saveSchedulerState();
+
+  if (!calendarPlanner?.hidden) {
+    renderCalendarPlanner();
+  }
+
+  return meeting;
+}
+
+function resetSchedulerAfterFinalMeeting() {
+  window.setTimeout(() => {
+    resetSchedulerState();
+    resetCalendarBusyCells();
+    renderSchedulerConversation();
+    renderCalendarPlanner();
+    closeSchedulerSheet();
+  }, 3200);
 }
 
 function showCalendarPlanner() {
@@ -488,19 +632,69 @@ function scrollThreadToLatest() {
   });
 }
 
-function addMessage(kind, author, text) {
+function persistSchedulerRecord(record) {
+  if (currentChatMode !== "scheduler" || isRestoringSchedulerChat) {
+    return;
+  }
+
+  schedulerMessages.push(record);
+  saveSchedulerState();
+}
+
+function renderMessageRecord(record) {
+  if (record.type === "card") {
+    addAppCard(record.title, record.text, {
+      persist: false,
+      className: record.className || ""
+    });
+    return;
+  }
+
+  if (record.type === "round") {
+    addRoundSummaryMessage(record.title, record.lines || [], {
+      persist: false
+    });
+    return;
+  }
+
+  addMessage(record.kind, record.author, record.text, {
+    persist: false
+  });
+}
+
+function renderSchedulerConversation() {
+  currentChatMode = "scheduler";
+  thread.innerHTML = "";
+  chatName.textContent = "Project Sync";
+  groupAvatar.textContent = "3";
+  phone.classList.remove("post-chat");
+  openAppsButton.disabled = false;
+  isRestoringSchedulerChat = true;
+  schedulerMessages.forEach(renderMessageRecord);
+  isRestoringSchedulerChat = false;
+}
+
+function addMessage(kind, author, text, options = {}) {
   const message = document.createElement("article");
   message.className = `message ${kind}`;
   const authorElement = document.createElement("strong");
   authorElement.textContent = author;
   message.append(authorElement, document.createTextNode(String(text)));
   thread.appendChild(message);
+  if (options.persist !== false) {
+    persistSchedulerRecord({
+      type: "message",
+      kind,
+      author,
+      text: String(text)
+    });
+  }
   scrollThreadToLatest();
 }
 
-function addAppCard(title, text) {
+function addAppCard(title, text, options = {}) {
   const message = document.createElement("article");
-  message.className = "message card";
+  message.className = `message card ${options.className || ""}`.trim();
   message.innerHTML = `
     <div class="card-title">
       <span class="mini-icon">AI</span>
@@ -509,10 +703,18 @@ function addAppCard(title, text) {
     <p>${text}</p>
   `;
   thread.appendChild(message);
+  if (options.persist !== false) {
+    persistSchedulerRecord({
+      type: "card",
+      title,
+      text,
+      className: options.className || ""
+    });
+  }
   scrollThreadToLatest();
 }
 
-function addRoundSummaryMessage(title, lines) {
+function addRoundSummaryMessage(title, lines, options = {}) {
   const message = document.createElement("article");
   message.className = "message card round-summary";
 
@@ -534,6 +736,13 @@ function addRoundSummaryMessage(title, lines) {
 
   message.append(header, list);
   thread.appendChild(message);
+  if (options.persist !== false) {
+    persistSchedulerRecord({
+      type: "round",
+      title,
+      lines
+    });
+  }
   scrollThreadToLatest();
 }
 
@@ -573,17 +782,14 @@ function removeTypingIndicator() {
   document.querySelector("#typing-indicator")?.remove();
 }
 
+function removeRunningStateMessages() {
+  document.querySelectorAll(".running-state").forEach((message) => {
+    message.remove();
+  });
+}
+
 function setInitialConversation() {
-  thread.innerHTML = "";
-  chatName.textContent = "Project Sync";
-  groupAvatar.textContent = "3";
-  phone.classList.remove("post-chat");
-  openAppsButton.disabled = false;
-  addMessage("system", "Group", "Clely, Maya, and Jordan");
-  addMessage("agent", "Maya", "Hi Clely, I would love to find a time that works for everyone this week.");
-  addMessage("agent", "Jordan", "Same here. My calendar is a little packed, so overlap would really help.");
-  addMessage("user", "Clely", "I'll try the Meeting Scheduler and let it compare our calendars.");
-  addMessage("agent", "Meeting Scheduler", "Sounds good. Tap + below when you're ready, choose Meeting Scheduler, and I will walk through the options with you.");
+  renderSchedulerConversation();
 }
 
 function showChat() {
@@ -601,6 +807,7 @@ function showChat() {
 }
 
 function showLinkedInPostChat(post) {
+  currentChatMode = "post";
   phone.classList.add("in-chat");
   phone.classList.add("post-chat");
   setGuideVisibility(false);
@@ -618,6 +825,7 @@ function showLinkedInPostChat(post) {
 }
 
 function showSimpleChat(chat) {
+  currentChatMode = "simple";
   phone.classList.add("in-chat");
   phone.classList.add("post-chat");
   setGuideVisibility(false);
@@ -637,6 +845,7 @@ function showSimpleChat(chat) {
 }
 
 function showMessagesList() {
+  currentChatMode = "list";
   form.hidden = true;
   appDrawer.hidden = true;
   hideCalendarPlanner();
@@ -907,8 +1116,16 @@ async function runPersonalizedAiDemo() {
 }
 
 async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
+  if (scheduledMeetings.length >= maxScheduledMeetings) {
+    resetSchedulerState();
+    renderSchedulerConversation();
+    renderCalendarPlanner();
+  }
+
   setModePresentation(useAi);
   runButton.disabled = true;
+  runButton.textContent = "Scheduling...";
+  form.classList.add("is-running");
   if (runAiDemoButton) {
     runAiDemoButton.disabled = true;
   }
@@ -954,6 +1171,14 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
       useAi
         ? "Rerunning the same scheduling workflow with your Gemini key for this browser session."
         : "Running the public first-visit flow with mock calendars, deterministic agents, and no model API key."
+    );
+    addAppCard(
+      "Meeting Scheduler is running",
+      "Checking the host request, comparing the three calendars, and negotiating a common time. Please wait here for the result.",
+      {
+        persist: false,
+        className: "running-state"
+      }
     );
     const timestamp = new Date().toISOString().slice(11, 19);
     const host = await registerUser(`Clely ${timestamp}`, hostStyle);
@@ -1013,6 +1238,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     });
 
     removeTypingIndicator();
+    removeRunningStateMessages();
     let savedStatus = "saved";
     try {
       const saved = await api(`/negotiation/${negotiation.session_id}`);
@@ -1024,11 +1250,22 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     sessionId.textContent = negotiation.session_id;
     resultStatus.textContent = `${useAi ? "AI" : "Demo"}: ${negotiation.status.replace("_", " ")}`;
     slotOutput.textContent = formatSlot(negotiation.agreed_slot);
+    const scheduledMeeting = addScheduledMeeting(
+      meetingTitle,
+      negotiation.agreed_slot
+    );
 
     addAppCard(
       `${negotiation.status.replace("_", " ")}`,
       `Suggested slot: ${formatSlot(negotiation.agreed_slot)}. Completed in ${negotiation.rounds_completed} round(s).`
     );
+    if (scheduledMeeting) {
+      addMessage(
+        "agent",
+        "Meeting Scheduler",
+        `I added meeting ${scheduledMeeting.number} of ${maxScheduledMeetings} to Clely, Maya, and Jordan's calendars.`
+      );
+    }
     addMessage("system", "Saved", `Session status: ${savedStatus}.`);
     if (!useAi) {
       aiUpgradeCard.hidden = false;
@@ -1039,8 +1276,17 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     }
     setGuideStep(4);
     setGuideVisibility(true);
+    if (scheduledMeetings.length >= maxScheduledMeetings) {
+      addMessage(
+        "system",
+        "Demo complete",
+        "Three meetings have been scheduled. This scheduler chat will reset for a fresh demo."
+      );
+      resetSchedulerAfterFinalMeeting();
+    }
   } catch (error) {
     removeTypingIndicator();
+    removeRunningStateMessages();
     resultStatus.textContent = "Error";
     const message = error.message || "The demo run could not complete.";
     slotOutput.textContent = message;
@@ -1048,6 +1294,8 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     setGuideStep(2);
   } finally {
     runButton.disabled = false;
+    runButton.textContent = "Run Demo Mode";
+    form.classList.remove("is-running");
     if (runAiDemoButton) {
       runAiDemoButton.disabled = false;
     }
@@ -1105,6 +1353,9 @@ calendarGrid?.addEventListener("click", (event) => {
   if (!cell) {
     return;
   }
+  if (cell.classList.contains("is-scheduled")) {
+    return;
+  }
 
   const participantKey = cell.dataset.participant;
   const cellKey = cell.dataset.cell;
@@ -1156,6 +1407,7 @@ runAiDemoButton?.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
 geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
 initializeScheduleWindowControls();
+loadSchedulerState();
 resetCalendarBusyCells();
 setModePresentation(false);
 applyHostStyleToScheduler();
