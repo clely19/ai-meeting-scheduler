@@ -25,6 +25,7 @@ const scheduleStartTimeInput = document.querySelector("#schedule-start-time");
 const scheduleEndDateInput = document.querySelector("#schedule-end-date");
 const scheduleEndTimeInput = document.querySelector("#schedule-end-time");
 const hostStyleSelect = document.querySelector("#host-style");
+const meetingPlatformSelect = document.querySelector("#meeting-platform");
 const durationInputs = document.querySelectorAll("input[name='duration-minutes']");
 const extensionSubtitle = document.querySelector("#extension-subtitle");
 const createStateNode = () => document.createElement("span");
@@ -52,7 +53,7 @@ const guidePanelCopy = document.querySelector("#guide-panel-copy") || createStat
 const guideNext = document.querySelector("#guide-next");
 
 const geminiKeyStorageName = "meetingSchedulerGeminiKey";
-const schedulerStateStorageName = "meetingSchedulerDemoState";
+const schedulerStateStorageName = "meetingSchedulerDemoStateV2";
 const maxScheduledMeetings = 3;
 let sheetDragStartY = 0;
 let sheetDragStartOffset = 162;
@@ -495,7 +496,7 @@ function renderCalendarPlanner() {
         if (scheduledMeeting) {
           button.classList.add("is-scheduled");
           button.textContent = `Meet ${scheduledMeeting.number}`;
-          button.title = `${scheduledMeeting.title}: ${formatSlot(scheduledMeeting)}`;
+          button.title = getMeetingDetailsText(scheduledMeeting);
         } else if (calendarBusyCells[participant.key]?.has(cellKey)) {
           button.classList.add("is-busy");
           button.textContent = "Busy";
@@ -538,7 +539,9 @@ function getParticipantBusyBlocks(participantKey) {
   const scheduledBusyBlocks = scheduledMeetings.map((meeting) => ({
     start: meeting.start,
     end: meeting.end,
-    title: meeting.title
+    title: meeting.title,
+    link: meeting.link,
+    platform: meeting.platformLabel
   }));
 
   return [
@@ -547,14 +550,18 @@ function getParticipantBusyBlocks(participantKey) {
   ];
 }
 
-function addScheduledMeeting(title, slot) {
+function addScheduledMeeting(title, slot, platform) {
   if (!slot?.start || !slot?.end) {
     return null;
   }
 
+  const meetingPlatform = platform || getMeetingPlatform();
   const meeting = {
     number: scheduledMeetings.length + 1,
     title,
+    platformId: meetingPlatform.id,
+    platformLabel: meetingPlatform.label,
+    link: createMeetingLink(meetingPlatform.id, title, slot),
     start: slot.start,
     end: slot.end
   };
@@ -642,6 +649,13 @@ function persistSchedulerRecord(record) {
 }
 
 function renderMessageRecord(record) {
+  if (record.type === "meeting-result") {
+    addMeetingResultCard(record.meeting, {
+      persist: false
+    });
+    return;
+  }
+
   if (record.type === "card") {
     addAppCard(record.title, record.text, {
       persist: false,
@@ -714,6 +728,50 @@ function addAppCard(title, text, options = {}) {
   scrollThreadToLatest();
 }
 
+function addMeetingResultCard(meeting, options = {}) {
+  if (!meeting) {
+    return;
+  }
+
+  const message = document.createElement("article");
+  message.className = "message card meeting-result";
+
+  const header = document.createElement("div");
+  header.className = "card-title";
+  const icon = document.createElement("span");
+  icon.className = "mini-icon";
+  icon.textContent = "✓";
+  const label = document.createElement("span");
+  label.textContent = `Scheduled meeting ${meeting.number} of ${maxScheduledMeetings}`;
+  header.append(icon, label);
+
+  const title = document.createElement("p");
+  title.className = "meeting-result-title";
+  title.textContent = meeting.title;
+
+  const slot = document.createElement("p");
+  slot.textContent = formatSlot(meeting);
+
+  const link = document.createElement("a");
+  link.className = "meeting-link";
+  link.href = meeting.link;
+  link.target = "_blank";
+  link.rel = "noreferrer";
+  link.textContent = `${meeting.platformLabel}: ${meeting.link}`;
+
+  message.append(header, title, slot, link);
+  thread.appendChild(message);
+
+  if (options.persist !== false) {
+    persistSchedulerRecord({
+      type: "meeting-result",
+      meeting
+    });
+  }
+
+  scrollThreadToLatest();
+}
+
 function addRoundSummaryMessage(title, lines, options = {}) {
   const message = document.createElement("article");
   message.className = "message card round-summary";
@@ -769,27 +827,14 @@ function addLinkedInPreview(post) {
   scrollThreadToLatest();
 }
 
-function addTypingIndicator() {
-  const typing = document.createElement("div");
-  typing.className = "typing";
-  typing.id = "typing-indicator";
-  typing.innerHTML = "<span></span><span></span><span></span>";
-  thread.appendChild(typing);
-  scrollThreadToLatest();
-}
-
-function removeTypingIndicator() {
-  document.querySelector("#typing-indicator")?.remove();
-}
-
-function removeRunningStateMessages() {
-  document.querySelectorAll(".running-state").forEach((message) => {
-    message.remove();
-  });
-}
-
 function setInitialConversation() {
   renderSchedulerConversation();
+}
+
+function settleProcessingMessages() {
+  document.querySelectorAll(".running-state").forEach((message) => {
+    message.classList.remove("running-state");
+  });
 }
 
 function showChat() {
@@ -956,6 +1001,59 @@ function formatSlot(slot) {
     hour: "numeric",
     minute: "2-digit"
   })}`;
+}
+
+function getMeetingPlatform() {
+  const platform = meetingPlatformSelect?.value || "google-meet";
+  const labels = {
+    "google-meet": "Google Meet",
+    zoom: "Zoom",
+    teams: "Microsoft Teams"
+  };
+
+  return {
+    id: platform,
+    label: labels[platform] || "Google Meet"
+  };
+}
+
+function slugifyMeetingText(text) {
+  return String(text || "meeting")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 32) || "meeting";
+}
+
+function createMeetingLink(platformId, title, slot) {
+  const start = new Date(slot?.start || Date.now());
+  const code = [
+    slugifyMeetingText(title),
+    start.getFullYear(),
+    String(start.getMonth() + 1).padStart(2, "0"),
+    String(start.getDate()).padStart(2, "0"),
+    String(start.getHours()).padStart(2, "0"),
+    String(start.getMinutes()).padStart(2, "0")
+  ].join("-");
+
+  if (platformId === "zoom") {
+    return `https://zoom.us/j/${code}`;
+  }
+
+  if (platformId === "teams") {
+    return `https://teams.microsoft.com/l/meetup-join/${code}`;
+  }
+
+  return `https://meet.google.com/${code}`;
+}
+
+function getMeetingDetailsText(meeting) {
+  return [
+    meeting.title,
+    formatSlot(meeting),
+    meeting.platformLabel,
+    meeting.link
+  ].filter(Boolean).join("\n");
 }
 
 function formatApiError(errorDetail, fallback) {
@@ -1162,19 +1260,13 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     getSelectedDurationMinutes()
   );
   const hostStyle = document.querySelector("#host-style").value;
+  const meetingPlatform = getMeetingPlatform();
   const [inviteeStyleOne, inviteeStyleTwo] = getInviteeStyles();
 
   try {
-    addMessage("user", "Clely", meetingTitle);
     addAppCard(
-      useAi ? "Personalized AI Mode" : "Demo Mode",
-      useAi
-        ? "Rerunning the same scheduling workflow with your Gemini key for this browser session."
-        : "Running the public first-visit flow with mock calendars, deterministic agents, and no model API key."
-    );
-    addAppCard(
-      "Meeting Scheduler is running",
-      "Checking the host request, comparing the three calendars, and negotiating a common time. Please wait here for the result.",
+      "Meeting Scheduler is processing",
+      `Checking Clely, Maya, and Jordan's calendars for ${meetingTitle}. Please wait for the scheduled slot.`,
       {
         persist: false,
         className: "running-state"
@@ -1184,28 +1276,11 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     const host = await registerUser(`Clely ${timestamp}`, hostStyle);
     const inviteeOne = await registerUser(`Maya ${timestamp}`, inviteeStyleOne);
     const inviteeTwo = await registerUser(`Jordan ${timestamp}`, inviteeStyleTwo);
-    const participantNames = {
-      [host.id]: "Clely",
-      [inviteeOne.id]: "Maya",
-      [inviteeTwo.id]: "Jordan"
-    };
     const participantBusyBlocks = {
       [host.id]: getParticipantBusyBlocks("clely"),
       [inviteeOne.id]: getParticipantBusyBlocks("maya"),
       [inviteeTwo.id]: getParticipantBusyBlocks("jordan")
     };
-
-    addMessage("agent", "Meeting Scheduler", `I created scheduling agents for Clely, Maya, and Jordan using the busy times you marked on their calendars.`);
-    addMessage("agent", "Clely's Agent", `Proposing ${durationMinutes}-minute slots using a ${hostStyle} preference.`);
-    addMessage("agent", "Maya + Jordan's Agents", `Evaluating availability as ${inviteeStyleOne} and ${inviteeStyleTwo} schedulers.`);
-    addMessage(
-      "system",
-      "Mode",
-      useAi
-        ? "Personalized AI Mode: same workflow, user-provided Gemini key."
-        : "Demo Mode: same workflow, mock data, no model key."
-    );
-    addTypingIndicator();
 
     const negotiation = await api("/negotiation/start", {
       method: "POST",
@@ -1237,43 +1312,25 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
       })
     });
 
-    removeTypingIndicator();
-    removeRunningStateMessages();
-    let savedStatus = "saved";
-    try {
-      const saved = await api(`/negotiation/${negotiation.session_id}`);
-      savedStatus = saved.status;
-    } catch (saveError) {
-      savedStatus = "created, status refresh unavailable";
-    }
-
     sessionId.textContent = negotiation.session_id;
     resultStatus.textContent = `${useAi ? "AI" : "Demo"}: ${negotiation.status.replace("_", " ")}`;
     slotOutput.textContent = formatSlot(negotiation.agreed_slot);
+    settleProcessingMessages();
     const scheduledMeeting = addScheduledMeeting(
       meetingTitle,
-      negotiation.agreed_slot
+      negotiation.agreed_slot,
+      meetingPlatform
     );
 
-    addAppCard(
-      `${negotiation.status.replace("_", " ")}`,
-      `Suggested slot: ${formatSlot(negotiation.agreed_slot)}. Completed in ${negotiation.rounds_completed} round(s).`
-    );
     if (scheduledMeeting) {
-      addMessage(
-        "agent",
-        "Meeting Scheduler",
-        `I added meeting ${scheduledMeeting.number} of ${maxScheduledMeetings} to Clely, Maya, and Jordan's calendars.`
+      addMeetingResultCard(scheduledMeeting);
+    } else {
+      addAppCard(
+        `${negotiation.status.replace("_", " ")}`,
+        `No meeting link was created because no valid slot was returned.`
       );
     }
-    addMessage("system", "Saved", `Session status: ${savedStatus}.`);
-    if (!useAi) {
-      aiUpgradeCard.hidden = false;
-      addMessage("system", "Demo Mode", "No model API key was used for this run.");
-    } else {
-      aiUpgradeCard.hidden = true;
-      addMessage("system", "Personalized AI Mode", "This run used your Gemini key for AI reasoning.");
-    }
+    aiUpgradeCard.hidden = Boolean(useAi);
     setGuideStep(4);
     setGuideVisibility(true);
     if (scheduledMeetings.length >= maxScheduledMeetings) {
@@ -1285,8 +1342,6 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
       resetSchedulerAfterFinalMeeting();
     }
   } catch (error) {
-    removeTypingIndicator();
-    removeRunningStateMessages();
     resultStatus.textContent = "Error";
     const message = error.message || "The demo run could not complete.";
     slotOutput.textContent = message;

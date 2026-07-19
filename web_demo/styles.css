@@ -636,6 +636,30 @@ h1 {
   animation: running-pulse 1.1s ease-in-out infinite;
 }
 
+.meeting-result {
+  display: grid;
+  gap: 8px;
+}
+
+.meeting-result-title {
+  color: #fff;
+  font-weight: 800;
+}
+
+.meeting-link {
+  color: #64d2ff;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.meeting-link:hover,
+.meeting-link:focus-visible {
+  text-decoration: underline;
+}
+
 @keyframes running-pulse {
   0%,
   100% {

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260719-scheduler-persistence">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260719-meeting-links">
   </head>
   <body>
     <main class="shell">
@@ -209,6 +209,15 @@
                 <input id="invitee-user-ids" value="Clely, Maya, Jordan" readonly>
               </label>
 
+              <label>
+                Meeting platform
+                <select id="meeting-platform">
+                  <option value="google-meet" selected>Google Meet</option>
+                  <option value="zoom">Zoom</option>
+                  <option value="teams">Microsoft Teams</option>
+                </select>
+              </label>
+
               <div class="hidden-controls" aria-label="Demo agent preferences">
                 <label>
                   Host style
@@ -257,6 +266,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260719-scheduler-persistence"></script>
+    <script src="/demo/app.js?v=20260719-meeting-links"></script>
   </body>
 </html>
