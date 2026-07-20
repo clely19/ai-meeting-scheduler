@@ -812,6 +812,7 @@ h1 {
 }
 
 .participant-calendar {
+  position: relative;
   display: grid;
   gap: 7px;
   min-width: 0;
@@ -875,23 +876,99 @@ h1 {
 .scheduled-meeting-block {
   position: absolute;
   z-index: 2;
-  top: calc(var(--calendar-row-height) + var(--calendar-grid-gap) + (var(--meeting-start-offset) * var(--calendar-row-height)) + (var(--meeting-start-gap-count) * var(--calendar-grid-gap)));
-  left: calc((100% - var(--calendar-time-column-width) - (7 * var(--calendar-grid-gap))) / 7 * (var(--meeting-day) - 1) + var(--calendar-time-column-width) + (var(--meeting-day) * var(--calendar-grid-gap)));
-  width: calc((100% - var(--calendar-time-column-width) - (7 * var(--calendar-grid-gap))) / 7);
-  height: calc((var(--meeting-duration) * var(--calendar-row-height)) + (var(--meeting-gap-count) * var(--calendar-grid-gap)));
+  --meeting-column-width: calc((100% - var(--calendar-time-column-width) - (7 * var(--calendar-grid-gap))) / 7);
+  --meeting-inset: 2px;
+  top: calc(var(--calendar-row-height) + var(--calendar-grid-gap) + (var(--meeting-start-offset) * var(--calendar-row-height)) + (var(--meeting-start-gap-count) * var(--calendar-grid-gap)) + var(--meeting-inset));
+  left: calc((var(--meeting-column-width) * (var(--meeting-day) - 1)) + var(--calendar-time-column-width) + (var(--meeting-day) * var(--calendar-grid-gap)) + var(--meeting-inset));
+  width: calc(var(--meeting-column-width) - (2 * var(--meeting-inset)));
+  height: calc((var(--meeting-duration) * var(--calendar-row-height)) + (var(--meeting-gap-count) * var(--calendar-grid-gap)) - (2 * var(--meeting-inset)));
   min-height: 12px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 8px;
+  border-radius: 7px;
   display: grid;
-  place-items: start center;
-  padding-top: 4px;
+  align-content: start;
+  justify-items: start;
+  gap: 1px;
+  overflow: visible;
+  padding: 3px 4px;
   color: #fff;
   background: linear-gradient(180deg, #0a84ff, #0066d6);
   box-shadow: 0 10px 22px rgba(10, 132, 255, 0.22);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   cursor: default;
   pointer-events: auto;
+}
+
+.scheduled-meeting-label,
+.scheduled-meeting-time {
+  width: 100%;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scheduled-meeting-time {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.scheduled-meeting-popover {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  z-index: 6;
+  width: 230px;
+  max-width: min(230px, 70vw);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  display: none;
+  gap: 6px;
+  padding: 10px;
+  color: #f5f5f7;
+  background: rgba(28, 28, 30, 0.98);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.46);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.scheduled-meeting-block:hover,
+.scheduled-meeting-block:focus-visible {
+  z-index: 8;
+  outline: 2px solid rgba(100, 210, 255, 0.48);
+  outline-offset: 1px;
+}
+
+.scheduled-meeting-block:hover .scheduled-meeting-popover,
+.scheduled-meeting-block:focus-visible .scheduled-meeting-popover {
+  display: grid;
+}
+
+.scheduled-meeting-block.popover-left .scheduled-meeting-popover {
+  left: auto;
+  right: calc(100% + 8px);
+}
+
+.popover-kicker {
+  color: #64d2ff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.scheduled-meeting-popover strong {
+  color: #fff;
+  font-size: 13px;
+}
+
+.popover-link {
+  color: #64d2ff;
+  overflow-wrap: anywhere;
+  font-weight: 900;
 }
 
 .busy-cell:focus-visible {

@@ -1107,8 +1107,40 @@ function renderScheduledMeetingOverlays(weekGrid, days) {
 
     const overlay = document.createElement("div");
     overlay.className = "scheduled-meeting-block";
-    overlay.textContent = `Meet ${meeting.number}`;
-    overlay.title = getMeetingDetailsText(meeting);
+    if (dayIndex >= 4) {
+      overlay.classList.add("popover-left");
+    }
+    const label = document.createElement("span");
+    label.className = "scheduled-meeting-label";
+    label.textContent = meeting.title || `Meeting ${meeting.number}`;
+    const time = document.createElement("span");
+    time.className = "scheduled-meeting-time";
+    time.textContent = `${formatShortTime(meetingStart)}-${formatShortTime(meetingEnd)}`;
+    const popover = document.createElement("span");
+    popover.className = "scheduled-meeting-popover";
+    const popoverKicker = document.createElement("span");
+    popoverKicker.className = "popover-kicker";
+    popoverKicker.textContent = meeting.platformLabel || "Meeting";
+    const popoverTitle = document.createElement("strong");
+    popoverTitle.textContent = meeting.title || `Meeting ${meeting.number}`;
+    const popoverSlot = document.createElement("span");
+    popoverSlot.textContent = formatSlot(meeting);
+    const popoverLink = document.createElement("span");
+    popoverLink.className = "popover-link";
+    popoverLink.textContent = meeting.link || "Meeting link pending";
+    popover.append(popoverKicker, popoverTitle, popoverSlot);
+    if (meeting.styleReason) {
+      const popoverReason = document.createElement("span");
+      popoverReason.textContent = meeting.styleReason;
+      popover.append(popoverReason);
+    }
+    popover.append(popoverLink);
+    overlay.append(label, time, popover);
+    overlay.setAttribute(
+      "aria-label",
+      getMeetingDetailsText(meeting)
+    );
+    overlay.tabIndex = 0;
     overlay.style.setProperty("--meeting-day", dayIndex + 1);
     overlay.style.setProperty("--meeting-start-offset", startOffset);
     overlay.style.setProperty(
