@@ -662,6 +662,20 @@ h1 {
   text-decoration: underline;
 }
 
+.demo-reset-card {
+  display: grid;
+  gap: 10px;
+}
+
+.return-demo-button {
+  min-height: 38px;
+  border-radius: 12px;
+  color: #fff;
+  background: #0a84ff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
 @keyframes running-pulse {
   0%,
   100% {

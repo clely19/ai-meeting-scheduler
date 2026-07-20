@@ -620,14 +620,23 @@ function addScheduledMeeting(title, slot, platform) {
   return meeting;
 }
 
-function resetSchedulerAfterFinalMeeting() {
-  window.setTimeout(() => {
-    resetSchedulerState();
-    resetCalendarBusyCells();
-    renderSchedulerConversation();
-    renderCalendarPlanner();
-    closeSchedulerSheet();
-  }, 3200);
+function updateRunButtonForMeetingLimit() {
+  if (form.classList.contains("is-running")) {
+    return;
+  }
+
+  const reachedLimit = scheduledMeetings.length >= maxScheduledMeetings;
+  runButton.disabled = reachedLimit;
+  runButton.textContent = reachedLimit
+    ? "Demo Complete"
+    : "Run Demo Mode";
+}
+
+function returnToInitialDemo() {
+  resetSchedulerState();
+  resetCalendarBusyCells();
+  showChat();
+  updateRunButtonForMeetingLimit();
 }
 
 function showCalendarPlanner() {
@@ -691,6 +700,13 @@ function persistSchedulerRecord(record) {
 }
 
 function renderMessageRecord(record) {
+  if (record.type === "demo-reset") {
+    addReturnToInitialDemoCard({
+      persist: false
+    });
+    return;
+  }
+
   if (record.type === "meeting-result") {
     addMeetingResultCard(record.meeting, {
       persist: false
@@ -808,6 +824,28 @@ function addMeetingResultCard(meeting, options = {}) {
     persistSchedulerRecord({
       type: "meeting-result",
       meeting
+    });
+  }
+
+  scrollThreadToLatest();
+}
+
+function addReturnToInitialDemoCard(options = {}) {
+  const message = document.createElement("article");
+  message.className = "message card demo-reset-card";
+  message.innerHTML = `
+    <div class="card-title">
+      <span class="mini-icon">AI</span>
+      <span>Demo cycle complete</span>
+    </div>
+    <p>All three meetings are visible on Clely, Maya, and Jordan's calendars. Return to the initial demo when you're ready to start fresh.</p>
+    <button class="return-demo-button" type="button" data-action="reset-scheduler-demo">Return to initial demo</button>
+  `;
+  thread.appendChild(message);
+
+  if (options.persist !== false) {
+    persistSchedulerRecord({
+      type: "demo-reset"
     });
   }
 
@@ -977,6 +1015,7 @@ function showSchedulerSheet() {
   scrollThreadToLatest();
   setGuideStep(2);
   setGuideVisibility(true);
+  updateRunButtonForMeetingLimit();
 }
 
 function closeSchedulerSheet() {
@@ -1376,12 +1415,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     setGuideStep(4);
     setGuideVisibility(true);
     if (scheduledMeetings.length >= maxScheduledMeetings) {
-      addMessage(
-        "system",
-        "Demo complete",
-        "Three meetings have been scheduled. This scheduler chat will reset for a fresh demo."
-      );
-      resetSchedulerAfterFinalMeeting();
+      addReturnToInitialDemoCard();
     }
   } catch (error) {
     resultStatus.textContent = "Error";
@@ -1390,9 +1424,8 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     addMessage("system", "Error", message);
     setGuideStep(2);
   } finally {
-    runButton.disabled = false;
-    runButton.textContent = "Run Demo Mode";
     form.classList.remove("is-running");
+    updateRunButtonForMeetingLimit();
     if (runAiDemoButton) {
       runAiDemoButton.disabled = false;
     }
@@ -1471,6 +1504,14 @@ calendarGrid?.addEventListener("click", (event) => {
   }
   renderCalendarPlanner();
 });
+thread.addEventListener("click", (event) => {
+  const resetButton = event.target.closest("[data-action='reset-scheduler-demo']");
+  if (!resetButton) {
+    return;
+  }
+
+  returnToInitialDemo();
+});
 resetCalendarsButton?.addEventListener("click", () => {
   resetCalendarBusyCells();
   renderCalendarPlanner();
@@ -1509,4 +1550,5 @@ resetCalendarBusyCells();
 setModePresentation(false);
 applyHostStyleToScheduler();
 showChat();
+updateRunButtonForMeetingLimit();
 checkHealth();
