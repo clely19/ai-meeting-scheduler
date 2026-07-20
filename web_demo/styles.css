@@ -1364,11 +1364,19 @@ input::placeholder {
     linear-gradient(180deg, rgba(0, 0, 0, 0.92), transparent 28%, transparent 72%, rgba(0, 0, 0, 0.92)),
     #050505;
   scroll-snap-type: y mandatory;
-  scrollbar-width: none;
+  scrollbar-color: rgba(255, 255, 255, 0.32) transparent;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .time-wheel::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+}
+
+.time-wheel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.32);
 }
 
 .time-wheel-option {

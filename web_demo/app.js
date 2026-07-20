@@ -617,32 +617,93 @@ function getSelectedDurationMinutes() {
   return Math.max(timeWheelIncrementMinutes, endMinutes - startMinutes);
 }
 
+function getSelectedTimeWindowForDate(date) {
+  const startMinutes = timeInputValueToMinutes(scheduleStartTimeInput?.value);
+  let endMinutes = timeInputValueToMinutes(scheduleEndTimeInput?.value);
+  const start = new Date(date);
+  start.setHours(
+    Math.floor(startMinutes / 60),
+    startMinutes % 60,
+    0,
+    0
+  );
+
+  if (endMinutes <= startMinutes) {
+    endMinutes += 24 * 60;
+  }
+
+  const end = new Date(start);
+  end.setMinutes(end.getMinutes() + (endMinutes - startMinutes));
+
+  return {
+    start,
+    end
+  };
+}
+
+function getSelectedTimeWindowBusyBlocks(dateRange) {
+  const rangeStart = new Date(dateRange.start);
+  const rangeEnd = new Date(dateRange.end);
+  if (
+    Number.isNaN(rangeStart.getTime()) ||
+    Number.isNaN(rangeEnd.getTime())
+  ) {
+    return [];
+  }
+
+  const busyBlocks = [];
+  const cursor = new Date(rangeStart);
+  cursor.setHours(0, 0, 0, 0);
+
+  while (cursor <= rangeEnd) {
+    const dayStart = new Date(cursor);
+    const dayEnd = new Date(cursor);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+
+    const selectedWindow = getSelectedTimeWindowForDate(cursor);
+    const blockedBeforeStart = new Date(Math.max(
+      dayStart.getTime(),
+      rangeStart.getTime()
+    ));
+    const blockedBeforeEnd = new Date(Math.min(
+      selectedWindow.start.getTime(),
+      rangeEnd.getTime()
+    ));
+    if (blockedBeforeEnd > blockedBeforeStart) {
+      busyBlocks.push({
+        start: formatLocalDateTime(blockedBeforeStart),
+        end: formatLocalDateTime(blockedBeforeEnd),
+        title: "Outside selected meeting time"
+      });
+    }
+
+    const blockedAfterStart = new Date(Math.max(
+      selectedWindow.end.getTime(),
+      rangeStart.getTime()
+    ));
+    const blockedAfterEnd = new Date(Math.min(
+      dayEnd.getTime(),
+      rangeEnd.getTime()
+    ));
+    if (blockedAfterEnd > blockedAfterStart) {
+      busyBlocks.push({
+        start: formatLocalDateTime(blockedAfterStart),
+        end: formatLocalDateTime(blockedAfterEnd),
+        title: "Outside selected meeting time"
+      });
+    }
+
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return busyBlocks;
+}
+
 function applyHostStyleToScheduler() {
   const style = hostStyleSelect?.value || "early";
   const names = getParticipantNames();
-  const styleStartHours = {
-    early: 9,
-    balanced: 12,
-    flexible: 15
-  };
 
   extensionSubtitle.textContent = `Hi ${names.host} · ${style} style`;
-  if (scheduleStartTimeInput && styleStartHours[style] !== undefined) {
-    setTimeInputValue(
-      scheduleStartTimeInput,
-      `${String(styleStartHours[style]).padStart(2, "0")}:00`,
-      {
-        dispatch: false
-      }
-    );
-    setTimeInputValue(
-      scheduleEndTimeInput,
-      `${String(styleStartHours[style] + 1).padStart(2, "0")}:00`,
-      {
-        dispatch: false
-      }
-    );
-  }
 
   if (!calendarPlanner?.hidden) {
     renderCalendarPlanner();
@@ -900,7 +961,7 @@ function renderCalendarPlanner() {
   });
 }
 
-function getParticipantBusyBlocks(participantKey) {
+function getParticipantBusyBlocks(participantKey, options = {}) {
   const days = getDemoWeekDays();
   const manualBusyBlocks = Array.from(calendarBusyCells[participantKey] || [])
     .map((cellKey) => {
@@ -931,9 +992,13 @@ function getParticipantBusyBlocks(participantKey) {
     link: meeting.link,
     platform: meeting.platformLabel
   }));
+  const selectedTimeWindowBusyBlocks = options.dateRange
+    ? getSelectedTimeWindowBusyBlocks(options.dateRange)
+    : [];
 
   return [
     ...manualBusyBlocks,
+    ...selectedTimeWindowBusyBlocks,
     ...scheduledBusyBlocks
   ];
 }
@@ -1723,9 +1788,15 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     const inviteeOne = await registerUser(`${participantNames.inviteeOne} ${timestamp}`, inviteeStyleOne);
     const inviteeTwo = await registerUser(`${participantNames.inviteeTwo} ${timestamp}`, inviteeStyleTwo);
     const participantBusyBlocks = {
-      [host.id]: getParticipantBusyBlocks("host"),
-      [inviteeOne.id]: getParticipantBusyBlocks("inviteeOne"),
-      [inviteeTwo.id]: getParticipantBusyBlocks("inviteeTwo")
+      [host.id]: getParticipantBusyBlocks("host", {
+        dateRange: demoDateRange
+      }),
+      [inviteeOne.id]: getParticipantBusyBlocks("inviteeOne", {
+        dateRange: demoDateRange
+      }),
+      [inviteeTwo.id]: getParticipantBusyBlocks("inviteeTwo", {
+        dateRange: demoDateRange
+      })
     };
 
     const negotiation = await api("/negotiation/start", {

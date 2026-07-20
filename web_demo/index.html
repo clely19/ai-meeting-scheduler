@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260720-time-wheel-duration">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260720-time-window-duration">
   </head>
   <body>
     <main class="shell">
@@ -173,7 +173,7 @@
                   <label class="time-wheel-field">
                     Start time
                     <input id="schedule-start-time" type="hidden" value="09:00">
-                    <span id="start-time-wheel" class="time-wheel" role="listbox" aria-label="Start time" data-time-input="schedule-start-time"></span>
+                    <div id="start-time-wheel" class="time-wheel" role="listbox" aria-label="Start time" data-time-input="schedule-start-time"></div>
                   </label>
                   <label>
                     End date
@@ -182,7 +182,7 @@
                   <label class="time-wheel-field">
                     End time
                     <input id="schedule-end-time" type="hidden" value="10:00">
-                    <span id="end-time-wheel" class="time-wheel" role="listbox" aria-label="End time" data-time-input="schedule-end-time"></span>
+                    <div id="end-time-wheel" class="time-wheel" role="listbox" aria-label="End time" data-time-input="schedule-end-time"></div>
                   </label>
                 </div>
               </fieldset>
@@ -272,6 +272,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260720-time-wheel-duration"></script>
+    <script src="/demo/app.js?v=20260720-time-window-duration"></script>
   </body>
 </html>
