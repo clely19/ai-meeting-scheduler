@@ -11,6 +11,9 @@ const openDemoChatButton = document.querySelector("#open-demo-chat");
 const calendarPlanner = document.querySelector("#calendar-planner");
 const calendarGrid = document.querySelector("#calendar-grid");
 const calendarWeekLabel = document.querySelector("#calendar-week-label");
+const calendarWeekHint = document.querySelector("#calendar-week-hint");
+const calendarPrevWeekButton = document.querySelector("#calendar-prev-week");
+const calendarNextWeekButton = document.querySelector("#calendar-next-week");
 const resetCalendarsButton = document.querySelector("#reset-calendars");
 const linkedinPostButtons = document.querySelectorAll(".linkedin-row");
 const simpleChatButtons = document.querySelectorAll(".simple-chat-row");
@@ -66,6 +69,8 @@ let guideStepIndex = 0;
 let guideDelayTimer;
 let currentChatMode = "scheduler";
 let isRestoringSchedulerChat = false;
+let calendarWeekOffset = 0;
+let pendingOffscreenMeeting = null;
 
 const sheetExpandedOffset = 0;
 const sheetCollapsedOffset = 162;
@@ -433,6 +438,10 @@ function applyHostStyleToScheduler() {
 }
 
 function getDemoWeekDays() {
+  return getCalendarWeekDays(calendarWeekOffset);
+}
+
+function getCalendarWeekDays(weekOffset = 0) {
   let start;
   try {
     ({ start } = getSelectedDateRange());
@@ -440,11 +449,46 @@ function getDemoWeekDays() {
     ({ start } = getDemoDateRange());
   }
   const startDate = new Date(start);
+  startDate.setDate(startDate.getDate() + weekOffset * demoWindowDays);
   return Array.from({ length: demoWindowDays }, (_, dayIndex) => {
     const date = new Date(startDate);
     date.setDate(startDate.getDate() + dayIndex);
     return date;
   });
+}
+
+function getMeetingWeekOffset(meeting) {
+  if (!meeting?.start) {
+    return 0;
+  }
+
+  const baseWeek = getCalendarWeekDays(0);
+  const firstDay = baseWeek[0];
+  const meetingStart = new Date(meeting.start);
+  if (!firstDay || Number.isNaN(meetingStart.getTime())) {
+    return 0;
+  }
+
+  const dayDelta = Math.floor(
+    (meetingStart - firstDay) / (1000 * 60 * 60 * 24)
+  );
+  return Math.floor(dayDelta / demoWindowDays);
+}
+
+function isMeetingInViewedWeek(meeting) {
+  if (!meeting?.start || !meeting?.end) {
+    return false;
+  }
+
+  const days = getDemoWeekDays();
+  const firstDay = new Date(days[0]);
+  const lastDay = new Date(days[days.length - 1]);
+  firstDay.setHours(0, 0, 0, 0);
+  lastDay.setHours(23, 59, 59, 999);
+
+  const meetingStart = new Date(meeting.start);
+  const meetingEnd = new Date(meeting.end);
+  return meetingStart <= lastDay && meetingEnd >= firstDay;
 }
 
 function formatDayHeader(date) {
@@ -470,6 +514,33 @@ function setCalendarWeekLabel(days) {
   }
 
   calendarWeekLabel.textContent = `${formatDayHeader(days[0])} - ${formatDayHeader(days[days.length - 1])}`;
+}
+
+function updateCalendarWeekHint(days) {
+  if (!calendarWeekHint || !calendarNextWeekButton || !calendarPrevWeekButton) {
+    return;
+  }
+
+  calendarNextWeekButton.classList.remove("needs-attention");
+  calendarPrevWeekButton.classList.remove("needs-attention");
+
+  if (!pendingOffscreenMeeting || isMeetingInViewedWeek(pendingOffscreenMeeting)) {
+    calendarWeekHint.hidden = true;
+    calendarWeekHint.textContent = "";
+    pendingOffscreenMeeting = null;
+    return;
+  }
+
+  const targetOffset = getMeetingWeekOffset(pendingOffscreenMeeting);
+  const isFutureWeek = targetOffset > calendarWeekOffset;
+  const button = isFutureWeek
+    ? calendarNextWeekButton
+    : calendarPrevWeekButton;
+  button.classList.add("needs-attention");
+  calendarWeekHint.hidden = false;
+  calendarWeekHint.textContent = isFutureWeek
+    ? `Meeting ${pendingOffscreenMeeting.number} is in a later week. Use › to view it.`
+    : `Meeting ${pendingOffscreenMeeting.number} is in an earlier week. Use ‹ to view it.`;
 }
 
 function getScheduledMeetingForCell(day, hour) {
@@ -532,6 +603,7 @@ function renderCalendarPlanner() {
 
   const days = getDemoWeekDays();
   setCalendarWeekLabel(days);
+  updateCalendarWeekHint(days);
   calendarGrid.innerHTML = "";
 
   calendarParticipants.forEach((participant) => {
@@ -662,6 +734,10 @@ function addScheduledMeeting(title, slot, platform) {
   ].slice(0, maxScheduledMeetings);
   saveSchedulerState();
 
+  pendingOffscreenMeeting = isMeetingInViewedWeek(meeting)
+    ? null
+    : meeting;
+
   if (!calendarPlanner?.hidden) {
     renderCalendarPlanner();
   }
@@ -684,6 +760,8 @@ function updateRunButtonForMeetingLimit() {
 function returnToInitialDemo() {
   resetSchedulerState();
   resetCalendarBusyCells();
+  calendarWeekOffset = 0;
+  pendingOffscreenMeeting = null;
   showChat();
   updateRunButtonForMeetingLimit();
 }
@@ -1553,6 +1631,14 @@ calendarGrid?.addEventListener("click", (event) => {
   } else {
     calendarBusyCells[participantKey].add(cellKey);
   }
+  renderCalendarPlanner();
+});
+calendarPrevWeekButton?.addEventListener("click", () => {
+  calendarWeekOffset -= 1;
+  renderCalendarPlanner();
+});
+calendarNextWeekButton?.addEventListener("click", () => {
+  calendarWeekOffset += 1;
   renderCalendarPlanner();
 });
 thread.addEventListener("click", (event) => {

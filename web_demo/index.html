@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260720-public-demo-names">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260720-calendar-week-nav">
   </head>
   <body>
     <main class="shell">
@@ -271,14 +271,19 @@
           <div>
             <p class="calendar-title">External calendars</p>
             <p id="calendar-week-label" class="calendar-subtitle">This week</p>
+            <p id="calendar-week-hint" class="calendar-week-hint" hidden></p>
           </div>
-          <button id="reset-calendars" class="calendar-reset" type="button">Reset</button>
+          <div class="calendar-actions">
+            <button id="calendar-prev-week" class="calendar-nav-button" type="button" aria-label="Previous calendar week">‹</button>
+            <button id="calendar-next-week" class="calendar-nav-button" type="button" aria-label="Next calendar week">›</button>
+            <button id="reset-calendars" class="calendar-reset" type="button">Reset</button>
+          </div>
         </header>
         <div id="calendar-grid" class="calendar-grid"></div>
       </section>
 
     </main>
 
-    <script src="/demo/app.js?v=20260720-public-demo-names"></script>
+    <script src="/demo/app.js?v=20260720-calendar-week-nav"></script>
   </body>
 </html>
