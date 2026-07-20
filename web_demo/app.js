@@ -563,37 +563,61 @@ function getScheduledMeetingForCell(day, hour) {
   });
 }
 
-function getScheduledCellPosition(meeting, day, hour) {
-  if (!meeting) {
-    return null;
-  }
+function renderScheduledMeetingOverlays(weekGrid, days) {
+  const firstHour = calendarHours[0];
+  const lastHour = calendarHours[calendarHours.length - 1] + 1;
 
-  const previousHour = hour - 1;
-  const nextHour = hour + 1;
-  const previousMeeting = calendarHours.includes(previousHour)
-    ? getScheduledMeetingForCell(day, previousHour)
-    : null;
-  const nextMeeting = calendarHours.includes(nextHour)
-    ? getScheduledMeetingForCell(day, nextHour)
-    : null;
-  const isSameMeeting = (candidate) => (
-    candidate?.number === meeting.number &&
-    candidate?.start === meeting.start
-  );
-  const continuesFromPrevious = isSameMeeting(previousMeeting);
-  const continuesToNext = isSameMeeting(nextMeeting);
+  scheduledMeetings.forEach((meeting) => {
+    const meetingStart = new Date(meeting.start);
+    const meetingEnd = new Date(meeting.end);
+    if (
+      Number.isNaN(meetingStart.getTime()) ||
+      Number.isNaN(meetingEnd.getTime())
+    ) {
+      return;
+    }
 
-  if (continuesFromPrevious && continuesToNext) {
-    return "middle";
-  }
-  if (continuesFromPrevious) {
-    return "end";
-  }
-  if (continuesToNext) {
-    return "start";
-  }
+    const dayIndex = days.findIndex((day) => (
+      day.toDateString() === meetingStart.toDateString()
+    ));
+    if (dayIndex < 0) {
+      return;
+    }
 
-  return "single";
+    const startHourValue = meetingStart.getHours() +
+      meetingStart.getMinutes() / 60;
+    const endHourValue = meetingEnd.getHours() +
+      meetingEnd.getMinutes() / 60;
+    const visibleStart = Math.max(startHourValue, firstHour);
+    const visibleEnd = Math.min(endHourValue, lastHour);
+    if (visibleEnd <= visibleStart) {
+      return;
+    }
+    const startOffset = visibleStart - firstHour;
+    const endOffset = visibleEnd - firstHour;
+    const startGapCount = Math.floor(startOffset);
+    const gapCount = Math.max(
+      Math.ceil(endOffset) - Math.floor(startOffset) - 1,
+      0
+    );
+
+    const overlay = document.createElement("div");
+    overlay.className = "scheduled-meeting-block";
+    overlay.textContent = `Meet ${meeting.number}`;
+    overlay.title = getMeetingDetailsText(meeting);
+    overlay.style.setProperty("--meeting-day", dayIndex + 1);
+    overlay.style.setProperty("--meeting-start-offset", startOffset);
+    overlay.style.setProperty(
+      "--meeting-start-gap-count",
+      startGapCount
+    );
+    overlay.style.setProperty(
+      "--meeting-duration",
+      visibleEnd - visibleStart
+    );
+    overlay.style.setProperty("--meeting-gap-count", gapCount);
+    weekGrid.append(overlay);
+  });
 }
 
 function renderCalendarPlanner() {
@@ -617,6 +641,7 @@ function renderCalendarPlanner() {
 
     const weekGrid = document.createElement("div");
     weekGrid.className = "week-grid";
+    weekGrid.style.setProperty("--calendar-hour-count", calendarHours.length);
     weekGrid.append(document.createElement("span"));
 
     days.forEach((day) => {
@@ -637,7 +662,6 @@ function renderCalendarPlanner() {
 
       days.forEach((day, dayIndex) => {
         const cellKey = `${dayIndex}-${hour}`;
-        const scheduledMeeting = getScheduledMeetingForCell(day, hour);
         const button = document.createElement("button");
         button.className = "busy-cell";
         button.type = "button";
@@ -647,20 +671,7 @@ function renderCalendarPlanner() {
           "aria-label",
           `${participantName} ${formatDayHeader(day)} ${hour}:00 busy`
         );
-        if (scheduledMeeting) {
-          const scheduledPosition = getScheduledCellPosition(
-            scheduledMeeting,
-            day,
-            hour
-          );
-          button.classList.add("is-scheduled");
-          button.classList.add(`scheduled-${scheduledPosition}`);
-          button.textContent = scheduledPosition === "start" ||
-            scheduledPosition === "single"
-            ? `Meet ${scheduledMeeting.number}`
-            : "";
-          button.title = getMeetingDetailsText(scheduledMeeting);
-        } else if (calendarBusyCells[participant.key]?.has(cellKey)) {
+        if (calendarBusyCells[participant.key]?.has(cellKey)) {
           button.classList.add("is-busy");
           button.textContent = "Busy";
         } else {
@@ -669,6 +680,8 @@ function renderCalendarPlanner() {
         weekGrid.append(button);
       });
     });
+
+    renderScheduledMeetingOverlays(weekGrid, days);
 
     calendar.append(heading, weekGrid);
     calendarGrid.append(calendar);
@@ -1608,6 +1621,10 @@ filterMenu.addEventListener("click", (event) => {
   }
 });
 calendarGrid?.addEventListener("click", (event) => {
+  if (event.target.closest(".scheduled-meeting-block")) {
+    return;
+  }
+
   const cell = event.target.closest(".busy-cell");
   if (!cell) {
     return;
