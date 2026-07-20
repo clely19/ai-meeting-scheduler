@@ -987,23 +987,29 @@ function applyBusyBuffer(blocks, bufferMinutes, dateRange) {
     const start = new Date(block.start);
     const end = new Date(block.end);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-      return block;
+      return null;
     }
 
     start.setMinutes(start.getMinutes() - bufferMinutes);
     end.setMinutes(end.getMinutes() + bufferMinutes);
+    const clampedStart = hasValidRange && start < rangeStart
+      ? rangeStart
+      : start;
+    const clampedEnd = hasValidRange && end > rangeEnd
+      ? rangeEnd
+      : end;
+
+    if (clampedEnd <= clampedStart) {
+      return null;
+    }
 
     return {
       ...block,
-      start: formatLocalDateTime(hasValidRange && start < rangeStart
-        ? rangeStart
-        : start),
-      end: formatLocalDateTime(hasValidRange && end > rangeEnd
-        ? rangeEnd
-        : end),
+      start: formatLocalDateTime(clampedStart),
+      end: formatLocalDateTime(clampedEnd),
       buffer_minutes: bufferMinutes
     };
-  });
+  }).filter(Boolean);
 }
 
 function setCalendarWeekLabel(days) {
