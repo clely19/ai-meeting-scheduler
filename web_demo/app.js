@@ -82,6 +82,7 @@ const sheetCollapsedOffset = 162;
 const sheetCloseOffset = 270;
 const demoWindowDays = 7;
 const timeWheelIncrementMinutes = 15;
+const timeWheelStartMinutes = 9 * 60;
 const calendarHours = [9, 10, 11, 12, 13, 14, 15, 16, 17];
 const calendarParticipants = [
   {
@@ -455,7 +456,9 @@ function formatTimeWheelLabel(value) {
 function getTimeWheelOptions() {
   return Array.from(
     { length: Math.floor((24 * 60) / timeWheelIncrementMinutes) },
-    (_, index) => minutesToTimeInputValue(index * timeWheelIncrementMinutes)
+    (_, index) => minutesToTimeInputValue(
+      timeWheelStartMinutes + index * timeWheelIncrementMinutes
+    )
   );
 }
 
