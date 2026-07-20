@@ -2701,6 +2701,10 @@ openAppsButton.addEventListener("click", () => {
   if (openAppsButton.disabled) {
     return;
   }
+  if (hasCompletedDemoCycle()) {
+    returnToInitialDemo();
+    return;
+  }
   if (appDrawer.hidden) {
     showAppDrawer();
   } else {
