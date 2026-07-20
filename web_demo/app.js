@@ -240,7 +240,7 @@ function getSchedulingStyleReason(hostStyle, inviteeStyles, status) {
   const statusText = status
     ? ` The final status was ${String(status).toLowerCase().replace("_", " ")}.`
     : "";
-  return `Why this time: the host used ${getStyleDetail(hostStyle).label.toLowerCase()}, so it ${getStyleDetail(hostStyle).result}. The invitees used ${getStyleLabels(inviteeStyles)} preferences, so the selected slot had to satisfy their overlap too.${statusText}`;
+  return `Why this time: the host used ${getStyleDetail(hostStyle).label.toLowerCase()}, so it ${getStyleDetail(hostStyle).result}. The invitees used ${getStyleLabels(inviteeStyles)} preferences, so the selected slot still had to be free for everyone.${statusText}`;
 }
 
 function updateStyleGuide() {
@@ -760,6 +760,124 @@ function getSelectedTimeWindowBusyBlocks(dateRange) {
   }
 
   return busyBlocks;
+}
+
+function intervalsOverlap(firstStart, firstEnd, secondStart, secondEnd) {
+  return firstStart < secondEnd && firstEnd > secondStart;
+}
+
+function formatShortTime(date) {
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function getParticipantWindowConflicts(participant, day, windowStart, windowEnd) {
+  const days = getCalendarWeekDays(0);
+  const dayIndex = days.findIndex((candidate) => (
+    candidate.toDateString() === day.toDateString()
+  ));
+  const conflicts = [];
+
+  if (dayIndex >= 0) {
+    Array.from(calendarBusyCells[participant.key] || []).forEach((cellKey) => {
+      const [cellDayIndexText, hourText] = cellKey.split("-");
+      if (Number(cellDayIndexText) !== dayIndex) {
+        return;
+      }
+
+      const hour = Number(hourText);
+      if (Number.isNaN(hour)) {
+        return;
+      }
+
+      const busyStart = new Date(day);
+      busyStart.setHours(hour, 0, 0, 0);
+      const busyEnd = new Date(busyStart);
+      busyEnd.setHours(hour + 1, 0, 0, 0);
+      if (intervalsOverlap(windowStart, windowEnd, busyStart, busyEnd)) {
+        conflicts.push(formatShortTime(busyStart));
+      }
+    });
+  }
+
+  scheduledMeetings.forEach((meeting) => {
+    const busyStart = new Date(meeting.start);
+    const busyEnd = new Date(meeting.end);
+    if (
+      Number.isNaN(busyStart.getTime()) ||
+      Number.isNaN(busyEnd.getTime()) ||
+      !intervalsOverlap(windowStart, windowEnd, busyStart, busyEnd)
+    ) {
+      return;
+    }
+
+    conflicts.push(`meeting ${meeting.number}`);
+  });
+
+  return conflicts;
+}
+
+function getEarlierWindowExplanation(slot) {
+  if (!slot?.start) {
+    return "";
+  }
+
+  let dateRange;
+  try {
+    dateRange = getSelectedDateRange();
+  } catch {
+    return "";
+  }
+
+  const rangeStart = new Date(dateRange.start);
+  const selectedStart = new Date(slot.start);
+  if (
+    Number.isNaN(rangeStart.getTime()) ||
+    Number.isNaN(selectedStart.getTime())
+  ) {
+    return "";
+  }
+
+  const cursor = new Date(rangeStart);
+  cursor.setHours(0, 0, 0, 0);
+  const selectedDay = new Date(selectedStart);
+  selectedDay.setHours(0, 0, 0, 0);
+  const skippedDays = [];
+
+  while (cursor < selectedDay) {
+    if (cursor.getDay() !== 0 && cursor.getDay() !== 6) {
+      const { start, end } = getSelectedTimeWindowForDate(cursor);
+      const dayConflicts = calendarParticipants
+        .map((participant) => {
+          const participantName = getParticipantNames()[participant.key] ||
+            participant.defaultName;
+          const conflicts = getParticipantWindowConflicts(
+            participant,
+            cursor,
+            start,
+            end
+          );
+          return conflicts.length
+            ? `${participantName} at ${conflicts.slice(0, 2).join(" and ")}`
+            : "";
+        })
+        .filter(Boolean);
+
+      if (dayConflicts.length) {
+        skippedDays.push(`${formatDayHeader(cursor)} had ${dayConflicts.join(", ")}`);
+      }
+    }
+
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  if (!skippedDays.length) {
+    return "";
+  }
+
+  return ` Earlier windows were skipped because ${skippedDays.slice(0, 2).join("; ")}.`;
 }
 
 function applyHostStyleToScheduler() {
@@ -1915,7 +2033,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
           hostStyle,
           [inviteeStyleOne, inviteeStyleTwo],
           negotiation.status
-        )
+        ) + getEarlierWindowExplanation(negotiation.agreed_slot)
       }
     );
 
