@@ -34,7 +34,7 @@ const participantSetupForm = document.querySelector("#participant-setup-form");
 const participantHostNameInput = document.querySelector("#participant-host-name");
 const participantOneNameInput = document.querySelector("#participant-one-name");
 const participantTwoNameInput = document.querySelector("#participant-two-name");
-const durationInputs = document.querySelectorAll("input[name='duration-minutes']");
+const timeWheelElements = document.querySelectorAll(".time-wheel[data-time-input]");
 const extensionSubtitle = document.querySelector("#extension-subtitle");
 const createStateNode = () => document.createElement("span");
 const backendStatus = document.querySelector("#backend-status") || createStateNode();
@@ -75,11 +75,13 @@ let isRestoringSchedulerChat = false;
 let calendarWeekOffset = 0;
 let pendingOffscreenMeeting = null;
 let participantSetupComplete = false;
+const timeWheelScrollTimers = new WeakMap();
 
 const sheetExpandedOffset = 0;
 const sheetCollapsedOffset = 162;
 const sheetCloseOffset = 270;
 const demoWindowDays = 7;
+const timeWheelIncrementMinutes = 15;
 const calendarHours = [9, 10, 11, 12, 13, 14, 15, 16, 17];
 const calendarParticipants = [
   {
@@ -413,6 +415,145 @@ function formatTimeInputValue(date) {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function minutesToTimeInputValue(totalMinutes) {
+  const minutesInDay = 24 * 60;
+  const normalizedMinutes = ((totalMinutes % minutesInDay) + minutesInDay) %
+    minutesInDay;
+  const hours = Math.floor(normalizedMinutes / 60);
+  const minutes = normalizedMinutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function timeInputValueToMinutes(value) {
+  const [hoursText, minutesText] = String(value || "00:00").split(":");
+  const hours = Number(hoursText);
+  const minutes = Number(minutesText);
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return 0;
+  }
+
+  return hours * 60 + minutes;
+}
+
+function formatTimeWheelLabel(value) {
+  const [hoursText, minutesText] = value.split(":");
+  const date = new Date();
+  date.setHours(Number(hoursText), Number(minutesText), 0, 0);
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function getTimeWheelOptions() {
+  return Array.from(
+    { length: Math.floor((24 * 60) / timeWheelIncrementMinutes) },
+    (_, index) => minutesToTimeInputValue(index * timeWheelIncrementMinutes)
+  );
+}
+
+function updateTimeWheelSelection(input, options = {}) {
+  if (!input) {
+    return;
+  }
+
+  const wheel = document.querySelector(`.time-wheel[data-time-input="${input.id}"]`);
+  if (!wheel) {
+    return;
+  }
+
+  wheel.querySelectorAll(".time-wheel-option").forEach((button) => {
+    const selected = button.dataset.timeValue === input.value;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-selected", String(selected));
+    if (selected && options.scroll !== false) {
+      requestAnimationFrame(() => {
+        button.scrollIntoView({
+          block: "center"
+        });
+      });
+    }
+  });
+}
+
+function selectCenteredTimeWheelOption(wheel, input) {
+  const buttons = Array.from(wheel.querySelectorAll(".time-wheel-option"));
+  if (!buttons.length || !input) {
+    return;
+  }
+
+  const wheelCenter = wheel.getBoundingClientRect().top +
+    wheel.getBoundingClientRect().height / 2;
+  const closestButton = buttons.reduce((closest, button) => {
+    const rect = button.getBoundingClientRect();
+    const distance = Math.abs((rect.top + rect.height / 2) - wheelCenter);
+    if (!closest || distance < closest.distance) {
+      return {
+        button,
+        distance
+      };
+    }
+    return closest;
+  }, null)?.button;
+
+  if (closestButton?.dataset.timeValue && closestButton.dataset.timeValue !== input.value) {
+    setTimeInputValue(input, closestButton.dataset.timeValue, {
+      scroll: false
+    });
+  }
+}
+
+function setTimeInputValue(input, value, options = {}) {
+  if (!input) {
+    return;
+  }
+
+  input.value = value;
+  updateTimeWheelSelection(input, {
+    scroll: options.scroll
+  });
+  if (options.dispatch !== false) {
+    input.dispatchEvent(new Event("change", {
+      bubbles: true
+    }));
+  }
+}
+
+function initializeTimeWheels() {
+  const options = getTimeWheelOptions();
+  timeWheelElements.forEach((wheel) => {
+    const input = document.querySelector(`#${wheel.dataset.timeInput}`);
+    wheel.innerHTML = "";
+    options.forEach((value) => {
+      const button = document.createElement("button");
+      button.className = "time-wheel-option";
+      button.type = "button";
+      button.setAttribute("role", "option");
+      button.dataset.timeValue = value;
+      button.textContent = formatTimeWheelLabel(value);
+      button.addEventListener("click", () => {
+        setTimeInputValue(input, value);
+      });
+      wheel.append(button);
+    });
+    wheel.addEventListener("scroll", () => {
+      window.clearTimeout(timeWheelScrollTimers.get(wheel));
+      timeWheelScrollTimers.set(
+        wheel,
+        window.setTimeout(() => selectCenteredTimeWheelOption(wheel, input), 90)
+      );
+    });
+    updateTimeWheelSelection(input);
+  });
+}
+
 function getDemoDateRange() {
   const now = new Date();
   const start = new Date(now);
@@ -437,10 +578,15 @@ function initializeScheduleWindowControls() {
   const endDate = new Date(end);
 
   scheduleStartDateInput.value = formatDateInputValue(startDate);
-  scheduleStartTimeInput.value = formatTimeInputValue(startDate);
+  setTimeInputValue(scheduleStartTimeInput, formatTimeInputValue(startDate), {
+    dispatch: false
+  });
   scheduleEndDateInput.value = formatDateInputValue(endDate);
-  scheduleEndTimeInput.value = formatTimeInputValue(endDate);
-  syncEndTimeToDuration();
+  const defaultEndTime = new Date(startDate);
+  defaultEndTime.setMinutes(defaultEndTime.getMinutes() + 60);
+  setTimeInputValue(scheduleEndTimeInput, formatTimeInputValue(defaultEndTime), {
+    dispatch: false
+  });
 }
 
 function getSelectedDateRange() {
@@ -462,32 +608,13 @@ function getSelectedDateRange() {
 }
 
 function getSelectedDurationMinutes() {
-  return Number(
-    document.querySelector("input[name='duration-minutes']:checked").value
-  );
-}
-
-function syncEndTimeToDuration() {
-  if (
-    !scheduleStartDateInput?.value ||
-    !scheduleStartTimeInput?.value ||
-    !scheduleEndDateInput ||
-    !scheduleEndTimeInput
-  ) {
-    return;
+  const startMinutes = timeInputValueToMinutes(scheduleStartTimeInput?.value);
+  let endMinutes = timeInputValueToMinutes(scheduleEndTimeInput?.value);
+  if (endMinutes <= startMinutes) {
+    endMinutes += 24 * 60;
   }
 
-  const start = new Date(`${scheduleStartDateInput.value}T${scheduleStartTimeInput.value}:00`);
-  if (Number.isNaN(start.getTime())) {
-    return;
-  }
-
-  const end = new Date(start);
-  end.setMinutes(end.getMinutes() + getSelectedDurationMinutes());
-  scheduleEndTimeInput.value = formatTimeInputValue(end);
-  if (end.toDateString() !== start.toDateString()) {
-    scheduleEndDateInput.value = formatDateInputValue(end);
-  }
+  return Math.max(timeWheelIncrementMinutes, endMinutes - startMinutes);
 }
 
 function applyHostStyleToScheduler() {
@@ -501,8 +628,20 @@ function applyHostStyleToScheduler() {
 
   extensionSubtitle.textContent = `Hi ${names.host} · ${style} style`;
   if (scheduleStartTimeInput && styleStartHours[style] !== undefined) {
-    scheduleStartTimeInput.value = `${String(styleStartHours[style]).padStart(2, "0")}:00`;
-    syncEndTimeToDuration();
+    setTimeInputValue(
+      scheduleStartTimeInput,
+      `${String(styleStartHours[style]).padStart(2, "0")}:00`,
+      {
+        dispatch: false
+      }
+    );
+    setTimeInputValue(
+      scheduleEndTimeInput,
+      `${String(styleStartHours[style] + 1).padStart(2, "0")}:00`,
+      {
+        dispatch: false
+      }
+    );
   }
 
   if (!calendarPlanner?.hidden) {
@@ -1761,16 +1900,10 @@ resetCalendarsButton?.addEventListener("click", () => {
   scheduleEndTimeInput
 ].forEach((input) => {
   input?.addEventListener("change", () => {
-    if (input === scheduleStartDateInput || input === scheduleStartTimeInput) {
-      syncEndTimeToDuration();
-    }
     if (!calendarPlanner?.hidden) {
       renderCalendarPlanner();
     }
   });
-});
-durationInputs.forEach((input) => {
-  input.addEventListener("change", syncEndTimeToDuration);
 });
 hostStyleSelect?.addEventListener("change", applyHostStyleToScheduler);
 participantSetupForm?.addEventListener("submit", (event) => {
@@ -1798,6 +1931,7 @@ runAiDemoButton?.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
 geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
 initializeScheduleWindowControls();
+initializeTimeWheels();
 loadSchedulerState();
 resetCalendarBusyCells();
 setModePresentation(false);

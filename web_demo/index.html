@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260720-participant-setup-modal">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260720-time-wheel-duration">
   </head>
   <body>
     <main class="shell">
@@ -163,24 +163,6 @@
               <input id="meeting-title" value="Portfolio Demo Meeting" required>
             </label>
 
-              <fieldset class="duration-field">
-                <legend>Duration</legend>
-                <div class="duration-control">
-                  <label>
-                    <input type="radio" name="duration-minutes" value="30">
-                    <span>30 min</span>
-                  </label>
-                  <label>
-                    <input type="radio" name="duration-minutes" value="60" checked>
-                    <span>60 min</span>
-                  </label>
-                  <label>
-                    <input type="radio" name="duration-minutes" value="90">
-                    <span>90 min</span>
-                  </label>
-                </div>
-              </fieldset>
-
               <fieldset class="schedule-window-field">
                 <legend>Schedule between</legend>
                 <div class="schedule-window-control">
@@ -188,17 +170,19 @@
                     Start date
                     <input id="schedule-start-date" type="date" required>
                   </label>
-                  <label>
+                  <label class="time-wheel-field">
                     Start time
-                    <input id="schedule-start-time" type="time" required>
+                    <input id="schedule-start-time" type="hidden" value="09:00">
+                    <span id="start-time-wheel" class="time-wheel" role="listbox" aria-label="Start time" data-time-input="schedule-start-time"></span>
                   </label>
                   <label>
                     End date
                     <input id="schedule-end-date" type="date" required>
                   </label>
-                  <label>
+                  <label class="time-wheel-field">
                     End time
-                    <input id="schedule-end-time" type="time" required>
+                    <input id="schedule-end-time" type="hidden" value="10:00">
+                    <span id="end-time-wheel" class="time-wheel" role="listbox" aria-label="End time" data-time-input="schedule-end-time"></span>
                   </label>
                 </div>
               </fieldset>
@@ -288,6 +272,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260720-participant-setup-modal"></script>
+    <script src="/demo/app.js?v=20260720-time-wheel-duration"></script>
   </body>
 </html>
