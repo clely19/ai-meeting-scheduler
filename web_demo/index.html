@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260720-complete-overlay">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260720-complete-modal-clean">
   </head>
   <body>
     <main class="shell">
@@ -218,9 +218,9 @@
                 <div>
                   <p class="style-guide-kicker">People-focused scheduling</p>
                   <h3 id="style-guide-title">Early style</h3>
-                  <p id="style-guide-copy">Prioritizes the first available time that works, so meetings land as soon as the group has overlap.</p>
+                  <p id="style-guide-copy">Finds the first shared opening.</p>
                 </div>
-                <p id="style-guide-invitees" class="style-guide-note">Invitee agents combine early and flexible preferences while checking overlap.</p>
+                <p id="style-guide-invitees" class="style-guide-note">Invitees: Early + Flexible</p>
               </section>
             </div>
 
@@ -235,7 +235,7 @@
       <aside id="guide-callout" class="guide-callout" aria-label="Current guided step">
         <p id="guide-step-count" class="guide-count">Step 1 of 5</p>
         <h3 id="guide-title">Open iMessage apps</h3>
-        <p id="guide-copy">Tap the + button below to reveal the iMessage app drawer.</p>
+        <p id="guide-copy">Tap the highlighted +.</p>
         <button id="guide-next" class="guide-next" type="button">Tap + in the phone</button>
       </aside>
 
@@ -259,7 +259,7 @@
         <form id="participant-setup-form" class="participant-setup-card">
           <p class="setup-kicker">Before the first demo meeting</p>
           <h2>People in this chat</h2>
-          <p class="setup-copy">These names only personalize the group chat for the demo. They are not part of the Meeting Scheduler extension.</p>
+          <p class="setup-copy">Rename the demo participants.</p>
           <div class="participant-name-grid">
             <label>
               Host
@@ -282,7 +282,7 @@
         <div class="participant-setup-card demo-complete-card" role="dialog" aria-modal="true" aria-labelledby="demo-complete-title">
           <p class="setup-kicker">Demo cycle complete</p>
           <h2 id="demo-complete-title">All three meetings are scheduled</h2>
-          <p id="demo-complete-copy" class="setup-copy">The completed meetings are visible in the group chat and external calendars.</p>
+          <p id="demo-complete-copy" class="setup-copy">All three meetings are on the calendars.</p>
           <div class="demo-complete-actions">
             <button id="return-initial-demo" type="button">Return to initial demo</button>
             <button id="review-completed-demo" class="secondary" type="button">Go back to review</button>
@@ -292,6 +292,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260720-complete-overlay"></script>
+    <script src="/demo/app.js?v=20260720-complete-modal-clean"></script>
   </body>
 </html>

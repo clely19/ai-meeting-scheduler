@@ -71,7 +71,7 @@ const guideNext = document.querySelector("#guide-next");
 const guideCallout = document.querySelector("#guide-callout");
 
 const geminiKeyStorageName = "meetingSchedulerGeminiKey";
-const schedulerStateStorageName = "meetingSchedulerDemoStateV5";
+const schedulerStateStorageName = "meetingSchedulerDemoStateV6";
 const maxScheduledMeetings = 3;
 let sheetDragStartY = 0;
 let sheetDragStartOffset = 162;
@@ -116,20 +116,20 @@ const schedulingStyleDetails = {
   early: {
     label: "Early style",
     shortLabel: "Early",
-    copy: "Prioritizes the first available time that works, so meetings land as soon as the group has overlap.",
-    result: "ranked the earliest matching openings first"
+    copy: "Finds the first shared opening.",
+    result: "prioritized the earliest shared opening"
   },
   balanced: {
     label: "Balanced style",
     shortLabel: "Balanced",
-    copy: "Adds breathing room around busy calendar blocks and avoids squeezing people between back-to-back commitments.",
-    result: "protected breathing room around existing calendar blocks"
+    copy: "Keeps breathing room around busy blocks.",
+    result: "kept breathing room around busy blocks"
   },
   flexible: {
     label: "Flexible style",
     shortLabel: "Flexible",
-    copy: "Accepts later or future openings if they create a calmer, lower-density schedule for the group.",
-    result: "was willing to move later to find a lower-density time"
+    copy: "Looks farther ahead for a calmer slot.",
+    result: "allowed later openings"
   }
 };
 let calendarBusyCells = {};
@@ -138,27 +138,27 @@ let schedulerMessages = [];
 const guideSteps = [
   {
     title: "Open iMessage apps",
-    copy: "Tap the highlighted + button to reveal the iMessage app drawer.",
+    copy: "Tap the highlighted +.",
     action: "Tap the highlighted +"
   },
   {
     title: "Choose Meeting Scheduler",
-    copy: "Choose the highlighted Meeting Scheduler row to open the extension sheet.",
+    copy: "Choose Meeting Scheduler.",
     action: "Choose Meeting Scheduler"
   },
   {
     title: "Review meeting details",
-    copy: "Block busy calendar times if you want, then use the highlighted Run Demo Mode button.",
+    copy: "Adjust details, then run.",
     action: "Run Demo Mode"
   },
   {
     title: "Live negotiation running",
-    copy: "The host and invitee agents are registering users, proposing slots, and saving the session.",
+    copy: "Finding a shared slot.",
     action: "Running..."
   },
   {
     title: "Demo complete",
-    copy: "Review the selected time and round-by-round explanation in the group chat.",
+    copy: "Review the scheduled meeting.",
     action: "Start over"
   }
 ];
@@ -239,19 +239,18 @@ function getStyleLabels(styles) {
 }
 
 function getInviteeMixDescription(styles = getInviteeStyles()) {
-  const [firstStyle, secondStyle] = styles;
-  return `Invitee agents are using ${getStyleLabels(styles)} preferences: ${getStyleDetail(firstStyle).result}, while the other ${getStyleDetail(secondStyle).result}.`;
+  return `Invitees: ${getStyleLabels(styles)}`;
 }
 
 function getSchedulingStyleReason(hostStyle, inviteeStyles, status) {
   const statusText = status
-    ? ` The final status was ${String(status).toLowerCase().replace("_", " ")}.`
+    ? ` Status: ${String(status).toLowerCase().replace("_", " ")}.`
     : "";
   const hasBalancedStyle = [hostStyle, ...inviteeStyles].includes("balanced");
   const bufferText = hasBalancedStyle
-    ? ` Balanced calendars also keep a ${balancedStyleBufferMinutes}-minute buffer around busy blocks.`
+    ? ` Balanced adds a ${balancedStyleBufferMinutes}-minute buffer.`
     : "";
-  return `Why this time: the host used ${getStyleDetail(hostStyle).label.toLowerCase()}, so it ${getStyleDetail(hostStyle).result}. The invitees used ${getStyleLabels(inviteeStyles)} preferences, so the selected slot still had to be free for everyone.${bufferText}${statusText}`;
+  return `${getStyleDetail(hostStyle).shortLabel} host, ${getStyleLabels(inviteeStyles)} invitees.${bufferText}${statusText}`;
 }
 
 function updateStyleGuide() {
@@ -310,6 +309,10 @@ function shouldShowParticipantSetup() {
     scheduledMeetings.length === 0;
 }
 
+function hasCompletedDemoCycle() {
+  return scheduledMeetings.length >= maxScheduledMeetings;
+}
+
 function showParticipantSetupIfNeeded() {
   if (!participantSetupOverlay) {
     return;
@@ -333,7 +336,7 @@ function showDemoCompleteOverlay() {
   }
 
   if (demoCompleteCopy) {
-    demoCompleteCopy.textContent = `All three meetings are visible on the calendars for ${getParticipantNameList()}. You can restart the demo or go back and review the completed chat.`;
+    demoCompleteCopy.textContent = `All three meetings are on the calendars for ${getParticipantNameList()}.`;
   }
   demoCompleteOverlay.hidden = false;
   returnInitialDemoButton?.focus();
@@ -374,13 +377,13 @@ function getInitialSchedulerMessages() {
       type: "message",
       kind: "agent",
       author: names.inviteeOne,
-      text: `Hi ${names.host}, I would love to find a time that works for everyone this week.`
+      text: `Hi ${names.host}, can we find a time this week?`
     },
     {
       type: "message",
       kind: "agent",
       author: names.inviteeTwo,
-      text: "Same here. My calendar is a little packed, so overlap would really help."
+      text: "Same here. My calendar is tight."
     },
     {
       type: "message",
@@ -392,7 +395,7 @@ function getInitialSchedulerMessages() {
       type: "message",
       kind: "agent",
       author: "Meeting Scheduler",
-      text: "Sounds good. Tap + below when you're ready, choose Meeting Scheduler, and I will walk through the options with you."
+      text: "Tap + and choose Meeting Scheduler."
     }
   ];
 }
@@ -409,7 +412,7 @@ function loadSchedulerState() {
     participantSetupComplete = Boolean(saved.participantSetupComplete) ||
       scheduledMeetings.length > 0;
     schedulerMessages = Array.isArray(saved.messages) && saved.messages.length
-      ? saved.messages
+      ? saved.messages.filter((record) => record.type !== "demo-reset")
       : getInitialSchedulerMessages();
   } catch {
     setParticipantNameInputs();
@@ -471,8 +474,8 @@ function setGuideStep(index) {
   guideTitle.textContent = step.title;
   guideCopy.textContent = step.copy;
   guidePanelCopy.textContent = guideStepIndex === 4
-    ? "Demo Mode is complete. The result is visible inside the chat."
-    : "Follow the highlighted action inside the phone.";
+    ? "Demo complete."
+    : "Follow the highlight.";
   guideNext.textContent = step.action;
   guideNext.disabled = guideStepIndex === 3 || (runButton.disabled && guideStepIndex === 2);
   window.requestAnimationFrame(positionGuideCallout);
@@ -1604,7 +1607,7 @@ function updateRunButtonForMeetingLimit() {
     return;
   }
 
-  const reachedLimit = scheduledMeetings.length >= maxScheduledMeetings;
+  const reachedLimit = hasCompletedDemoCycle();
   runButton.disabled = reachedLimit;
   runButton.textContent = reachedLimit
     ? "Demo Complete"
@@ -1684,9 +1687,6 @@ function persistSchedulerRecord(record) {
 
 function renderMessageRecord(record) {
   if (record.type === "demo-reset") {
-    addReturnToInitialDemoCard({
-      persist: false
-    });
     return;
   }
 
@@ -1773,7 +1773,7 @@ function addFallbackProposalCard(proposal, options = {}) {
   header.append(icon, label);
 
   const copy = document.createElement("p");
-  copy.textContent = `${hostName}, the group agents could not confirm a slot inside your selected window. They did find the next time everyone can attend:`;
+  copy.textContent = `${hostName}, this window did not work. Next shared opening:`;
 
   const slot = document.createElement("p");
   slot.className = "fallback-slot";
@@ -1781,7 +1781,7 @@ function addFallbackProposalCard(proposal, options = {}) {
 
   const detail = document.createElement("p");
   detail.className = "meeting-style-reason";
-  detail.textContent = `If you accept, I will update the scheduler to this date and time with ${getStyleDetail(proposal.hostStyle).shortLabel} host style and ${getStyleLabels(proposal.inviteeStyles)} invitee styles, then run Demo Mode automatically.`;
+  detail.textContent = `${getStyleDetail(proposal.hostStyle).shortLabel} host · ${getStyleLabels(proposal.inviteeStyles)} invitees`;
 
   const actions = document.createElement("div");
   actions.className = "fallback-actions";
@@ -1887,7 +1887,7 @@ function addFallbackProposalIfAvailable({
     slotOutput.textContent = "Try a shorter meeting or clear a busy block.";
     addAppCard(
       "No shared fallback found",
-      "The agents checked future calendar openings too, but could not find a shared slot with the current meeting length and style settings. Try shortening the meeting or clearing a busy block."
+      "Try a shorter meeting or clear a busy block."
     );
     return;
   }
@@ -1931,7 +1931,7 @@ async function acceptFallbackProposal(fallbackId) {
   addMessage(
     "user",
     getParticipantNames().host,
-    "That works. Use this next available time and run the Meeting Scheduler."
+    "Use this time."
   );
   await runSchedulingFlow({
     useAi: false,
@@ -1950,11 +1950,11 @@ function declineFallbackProposal(fallbackId) {
   addMessage(
     "user",
     getParticipantNames().host,
-    "Let's skip that fallback for now."
+    "Skip this time."
   );
   addAppCard(
     "Fallback skipped",
-    "No problem. You can adjust the calendar blocks, shorten the meeting, or choose a different scheduling window before running Demo Mode again."
+    "Adjust the window or calendar blocks, then run again."
   );
   setGuideStep(2);
 }
@@ -2007,7 +2007,7 @@ function addMeetingResultCard(meeting, options = {}) {
 
   const reason = document.createElement("p");
   reason.className = "meeting-style-reason";
-  reason.textContent = meeting.styleReason || "Why this time: the scheduler selected the earliest slot that matched the group availability.";
+  reason.textContent = meeting.styleReason || "Earliest shared slot.";
 
   const link = document.createElement("a");
   link.className = "meeting-link";
@@ -2038,7 +2038,7 @@ function addReturnToInitialDemoCard(options = {}) {
       <span class="mini-icon">AI</span>
       <span>Demo cycle complete</span>
     </div>
-    <p>All three meetings are visible on the calendars for ${names}. Return to the initial demo when you're ready to start fresh.</p>
+    <p>All three meetings are on the calendars for ${names}.</p>
     <button class="return-demo-button" type="button" data-action="reset-scheduler-demo">Return to initial demo</button>
   `;
   thread.appendChild(message);
@@ -2128,7 +2128,12 @@ function showChat() {
   updateSheetOffset(sheetCollapsedOffset);
   scrollThreadToLatest();
   setGuideStep(0);
-  scheduleGuideReveal();
+  if (hasCompletedDemoCycle()) {
+    setGuideVisibility(false);
+    showDemoCompleteOverlay();
+  } else {
+    scheduleGuideReveal();
+  }
   showParticipantSetupIfNeeded();
 }
 
@@ -2211,7 +2216,7 @@ function hideAppDrawer() {
 }
 
 function showSchedulerSheet() {
-  if (scheduledMeetings.length >= maxScheduledMeetings) {
+  if (hasCompletedDemoCycle()) {
     returnToInitialDemo();
     return;
   }
@@ -2455,7 +2460,7 @@ function renderRounds(logs, participantNames = {}) {
   if (!roundKeys.length) {
     roundsOutput.textContent = "No negotiation rounds returned.";
     addRoundSummaryMessage("Negotiation rounds", [
-      "No round-by-round details came back from the scheduler."
+      "No details returned."
     ]);
     return;
   }
@@ -2469,7 +2474,7 @@ function renderRounds(logs, participantNames = {}) {
       .filter(([, response]) => response.decision === "COUNTER").length;
     const roundLabel = key.replace("_", " ");
     const lines = [
-      `${getParticipantNames().host}'s scheduler proposed ${round.proposals?.length || 0} possible time${round.proposals?.length === 1 ? "" : "s"}.`,
+      `${round.proposals?.length || 0} proposed time${round.proposals?.length === 1 ? "" : "s"}.`,
       `${accepted} accepted, ${counters} countered.`
     ];
 
@@ -2500,7 +2505,7 @@ async function runDemo(event) {
 async function runPersonalizedAiDemo() {
   const geminiApiKey = geminiApiKeyInput.value.trim();
   if (!geminiApiKey) {
-    slotOutput.textContent = "Paste a Gemini API key to run the personalized AI flow.";
+    slotOutput.textContent = "Paste a Gemini API key.";
     geminiApiKeyInput.focus();
     return;
   }
@@ -2534,8 +2539,8 @@ async function runSchedulingFlow({
     : "Demo running";
   sessionId.textContent = "Creating";
   slotOutput.textContent = useAi
-    ? "Using the same scheduling flow with AI-enabled agents and your Gemini key."
-    : "Using mock calendars and deterministic agents. No model API key is used.";
+    ? "AI mode running."
+    : "Demo mode running.";
   roundsOutput.innerHTML = "";
   aiUpgradeCard.hidden = true;
   setInitialConversation();
@@ -2564,15 +2569,11 @@ async function runSchedulingFlow({
   const meetingPlatform = getMeetingPlatform();
   const participantNames = getParticipantNames();
   const [inviteeStyleOne, inviteeStyleTwo] = getInviteeStyles();
-  const styleReason = getSchedulingStyleReason(
-    hostStyle,
-    [inviteeStyleOne, inviteeStyleTwo]
-  );
 
   try {
     addAppCard(
       "Meeting Scheduler is processing",
-      `Checking calendars for ${getParticipantNameList()} for ${meetingTitle}. ${styleReason}`,
+      `Checking calendars for ${getParticipantNameList()}.`,
       {
         persist: false,
         className: "running-state"
@@ -2650,7 +2651,7 @@ async function runSchedulingFlow({
       if (fallbackAttempt) {
         addAppCard(
           "Fallback slot unavailable",
-          "That fallback slot was no longer available after the final check. You can pass on it or adjust the scheduler details."
+          "Adjust the details and try again."
         );
       } else {
         addFallbackProposalIfAvailable({
@@ -2667,7 +2668,7 @@ async function runSchedulingFlow({
     aiUpgradeCard.hidden = Boolean(useAi);
     setGuideStep(4);
     setGuideVisibility(true);
-    if (scheduledMeetings.length >= maxScheduledMeetings) {
+    if (hasCompletedDemoCycle()) {
       closeSchedulerSheet();
       setGuideVisibility(false);
       showDemoCompleteOverlay();
