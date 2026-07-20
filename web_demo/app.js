@@ -26,6 +26,9 @@ const scheduleEndDateInput = document.querySelector("#schedule-end-date");
 const scheduleEndTimeInput = document.querySelector("#schedule-end-time");
 const hostStyleSelect = document.querySelector("#host-style");
 const meetingPlatformSelect = document.querySelector("#meeting-platform");
+const participantHostNameInput = document.querySelector("#participant-host-name");
+const participantOneNameInput = document.querySelector("#participant-one-name");
+const participantTwoNameInput = document.querySelector("#participant-two-name");
 const durationInputs = document.querySelectorAll("input[name='duration-minutes']");
 const extensionSubtitle = document.querySelector("#extension-subtitle");
 const createStateNode = () => document.createElement("span");
@@ -53,7 +56,7 @@ const guidePanelCopy = document.querySelector("#guide-panel-copy") || createStat
 const guideNext = document.querySelector("#guide-next");
 
 const geminiKeyStorageName = "meetingSchedulerGeminiKey";
-const schedulerStateStorageName = "meetingSchedulerDemoStateV2";
+const schedulerStateStorageName = "meetingSchedulerDemoStateV3";
 const maxScheduledMeetings = 3;
 let sheetDragStartY = 0;
 let sheetDragStartOffset = 162;
@@ -71,18 +74,18 @@ const demoWindowDays = 7;
 const calendarHours = [9, 10, 11, 12, 13, 14, 15, 16, 17];
 const calendarParticipants = [
   {
-    key: "clely",
-    name: "Clely",
+    key: "host",
+    defaultName: "Alex",
     defaultBusy: ["0-10", "1-14", "3-11", "4-15"]
   },
   {
-    key: "maya",
-    name: "Maya",
+    key: "inviteeOne",
+    defaultName: "Taylor",
     defaultBusy: ["0-9", "2-13", "2-14", "4-10"]
   },
   {
-    key: "jordan",
-    name: "Jordan",
+    key: "inviteeTwo",
+    defaultName: "Morgan",
     defaultBusy: ["1-10", "1-11", "3-15", "5-12"]
   }
 ];
@@ -157,30 +160,73 @@ const simpleChats = {
   }
 };
 
+function cleanParticipantName(value, fallback) {
+  const name = String(value || "").trim();
+  return name || fallback;
+}
+
+function getParticipantNames() {
+  return {
+    host: cleanParticipantName(
+      participantHostNameInput?.value,
+      "Alex"
+    ),
+    inviteeOne: cleanParticipantName(
+      participantOneNameInput?.value,
+      "Taylor"
+    ),
+    inviteeTwo: cleanParticipantName(
+      participantTwoNameInput?.value,
+      "Morgan"
+    )
+  };
+}
+
+function getParticipantNameList() {
+  const names = getParticipantNames();
+  return `${names.host}, ${names.inviteeOne}, and ${names.inviteeTwo}`;
+}
+
+function refreshEditableParticipantPresentation() {
+  if (!scheduledMeetings.length) {
+    schedulerMessages = getInitialSchedulerMessages();
+    saveSchedulerState();
+    if (currentChatMode === "scheduler") {
+      renderSchedulerConversation();
+    }
+  }
+
+  if (!calendarPlanner?.hidden) {
+    renderCalendarPlanner();
+  }
+  applyHostStyleToScheduler();
+}
+
 function getInitialSchedulerMessages() {
+  const names = getParticipantNames();
   return [
     {
       type: "message",
       kind: "system",
       author: "Group",
-      text: "Clely, Maya, and Jordan"
+      text: getParticipantNameList()
     },
     {
       type: "message",
       kind: "agent",
-      author: "Maya",
-      text: "Hi Clely, I would love to find a time that works for everyone this week."
+      author: names.inviteeOne,
+      text: `Hi ${names.host}, I would love to find a time that works for everyone this week.`
     },
     {
       type: "message",
       kind: "agent",
-      author: "Jordan",
+      author: names.inviteeTwo,
       text: "Same here. My calendar is a little packed, so overlap would really help."
     },
     {
       type: "message",
       kind: "user",
-      author: "Clely",
+      author: names.host,
       text: "I'll try the Meeting Scheduler and let it compare our calendars."
     },
     {
@@ -368,13 +414,14 @@ function syncEndTimeToDuration() {
 
 function applyHostStyleToScheduler() {
   const style = hostStyleSelect?.value || "early";
+  const names = getParticipantNames();
   const styleStartHours = {
     early: 9,
     balanced: 12,
     flexible: 15
   };
 
-  extensionSubtitle.textContent = `Hi Clely · ${style} style`;
+  extensionSubtitle.textContent = `Hi ${names.host} · ${style} style`;
   if (scheduleStartTimeInput && styleStartHours[style] !== undefined) {
     scheduleStartTimeInput.value = `${String(styleStartHours[style]).padStart(2, "0")}:00`;
     syncEndTimeToDuration();
@@ -488,11 +535,13 @@ function renderCalendarPlanner() {
   calendarGrid.innerHTML = "";
 
   calendarParticipants.forEach((participant) => {
+    const participantName = getParticipantNames()[participant.key] ||
+      participant.defaultName;
     const calendar = document.createElement("article");
     calendar.className = "participant-calendar";
 
     const heading = document.createElement("h4");
-    heading.textContent = participant.name;
+    heading.textContent = participantName;
 
     const weekGrid = document.createElement("div");
     weekGrid.className = "week-grid";
@@ -524,7 +573,7 @@ function renderCalendarPlanner() {
         button.dataset.cell = cellKey;
         button.setAttribute(
           "aria-label",
-          `${participant.name} ${formatDayHeader(day)} ${hour}:00 busy`
+          `${participantName} ${formatDayHeader(day)} ${hour}:00 busy`
         );
         if (scheduledMeeting) {
           const scheduledPosition = getScheduledCellPosition(
@@ -737,7 +786,7 @@ function renderMessageRecord(record) {
 function renderSchedulerConversation() {
   currentChatMode = "scheduler";
   thread.innerHTML = "";
-  chatName.textContent = "Project Sync";
+  chatName.textContent = "Meeting Scheduler Demo";
   groupAvatar.textContent = "3";
   phone.classList.remove("post-chat");
   openAppsButton.disabled = false;
@@ -831,6 +880,7 @@ function addMeetingResultCard(meeting, options = {}) {
 }
 
 function addReturnToInitialDemoCard(options = {}) {
+  const names = getParticipantNameList();
   const message = document.createElement("article");
   message.className = "message card demo-reset-card";
   message.innerHTML = `
@@ -838,7 +888,7 @@ function addReturnToInitialDemoCard(options = {}) {
       <span class="mini-icon">AI</span>
       <span>Demo cycle complete</span>
     </div>
-    <p>All three meetings are visible on Clely, Maya, and Jordan's calendars. Return to the initial demo when you're ready to start fresh.</p>
+    <p>All three meetings are visible on the calendars for ${names}. Return to the initial demo when you're ready to start fresh.</p>
     <button class="return-demo-button" type="button" data-action="reset-scheduler-demo">Return to initial demo</button>
   `;
   thread.appendChild(message);
@@ -1254,7 +1304,7 @@ function renderRounds(logs, participantNames = {}) {
       .filter(([, response]) => response.decision === "COUNTER").length;
     const roundLabel = key.replace("_", " ");
     const lines = [
-      `Clely's scheduler proposed ${round.proposals?.length || 0} possible time${round.proposals?.length === 1 ? "" : "s"}.`,
+      `${getParticipantNames().host}'s scheduler proposed ${round.proposals?.length || 0} possible time${round.proposals?.length === 1 ? "" : "s"}.`,
       `${accepted} accepted, ${counters} countered.`
     ];
 
@@ -1342,25 +1392,26 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
   );
   const hostStyle = document.querySelector("#host-style").value;
   const meetingPlatform = getMeetingPlatform();
+  const participantNames = getParticipantNames();
   const [inviteeStyleOne, inviteeStyleTwo] = getInviteeStyles();
 
   try {
     addAppCard(
       "Meeting Scheduler is processing",
-      `Checking Clely, Maya, and Jordan's calendars for ${meetingTitle}. Please wait for the scheduled slot.`,
+      `Checking calendars for ${getParticipantNameList()} for ${meetingTitle}. Please wait for the scheduled slot.`,
       {
         persist: false,
         className: "running-state"
       }
     );
     const timestamp = new Date().toISOString().slice(11, 19);
-    const host = await registerUser(`Clely ${timestamp}`, hostStyle);
-    const inviteeOne = await registerUser(`Maya ${timestamp}`, inviteeStyleOne);
-    const inviteeTwo = await registerUser(`Jordan ${timestamp}`, inviteeStyleTwo);
+    const host = await registerUser(`${participantNames.host} ${timestamp}`, hostStyle);
+    const inviteeOne = await registerUser(`${participantNames.inviteeOne} ${timestamp}`, inviteeStyleOne);
+    const inviteeTwo = await registerUser(`${participantNames.inviteeTwo} ${timestamp}`, inviteeStyleTwo);
     const participantBusyBlocks = {
-      [host.id]: getParticipantBusyBlocks("clely"),
-      [inviteeOne.id]: getParticipantBusyBlocks("maya"),
-      [inviteeTwo.id]: getParticipantBusyBlocks("jordan")
+      [host.id]: getParticipantBusyBlocks("host"),
+      [inviteeOne.id]: getParticipantBusyBlocks("inviteeOne"),
+      [inviteeTwo.id]: getParticipantBusyBlocks("inviteeTwo")
     };
 
     const negotiation = await api("/negotiation/start", {
@@ -1535,6 +1586,13 @@ durationInputs.forEach((input) => {
   input.addEventListener("change", syncEndTimeToDuration);
 });
 hostStyleSelect?.addEventListener("change", applyHostStyleToScheduler);
+[
+  participantHostNameInput,
+  participantOneNameInput,
+  participantTwoNameInput
+].forEach((input) => {
+  input?.addEventListener("input", refreshEditableParticipantPresentation);
+});
 backButton.addEventListener("click", showMessagesList);
 closeSheetButton.addEventListener("pointerdown", startSheetDrag);
 closeSheetButton.addEventListener("pointermove", dragSheet);

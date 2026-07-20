@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260720-return-demo-reset">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260720-public-demo-names">
   </head>
   <body>
     <main class="shell">
@@ -51,8 +51,8 @@
             <button id="open-demo-chat" class="conversation-row" type="button">
               <span class="conversation-avatar">3</span>
               <span class="conversation-copy">
-                <span class="conversation-name">Project Sync Group</span>
-                <span class="conversation-preview">Clely, Maya, Jordan: tap + to find a common time.</span>
+                <span class="conversation-name">Meeting Scheduler Demo</span>
+                <span class="conversation-preview">Alex, Taylor, Morgan: tap + to find a common time.</span>
               </span>
               <span class="conversation-date">Now</span>
             </button>
@@ -153,7 +153,7 @@
             <div class="extension-header">
               <div>
                 <p class="extension-title">Meeting Scheduler</p>
-                <p id="extension-subtitle" class="extension-subtitle">Hi Clely · early style</p>
+                <p id="extension-subtitle" class="extension-subtitle">Hi Alex · early style</p>
               </div>
             </div>
 
@@ -203,11 +203,24 @@
                 </div>
               </fieldset>
 
-              <label>
-                People in this chat
-                <span class="hint">Demo creates participant IDs automatically</span>
-                <input id="invitee-user-ids" value="Clely, Maya, Jordan" readonly>
-              </label>
+              <fieldset class="participant-name-field">
+                <legend>People in this chat</legend>
+                <span class="hint">Names are pre-filled for the public demo. Edit them if you want.</span>
+                <div class="participant-name-grid">
+                  <label>
+                    Host
+                    <input id="participant-host-name" value="Alex" autocomplete="off">
+                  </label>
+                  <label>
+                    Invitee 1
+                    <input id="participant-one-name" value="Taylor" autocomplete="off">
+                  </label>
+                  <label>
+                    Invitee 2
+                    <input id="participant-two-name" value="Morgan" autocomplete="off">
+                  </label>
+                </div>
+              </fieldset>
 
               <label>
                 Meeting platform
@@ -266,6 +279,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260720-return-demo-reset"></script>
+    <script src="/demo/app.js?v=20260720-public-demo-names"></script>
   </body>
 </html>
