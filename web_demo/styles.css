@@ -1983,8 +1983,8 @@ button.secondary {
   }
 
   .shell.guide-step-0 .guide-callout {
-    left: calc(var(--desktop-sidebar-width) + 52px);
-    bottom: 62px;
+    left: calc(var(--desktop-sidebar-width) + 22px);
+    bottom: 48px;
     right: auto;
     top: auto;
   }

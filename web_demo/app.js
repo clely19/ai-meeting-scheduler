@@ -767,6 +767,59 @@ function getSelectedTimeWindowBusyBlocks(dateRange) {
   return busyBlocks;
 }
 
+function getDateRangeDays(dateRange) {
+  const rangeStart = dateRange?.start ? new Date(dateRange.start) : null;
+  const rangeEnd = dateRange?.end ? new Date(dateRange.end) : null;
+  if (
+    !rangeStart ||
+    !rangeEnd ||
+    Number.isNaN(rangeStart.getTime()) ||
+    Number.isNaN(rangeEnd.getTime())
+  ) {
+    return getDemoWeekDays();
+  }
+
+  const days = [];
+  const cursor = new Date(rangeStart);
+  cursor.setHours(0, 0, 0, 0);
+  const lastDay = new Date(rangeEnd);
+  lastDay.setHours(0, 0, 0, 0);
+
+  while (cursor <= lastDay) {
+    days.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return days;
+}
+
+function getBusyBlocksFromCells(participantKey, days) {
+  return Array.from(calendarBusyCells[participantKey] || [])
+    .flatMap((cellKey) => {
+      const [dayIndexText, hourText] = cellKey.split("-");
+      const dayIndex = Number(dayIndexText);
+      const hour = Number(hourText);
+      if (Number.isNaN(dayIndex) || Number.isNaN(hour)) {
+        return [];
+      }
+
+      return days
+        .filter((day) => day.getDay() === dayIndex + 1)
+        .map((day) => {
+          const start = new Date(day);
+          start.setHours(hour, 0, 0, 0);
+          const end = new Date(start);
+          end.setHours(hour + 1, 0, 0, 0);
+
+          return {
+            start: formatLocalDateTime(start),
+            end: formatLocalDateTime(end),
+            title: "Busy"
+          };
+        });
+    });
+}
+
 function intervalsOverlap(firstStart, firstEnd, secondStart, secondEnd) {
   return firstStart < secondEnd && firstEnd > secondStart;
 }
@@ -1225,28 +1278,8 @@ function renderCalendarPlanner() {
 }
 
 function getParticipantBusyBlocks(participantKey, options = {}) {
-  const days = getDemoWeekDays();
-  const manualBusyBlocks = Array.from(calendarBusyCells[participantKey] || [])
-    .map((cellKey) => {
-      const [dayIndexText, hourText] = cellKey.split("-");
-      const day = days[Number(dayIndexText)];
-      const hour = Number(hourText);
-      if (!day || Number.isNaN(hour)) {
-        return null;
-      }
-
-      const start = new Date(day);
-      start.setHours(hour, 0, 0, 0);
-      const end = new Date(start);
-      end.setHours(hour + 1, 0, 0, 0);
-
-      return {
-        start: formatLocalDateTime(start),
-        end: formatLocalDateTime(end),
-        title: "Busy"
-      };
-    })
-    .filter(Boolean);
+  const days = getDateRangeDays(options.dateRange);
+  const manualBusyBlocks = getBusyBlocksFromCells(participantKey, days);
 
   const scheduledBusyBlocks = scheduledMeetings.map((meeting) => ({
     start: meeting.start,
