@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260720-time-wheel-start-9">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260720-style-rationale">
   </head>
   <body>
     <main class="shell">
@@ -214,6 +214,14 @@
                   </select>
                 </label>
               </div>
+              <section class="style-guide" aria-label="Scheduling style explanation">
+                <div>
+                  <p class="style-guide-kicker">People-focused scheduling</p>
+                  <h3 id="style-guide-title">Early style</h3>
+                  <p id="style-guide-copy">Prioritizes the first available time that works, so meetings land as soon as the group has overlap.</p>
+                </div>
+                <p id="style-guide-invitees" class="style-guide-note">Invitee agents combine early and flexible preferences while checking overlap.</p>
+              </section>
             </div>
 
           <div class="composer-actions">
@@ -272,6 +280,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260720-time-wheel-start-9"></script>
+    <script src="/demo/app.js?v=20260720-style-rationale"></script>
   </body>
 </html>

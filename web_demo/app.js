@@ -28,6 +28,7 @@ const scheduleStartTimeInput = document.querySelector("#schedule-start-time");
 const scheduleEndDateInput = document.querySelector("#schedule-end-date");
 const scheduleEndTimeInput = document.querySelector("#schedule-end-time");
 const hostStyleSelect = document.querySelector("#host-style");
+const inviteeMixSelect = document.querySelector("#invitee-mix");
 const meetingPlatformSelect = document.querySelector("#meeting-platform");
 const participantSetupOverlay = document.querySelector("#participant-setup-overlay");
 const participantSetupForm = document.querySelector("#participant-setup-form");
@@ -54,6 +55,9 @@ const resultModeLabel = document.querySelector("#result-mode-label") || createSt
 const chatName = document.querySelector(".chat-title h1");
 const groupAvatar = document.querySelector(".group-avatar");
 const schedulerConversationPreview = document.querySelector("#open-demo-chat .conversation-preview");
+const styleGuideTitle = document.querySelector("#style-guide-title");
+const styleGuideCopy = document.querySelector("#style-guide-copy");
+const styleGuideInvitees = document.querySelector("#style-guide-invitees");
 const guideStepCount = document.querySelector("#guide-step-count");
 const guidePanelCount = document.querySelector("#guide-panel-count") || createStateNode();
 const guideTitle = document.querySelector("#guide-title");
@@ -101,6 +105,26 @@ const calendarParticipants = [
     defaultBusy: ["1-10", "1-11", "3-15", "5-12"]
   }
 ];
+const schedulingStyleDetails = {
+  early: {
+    label: "Early style",
+    shortLabel: "Early",
+    copy: "Prioritizes the first available time that works, so meetings land as soon as the group has overlap.",
+    result: "ranked the earliest matching openings first"
+  },
+  balanced: {
+    label: "Balanced style",
+    shortLabel: "Balanced",
+    copy: "Looks for breathing room around the meeting and avoids squeezing people between back-to-back commitments.",
+    result: "favored a slot with more breathing room around existing calendar blocks"
+  },
+  flexible: {
+    label: "Flexible style",
+    shortLabel: "Flexible",
+    copy: "Accepts later or future openings if they create a calmer, lower-density schedule for the group.",
+    result: "was willing to move later to find a lower-density time"
+  }
+};
 let calendarBusyCells = {};
 let scheduledMeetings = [];
 let schedulerMessages = [];
@@ -197,6 +221,42 @@ function getParticipantNames() {
 function getParticipantNameList() {
   const names = getParticipantNames();
   return `${names.host}, ${names.inviteeOne}, and ${names.inviteeTwo}`;
+}
+
+function getStyleDetail(style) {
+  return schedulingStyleDetails[style] || schedulingStyleDetails.balanced;
+}
+
+function getStyleLabels(styles) {
+  return styles.map((style) => getStyleDetail(style).shortLabel).join(" + ");
+}
+
+function getInviteeMixDescription(styles = getInviteeStyles()) {
+  const [firstStyle, secondStyle] = styles;
+  return `Invitee agents are using ${getStyleLabels(styles)} preferences: ${getStyleDetail(firstStyle).result}, while the other ${getStyleDetail(secondStyle).result}.`;
+}
+
+function getSchedulingStyleReason(hostStyle, inviteeStyles, status) {
+  const statusText = status
+    ? ` The final status was ${String(status).toLowerCase().replace("_", " ")}.`
+    : "";
+  return `Why this time: the host used ${getStyleDetail(hostStyle).label.toLowerCase()}, so it ${getStyleDetail(hostStyle).result}. The invitees used ${getStyleLabels(inviteeStyles)} preferences, so the selected slot had to satisfy their overlap too.${statusText}`;
+}
+
+function updateStyleGuide() {
+  const hostStyle = hostStyleSelect?.value || "early";
+  const inviteeStyles = getInviteeStyles();
+  const detail = getStyleDetail(hostStyle);
+
+  if (styleGuideTitle) {
+    styleGuideTitle.textContent = detail.label;
+  }
+  if (styleGuideCopy) {
+    styleGuideCopy.textContent = detail.copy;
+  }
+  if (styleGuideInvitees) {
+    styleGuideInvitees.textContent = getInviteeMixDescription(inviteeStyles);
+  }
 }
 
 function setParticipantNameInputs(names = {}) {
@@ -1006,7 +1066,7 @@ function getParticipantBusyBlocks(participantKey, options = {}) {
   ];
 }
 
-function addScheduledMeeting(title, slot, platform) {
+function addScheduledMeeting(title, slot, platform, options = {}) {
   if (!slot?.start || !slot?.end) {
     return null;
   }
@@ -1018,6 +1078,7 @@ function addScheduledMeeting(title, slot, platform) {
     platformId: meetingPlatform.id,
     platformLabel: meetingPlatform.label,
     link: createMeetingLink(meetingPlatform.id, title, slot),
+    styleReason: options.styleReason || "",
     start: slot.start,
     end: slot.end
   };
@@ -1232,6 +1293,10 @@ function addMeetingResultCard(meeting, options = {}) {
   const slot = document.createElement("p");
   slot.textContent = formatSlot(meeting);
 
+  const reason = document.createElement("p");
+  reason.className = "meeting-style-reason";
+  reason.textContent = meeting.styleReason || "Why this time: the scheduler selected the earliest slot that matched the group availability.";
+
   const link = document.createElement("a");
   link.className = "meeting-link";
   link.href = meeting.link;
@@ -1239,7 +1304,7 @@ function addMeetingResultCard(meeting, options = {}) {
   link.rel = "noreferrer";
   link.textContent = `${meeting.platformLabel}: ${meeting.link}`;
 
-  message.append(header, title, slot, link);
+  message.append(header, title, slot, reason, link);
   thread.appendChild(message);
 
   if (options.persist !== false) {
@@ -1564,6 +1629,7 @@ function getMeetingDetailsText(meeting) {
   return [
     meeting.title,
     formatSlot(meeting),
+    meeting.styleReason,
     meeting.platformLabel,
     meeting.link
   ].filter(Boolean).join("\n");
@@ -1776,11 +1842,15 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
   const meetingPlatform = getMeetingPlatform();
   const participantNames = getParticipantNames();
   const [inviteeStyleOne, inviteeStyleTwo] = getInviteeStyles();
+  const styleReason = getSchedulingStyleReason(
+    hostStyle,
+    [inviteeStyleOne, inviteeStyleTwo]
+  );
 
   try {
     addAppCard(
       "Meeting Scheduler is processing",
-      `Checking calendars for ${getParticipantNameList()} for ${meetingTitle}. Please wait for the scheduled slot.`,
+      `Checking calendars for ${getParticipantNameList()} for ${meetingTitle}. ${styleReason}`,
       {
         persist: false,
         className: "running-state"
@@ -1839,7 +1909,14 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     const scheduledMeeting = addScheduledMeeting(
       meetingTitle,
       negotiation.agreed_slot,
-      meetingPlatform
+      meetingPlatform,
+      {
+        styleReason: getSchedulingStyleReason(
+          hostStyle,
+          [inviteeStyleOne, inviteeStyleTwo],
+          negotiation.status
+        )
+      }
     );
 
     if (scheduledMeeting) {
@@ -1979,7 +2056,11 @@ resetCalendarsButton?.addEventListener("click", () => {
     }
   });
 });
-hostStyleSelect?.addEventListener("change", applyHostStyleToScheduler);
+hostStyleSelect?.addEventListener("change", () => {
+  applyHostStyleToScheduler();
+  updateStyleGuide();
+});
+inviteeMixSelect?.addEventListener("change", updateStyleGuide);
 participantSetupForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   participantSetupComplete = true;
@@ -2010,6 +2091,7 @@ loadSchedulerState();
 resetCalendarBusyCells();
 setModePresentation(false);
 applyHostStyleToScheduler();
+updateStyleGuide();
 showChat();
 updateRunButtonForMeetingLimit();
 checkHealth();

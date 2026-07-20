@@ -1402,6 +1402,42 @@ input::placeholder {
   gap: 10px;
 }
 
+.style-guide {
+  border: 1px solid rgba(10, 132, 255, 0.24);
+  border-radius: 10px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  color: #d1d1d6;
+  background: rgba(10, 132, 255, 0.08);
+}
+
+.style-guide-kicker {
+  margin: 0 0 4px;
+  color: #64d2ff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.style-guide h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.style-guide p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.style-guide-note {
+  color: #a7d7ff;
+}
+
 .composer-actions {
   display: grid;
   gap: 9px;
@@ -1445,6 +1481,12 @@ button {
 #run-demo:disabled {
   cursor: wait;
   opacity: 0.62;
+}
+
+.meeting-style-reason {
+  color: #c7c7cc;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 button.secondary {
@@ -1840,6 +1882,10 @@ button.secondary {
   }
 
   .schedule-window-field {
+    grid-column: 1 / -1;
+  }
+
+  .style-guide {
     grid-column: 1 / -1;
   }
 
