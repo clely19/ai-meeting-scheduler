@@ -64,9 +64,10 @@ const guideTitle = document.querySelector("#guide-title");
 const guideCopy = document.querySelector("#guide-copy");
 const guidePanelCopy = document.querySelector("#guide-panel-copy") || createStateNode();
 const guideNext = document.querySelector("#guide-next");
+const guideCallout = document.querySelector("#guide-callout");
 
 const geminiKeyStorageName = "meetingSchedulerGeminiKey";
-const schedulerStateStorageName = "meetingSchedulerDemoStateV3";
+const schedulerStateStorageName = "meetingSchedulerDemoStateV4";
 const maxScheduledMeetings = 3;
 let sheetDragStartY = 0;
 let sheetDragStartOffset = 162;
@@ -88,6 +89,7 @@ const demoWindowDays = 7;
 const timeWheelIncrementMinutes = 15;
 const timeWheelStartMinutes = 9 * 60;
 const balancedStyleBufferMinutes = 30;
+const fallbackSearchDays = 42;
 const calendarHours = [9, 10, 11, 12, 13, 14, 15, 16, 17];
 const calendarParticipants = [
   {
@@ -419,6 +421,9 @@ function resetSchedulerState() {
 
 function setGuideVisibility(visible) {
   shell?.classList.toggle("guide-visible", visible);
+  if (visible) {
+    window.requestAnimationFrame(positionGuideCallout);
+  }
 }
 
 function scheduleGuideReveal(delay = 3600) {
@@ -447,6 +452,77 @@ function setGuideStep(index) {
     : "Follow the highlighted action inside the phone.";
   guideNext.textContent = step.action;
   guideNext.disabled = guideStepIndex === 3 || (runButton.disabled && guideStepIndex === 2);
+  window.requestAnimationFrame(positionGuideCallout);
+}
+
+function getGuideTarget() {
+  if (guideStepIndex === 0) {
+    return openAppsButton;
+  }
+  if (guideStepIndex === 1) {
+    return openSchedulerButton;
+  }
+  if (guideStepIndex === 2) {
+    return runButton;
+  }
+  if (guideStepIndex === 3 || guideStepIndex === 4) {
+    return thread;
+  }
+  return null;
+}
+
+function clearGuideCalloutPosition() {
+  if (!guideCallout) {
+    return;
+  }
+  guideCallout.style.left = "";
+  guideCallout.style.right = "";
+  guideCallout.style.top = "";
+  guideCallout.style.bottom = "";
+}
+
+function positionGuideCallout() {
+  if (!guideCallout || !shell || !window.matchMedia("(min-width: 881px)").matches) {
+    clearGuideCalloutPosition();
+    return;
+  }
+
+  const target = getGuideTarget();
+  if (!target) {
+    clearGuideCalloutPosition();
+    return;
+  }
+
+  const shellRect = shell.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const calloutRect = guideCallout.getBoundingClientRect();
+
+  if (!targetRect.width || !targetRect.height || !calloutRect.width || !calloutRect.height) {
+    clearGuideCalloutPosition();
+    return;
+  }
+
+  const shellLeft = shellRect.left;
+  const minLeft = 12;
+  const maxLeft = shellRect.width - calloutRect.width - 12;
+  const minTop = 12;
+  const maxTop = shellRect.height - calloutRect.height - 12;
+  const isCompactTarget = guideStepIndex === 0 || guideStepIndex === 1;
+  const targetCenterLeft = targetRect.left - shellLeft + (targetRect.width / 2) - (calloutRect.width / 2);
+  const targetSideLeft = targetRect.right - shellLeft + 12;
+  const left = Math.min(
+    Math.max(isCompactTarget ? targetSideLeft : targetCenterLeft, minLeft),
+    maxLeft
+  );
+  const top = Math.min(
+    Math.max(targetRect.top - shellRect.top - calloutRect.height - 16, minTop),
+    maxTop
+  );
+
+  guideCallout.style.left = `${Math.round(left)}px`;
+  guideCallout.style.right = "auto";
+  guideCallout.style.top = `${Math.round(top)}px`;
+  guideCallout.style.bottom = "auto";
 }
 
 function setModePresentation(useAi) {
@@ -707,6 +783,33 @@ function getSelectedTimeWindowForDate(date) {
     start,
     end
   };
+}
+
+function setScheduleWindowFromSlot(slot) {
+  const start = new Date(slot?.start);
+  const end = new Date(slot?.end);
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    end <= start
+  ) {
+    return false;
+  }
+
+  scheduleStartDateInput.value = formatDateInputValue(start);
+  setTimeInputValue(scheduleStartTimeInput, formatTimeInputValue(start), {
+    dispatch: false
+  });
+  scheduleEndDateInput.value = formatDateInputValue(end);
+  setTimeInputValue(scheduleEndTimeInput, formatTimeInputValue(end), {
+    dispatch: false
+  });
+  [scheduleStartDateInput, scheduleEndDateInput].forEach((input) => {
+    input?.dispatchEvent(new Event("change", {
+      bubbles: true
+    }));
+  });
+  return true;
 }
 
 function getSelectedTimeWindowBusyBlocks(dateRange) {
@@ -1306,6 +1409,138 @@ function getParticipantBusyBlocks(participantKey, options = {}) {
   ];
 }
 
+function getParticipantAvailabilityBlocks(participantKey, options = {}) {
+  const days = getDateRangeDays(options.dateRange);
+  const manualBusyBlocks = getBusyBlocksFromCells(participantKey, days);
+  const scheduledBusyBlocks = scheduledMeetings.map((meeting) => ({
+    start: meeting.start,
+    end: meeting.end,
+    title: meeting.title,
+    link: meeting.link,
+    platform: meeting.platformLabel
+  }));
+
+  return applyBusyBuffer(
+    [
+      ...manualBusyBlocks,
+      ...scheduledBusyBlocks
+    ],
+    options.busyBufferMinutes || 0,
+    options.dateRange
+  );
+}
+
+function slotOverlapsBusyBlocks(slotStart, slotEnd, busyBlocks) {
+  return busyBlocks.some((block) => {
+    const busyStart = new Date(block.start);
+    const busyEnd = new Date(block.end);
+    if (
+      Number.isNaN(busyStart.getTime()) ||
+      Number.isNaN(busyEnd.getTime())
+    ) {
+      return false;
+    }
+
+    return intervalsOverlap(slotStart, slotEnd, busyStart, busyEnd);
+  });
+}
+
+function getFallbackSearchRange(selectedRange) {
+  const rangeEnd = new Date(selectedRange.end);
+  const searchStart = new Date(rangeEnd);
+  searchStart.setMinutes(
+    Math.ceil(searchStart.getMinutes() / timeWheelIncrementMinutes) *
+      timeWheelIncrementMinutes,
+    0,
+    0
+  );
+
+  const searchEnd = new Date(searchStart);
+  searchEnd.setDate(searchEnd.getDate() + fallbackSearchDays);
+  searchEnd.setHours(calendarHours[calendarHours.length - 1] + 1, 0, 0, 0);
+
+  return {
+    start: formatLocalDateTime(searchStart),
+    end: formatLocalDateTime(searchEnd)
+  };
+}
+
+function findNextConsensusFallbackSlot({
+  dateRange,
+  durationMinutes,
+  hostStyle,
+  inviteeStyles
+}) {
+  const searchRange = getFallbackSearchRange(dateRange);
+  const searchStart = new Date(searchRange.start);
+  const searchEnd = new Date(searchRange.end);
+  const participantStyles = {
+    host: hostStyle,
+    inviteeOne: inviteeStyles[0],
+    inviteeTwo: inviteeStyles[1]
+  };
+  const busyBlocksByParticipant = Object.fromEntries(
+    calendarParticipants.map((participant) => [
+      participant.key,
+      getParticipantAvailabilityBlocks(participant.key, {
+        dateRange: searchRange,
+        busyBufferMinutes: getBusyBufferMinutesForStyle(
+          participantStyles[participant.key]
+        )
+      })
+    ])
+  );
+
+  const cursor = new Date(searchStart);
+  cursor.setSeconds(0, 0);
+
+  while (cursor < searchEnd) {
+    if (cursor.getDay() === 0 || cursor.getDay() === 6) {
+      cursor.setDate(cursor.getDate() + 1);
+      cursor.setHours(calendarHours[0], 0, 0, 0);
+      continue;
+    }
+
+    const dayStart = new Date(cursor);
+    dayStart.setHours(calendarHours[0], 0, 0, 0);
+    const dayEnd = new Date(cursor);
+    dayEnd.setHours(calendarHours[calendarHours.length - 1] + 1, 0, 0, 0);
+
+    if (cursor < dayStart) {
+      cursor.setTime(dayStart.getTime());
+    }
+    if (cursor >= dayEnd) {
+      cursor.setDate(cursor.getDate() + 1);
+      cursor.setHours(calendarHours[0], 0, 0, 0);
+      continue;
+    }
+
+    const candidateEnd = new Date(cursor);
+    candidateEnd.setMinutes(candidateEnd.getMinutes() + durationMinutes);
+    if (candidateEnd <= dayEnd && candidateEnd <= searchEnd) {
+      const isFreeForEveryone = calendarParticipants.every((participant) => (
+        !slotOverlapsBusyBlocks(
+          cursor,
+          candidateEnd,
+          busyBlocksByParticipant[participant.key] || []
+        )
+      ));
+
+      if (isFreeForEveryone) {
+        return {
+          start: formatLocalDateTime(cursor),
+          end: formatLocalDateTime(candidateEnd),
+          duration_minutes: durationMinutes
+        };
+      }
+    }
+
+    cursor.setMinutes(cursor.getMinutes() + timeWheelIncrementMinutes);
+  }
+
+  return null;
+}
+
 function addScheduledMeeting(title, slot, platform, options = {}) {
   if (!slot?.start || !slot?.end) {
     return null;
@@ -1437,6 +1672,13 @@ function renderMessageRecord(record) {
     return;
   }
 
+  if (record.type === "fallback-proposal") {
+    addFallbackProposalCard(record.proposal, {
+      persist: false
+    });
+    return;
+  }
+
   if (record.type === "card") {
     addAppCard(record.title, record.text, {
       persist: false,
@@ -1485,6 +1727,211 @@ function addMessage(kind, author, text, options = {}) {
     });
   }
   scrollThreadToLatest();
+}
+
+function addFallbackProposalCard(proposal, options = {}) {
+  if (!proposal?.slot) {
+    return;
+  }
+
+  const hostName = getParticipantNames().host;
+  const message = document.createElement("article");
+  message.className = "message card fallback-proposal";
+
+  const header = document.createElement("div");
+  header.className = "card-title";
+  const icon = document.createElement("span");
+  icon.className = "mini-icon";
+  icon.textContent = "AI";
+  const label = document.createElement("span");
+  label.textContent = "Next available option";
+  header.append(icon, label);
+
+  const copy = document.createElement("p");
+  copy.textContent = `${hostName}, the group agents could not confirm a slot inside your selected window. They did find the next time everyone can attend:`;
+
+  const slot = document.createElement("p");
+  slot.className = "fallback-slot";
+  slot.textContent = formatSlot(proposal.slot);
+
+  const detail = document.createElement("p");
+  detail.className = "meeting-style-reason";
+  detail.textContent = `If you accept, I will update the scheduler to this date and time with ${getStyleDetail(proposal.hostStyle).shortLabel} host style and ${getStyleLabels(proposal.inviteeStyles)} invitee styles, then run Demo Mode automatically.`;
+
+  const actions = document.createElement("div");
+  actions.className = "fallback-actions";
+  const acceptButton = document.createElement("button");
+  acceptButton.type = "button";
+  acceptButton.className = "fallback-action primary";
+  acceptButton.dataset.action = "accept-fallback";
+  acceptButton.dataset.fallbackId = proposal.id;
+  acceptButton.textContent = proposal.status === "accepted"
+    ? "Accepted"
+    : "Accept and run";
+  const declineButton = document.createElement("button");
+  declineButton.type = "button";
+  declineButton.className = "fallback-action secondary";
+  declineButton.dataset.action = "decline-fallback";
+  declineButton.dataset.fallbackId = proposal.id;
+  declineButton.textContent = proposal.status === "declined"
+    ? "Passed"
+    : "Pass";
+  const isResolved = proposal.status === "accepted" || proposal.status === "declined";
+  acceptButton.disabled = isResolved;
+  declineButton.disabled = isResolved;
+  actions.append(acceptButton, declineButton);
+
+  message.append(header, copy, slot, detail, actions);
+  thread.appendChild(message);
+
+  if (options.persist !== false) {
+    persistSchedulerRecord({
+      type: "fallback-proposal",
+      proposal
+    });
+  }
+
+  scrollThreadToLatest();
+}
+
+function updateFallbackProposalStatus(fallbackId, status) {
+  schedulerMessages = schedulerMessages.map((record) => {
+    if (
+      record.type !== "fallback-proposal" ||
+      record.proposal?.id !== fallbackId
+    ) {
+      return record;
+    }
+
+    return {
+      ...record,
+      proposal: {
+        ...record.proposal,
+        status
+      }
+    };
+  });
+  saveSchedulerState();
+}
+
+function getFallbackProposal(fallbackId) {
+  return schedulerMessages.find((record) => (
+    record.type === "fallback-proposal" &&
+    record.proposal?.id === fallbackId
+  ))?.proposal;
+}
+
+function createFallbackProposal({
+  meetingTitle,
+  slot,
+  meetingPlatform,
+  hostStyle,
+  inviteeStyles,
+  inviteeMix
+}) {
+  return {
+    id: `fallback-${Date.now()}`,
+    meetingTitle,
+    slot,
+    meetingPlatform,
+    hostStyle,
+    inviteeStyles,
+    inviteeMix,
+    status: "pending"
+  };
+}
+
+function addFallbackProposalIfAvailable({
+  meetingTitle,
+  demoDateRange,
+  durationMinutes,
+  meetingPlatform,
+  hostStyle,
+  inviteeStyles,
+  inviteeMix
+}) {
+  const fallbackSlot = findNextConsensusFallbackSlot({
+    dateRange: demoDateRange,
+    durationMinutes,
+    hostStyle,
+    inviteeStyles
+  });
+
+  if (!fallbackSlot) {
+    resultStatus.textContent = "No fallback found";
+    slotOutput.textContent = "Try a shorter meeting or clear a busy block.";
+    addAppCard(
+      "No shared fallback found",
+      "The agents checked future calendar openings too, but could not find a shared slot with the current meeting length and style settings. Try shortening the meeting or clearing a busy block."
+    );
+    return;
+  }
+
+  resultStatus.textContent = "Fallback proposed";
+  slotOutput.textContent = formatSlot(fallbackSlot);
+  addFallbackProposalCard(createFallbackProposal({
+    meetingTitle,
+    slot: fallbackSlot,
+    meetingPlatform,
+    hostStyle,
+    inviteeStyles,
+    inviteeMix
+  }));
+}
+
+async function acceptFallbackProposal(fallbackId) {
+  const proposal = getFallbackProposal(fallbackId);
+  if (!proposal || proposal.status !== "pending") {
+    return;
+  }
+
+  updateFallbackProposalStatus(fallbackId, "accepted");
+  const meetingTitleInput = document.querySelector("#meeting-title");
+  if (meetingTitleInput) {
+    meetingTitleInput.value = proposal.meetingTitle || meetingTitleInput.value;
+  }
+  if (proposal.meetingPlatform?.id && meetingPlatformSelect) {
+    meetingPlatformSelect.value = proposal.meetingPlatform.id;
+  }
+  if (proposal.hostStyle && hostStyleSelect) {
+    hostStyleSelect.value = proposal.hostStyle;
+  }
+  if (proposal.inviteeMix && inviteeMixSelect) {
+    inviteeMixSelect.value = proposal.inviteeMix;
+  }
+  setScheduleWindowFromSlot(proposal.slot);
+  updateStyleGuide();
+  applyHostStyleToScheduler();
+  renderSchedulerConversation();
+  addMessage(
+    "user",
+    getParticipantNames().host,
+    "That works. Use this next available time and run the Meeting Scheduler."
+  );
+  await runSchedulingFlow({
+    useAi: false,
+    fallbackAttempt: true
+  });
+}
+
+function declineFallbackProposal(fallbackId) {
+  const proposal = getFallbackProposal(fallbackId);
+  if (!proposal || proposal.status !== "pending") {
+    return;
+  }
+
+  updateFallbackProposalStatus(fallbackId, "declined");
+  renderSchedulerConversation();
+  addMessage(
+    "user",
+    getParticipantNames().host,
+    "Let's skip that fallback for now."
+  );
+  addAppCard(
+    "Fallback skipped",
+    "No problem. You can adjust the calendar blocks, shorten the meeting, or choose a different scheduling window before running Demo Mode again."
+  );
+  setGuideStep(2);
 }
 
 function addAppCard(title, text, options = {}) {
@@ -2032,7 +2479,11 @@ async function runPersonalizedAiDemo() {
   await runSchedulingFlow({ useAi: true, geminiApiKey });
 }
 
-async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
+async function runSchedulingFlow({
+  useAi,
+  geminiApiKey,
+  fallbackAttempt = false
+} = { useAi: false }) {
   if (scheduledMeetings.length >= maxScheduledMeetings) {
     resetSchedulerState();
     renderSchedulerConversation();
@@ -2079,6 +2530,7 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     getSelectedDurationMinutes()
   );
   const hostStyle = document.querySelector("#host-style").value;
+  const inviteeMix = inviteeMixSelect?.value || "early-flexible";
   const meetingPlatform = getMeetingPlatform();
   const participantNames = getParticipantNames();
   const [inviteeStyleOne, inviteeStyleTwo] = getInviteeStyles();
@@ -2165,10 +2617,22 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     if (scheduledMeeting) {
       addMeetingResultCard(scheduledMeeting);
     } else {
-      addAppCard(
-        `${negotiation.status.replace("_", " ")}`,
-        `No meeting link was created because no valid slot was returned.`
-      );
+      if (fallbackAttempt) {
+        addAppCard(
+          "Fallback slot unavailable",
+          "That fallback slot was no longer available after the final check. You can pass on it or adjust the scheduler details."
+        );
+      } else {
+        addFallbackProposalIfAvailable({
+          meetingTitle,
+          demoDateRange,
+          durationMinutes,
+          meetingPlatform,
+          hostStyle,
+          inviteeStyles: [inviteeStyleOne, inviteeStyleTwo],
+          inviteeMix
+        });
+      }
     }
     aiUpgradeCard.hidden = Boolean(useAi);
     setGuideStep(4);
@@ -2277,11 +2741,21 @@ calendarNextWeekButton?.addEventListener("click", () => {
 });
 thread.addEventListener("click", (event) => {
   const resetButton = event.target.closest("[data-action='reset-scheduler-demo']");
-  if (!resetButton) {
+  if (resetButton) {
+    returnToInitialDemo();
     return;
   }
 
-  returnToInitialDemo();
+  const acceptButton = event.target.closest("[data-action='accept-fallback']");
+  if (acceptButton) {
+    acceptFallbackProposal(acceptButton.dataset.fallbackId);
+    return;
+  }
+
+  const declineButton = event.target.closest("[data-action='decline-fallback']");
+  if (declineButton) {
+    declineFallbackProposal(declineButton.dataset.fallbackId);
+  }
 });
 resetCalendarsButton?.addEventListener("click", () => {
   resetCalendarBusyCells();
@@ -2327,6 +2801,8 @@ closeSheetButton.addEventListener("pointercancel", finishSheetDrag);
 form.addEventListener("submit", runDemo);
 runAiDemoButton?.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
+window.addEventListener("resize", positionGuideCallout);
+window.addEventListener("orientationchange", positionGuideCallout);
 geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
 initializeScheduleWindowControls();
 initializeTimeWheels();

@@ -676,6 +676,52 @@ h1 {
   font-weight: 800;
 }
 
+.fallback-proposal {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(10, 132, 255, 0.34);
+  background:
+    linear-gradient(180deg, rgba(10, 132, 255, 0.20), rgba(44, 44, 46, 0.96));
+}
+
+.fallback-slot {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.24);
+  font-weight: 800;
+}
+
+.fallback-actions {
+  display: grid;
+  grid-template-columns: 1fr 0.72fr;
+  gap: 8px;
+}
+
+.fallback-action {
+  min-height: 38px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.fallback-action.primary {
+  background: #0a84ff;
+}
+
+.fallback-action.secondary {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #d1d1d6;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.fallback-action:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
 @keyframes running-pulse {
   0%,
   100% {
