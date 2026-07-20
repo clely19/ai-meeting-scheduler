@@ -87,6 +87,7 @@ const sheetCloseOffset = 270;
 const demoWindowDays = 7;
 const timeWheelIncrementMinutes = 15;
 const timeWheelStartMinutes = 9 * 60;
+const balancedStyleBufferMinutes = 30;
 const calendarHours = [9, 10, 11, 12, 13, 14, 15, 16, 17];
 const calendarParticipants = [
   {
@@ -115,8 +116,8 @@ const schedulingStyleDetails = {
   balanced: {
     label: "Balanced style",
     shortLabel: "Balanced",
-    copy: "Looks for breathing room around the meeting and avoids squeezing people between back-to-back commitments.",
-    result: "favored a slot with more breathing room around existing calendar blocks"
+    copy: "Adds breathing room around busy calendar blocks and avoids squeezing people between back-to-back commitments.",
+    result: "protected breathing room around existing calendar blocks"
   },
   flexible: {
     label: "Flexible style",
@@ -240,7 +241,11 @@ function getSchedulingStyleReason(hostStyle, inviteeStyles, status) {
   const statusText = status
     ? ` The final status was ${String(status).toLowerCase().replace("_", " ")}.`
     : "";
-  return `Why this time: the host used ${getStyleDetail(hostStyle).label.toLowerCase()}, so it ${getStyleDetail(hostStyle).result}. The invitees used ${getStyleLabels(inviteeStyles)} preferences, so the selected slot still had to be free for everyone.${statusText}`;
+  const hasBalancedStyle = [hostStyle, ...inviteeStyles].includes("balanced");
+  const bufferText = hasBalancedStyle
+    ? ` Balanced calendars also keep a ${balancedStyleBufferMinutes}-minute buffer around busy blocks.`
+    : "";
+  return `Why this time: the host used ${getStyleDetail(hostStyle).label.toLowerCase()}, so it ${getStyleDetail(hostStyle).result}. The invitees used ${getStyleLabels(inviteeStyles)} preferences, so the selected slot still had to be free for everyone.${bufferText}${statusText}`;
 }
 
 function updateStyleGuide() {
@@ -962,6 +967,45 @@ function resetCalendarBusyCells() {
   );
 }
 
+function getBusyBufferMinutesForStyle(style) {
+  return style === "balanced" ? balancedStyleBufferMinutes : 0;
+}
+
+function applyBusyBuffer(blocks, bufferMinutes, dateRange) {
+  if (!bufferMinutes) {
+    return blocks;
+  }
+
+  const rangeStart = dateRange?.start ? new Date(dateRange.start) : null;
+  const rangeEnd = dateRange?.end ? new Date(dateRange.end) : null;
+  const hasValidRange = rangeStart &&
+    rangeEnd &&
+    !Number.isNaN(rangeStart.getTime()) &&
+    !Number.isNaN(rangeEnd.getTime());
+
+  return blocks.map((block) => {
+    const start = new Date(block.start);
+    const end = new Date(block.end);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return block;
+    }
+
+    start.setMinutes(start.getMinutes() - bufferMinutes);
+    end.setMinutes(end.getMinutes() + bufferMinutes);
+
+    return {
+      ...block,
+      start: formatLocalDateTime(hasValidRange && start < rangeStart
+        ? rangeStart
+        : start),
+      end: formatLocalDateTime(hasValidRange && end > rangeEnd
+        ? rangeEnd
+        : end),
+      buffer_minutes: bufferMinutes
+    };
+  });
+}
+
 function setCalendarWeekLabel(days) {
   if (!calendarWeekLabel || !days.length) {
     return;
@@ -1176,11 +1220,18 @@ function getParticipantBusyBlocks(participantKey, options = {}) {
   const selectedTimeWindowBusyBlocks = options.dateRange
     ? getSelectedTimeWindowBusyBlocks(options.dateRange)
     : [];
+  const bufferedBusyBlocks = applyBusyBuffer(
+    [
+      ...manualBusyBlocks,
+      ...scheduledBusyBlocks
+    ],
+    options.busyBufferMinutes || 0,
+    options.dateRange
+  );
 
   return [
-    ...manualBusyBlocks,
+    ...bufferedBusyBlocks,
     ...selectedTimeWindowBusyBlocks,
-    ...scheduledBusyBlocks
   ];
 }
 
@@ -1980,13 +2031,16 @@ async function runSchedulingFlow({ useAi, geminiApiKey } = { useAi: false }) {
     const inviteeTwo = await registerUser(`${participantNames.inviteeTwo} ${timestamp}`, inviteeStyleTwo);
     const participantBusyBlocks = {
       [host.id]: getParticipantBusyBlocks("host", {
-        dateRange: demoDateRange
+        dateRange: demoDateRange,
+        busyBufferMinutes: getBusyBufferMinutesForStyle(hostStyle)
       }),
       [inviteeOne.id]: getParticipantBusyBlocks("inviteeOne", {
-        dateRange: demoDateRange
+        dateRange: demoDateRange,
+        busyBufferMinutes: getBusyBufferMinutesForStyle(inviteeStyleOne)
       }),
       [inviteeTwo.id]: getParticipantBusyBlocks("inviteeTwo", {
-        dateRange: demoDateRange
+        dateRange: demoDateRange,
+        busyBufferMinutes: getBusyBufferMinutesForStyle(inviteeStyleTwo)
       })
     };
 
