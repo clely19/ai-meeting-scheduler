@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260720-host-fallback-proposal">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260720-complete-overlay">
   </head>
   <body>
     <main class="shell">
@@ -278,8 +278,20 @@
         </form>
       </section>
 
+      <section id="demo-complete-overlay" class="participant-setup-overlay" aria-label="Demo cycle complete" hidden>
+        <div class="participant-setup-card demo-complete-card" role="dialog" aria-modal="true" aria-labelledby="demo-complete-title">
+          <p class="setup-kicker">Demo cycle complete</p>
+          <h2 id="demo-complete-title">All three meetings are scheduled</h2>
+          <p id="demo-complete-copy" class="setup-copy">The completed meetings are visible in the group chat and external calendars.</p>
+          <div class="demo-complete-actions">
+            <button id="return-initial-demo" type="button">Return to initial demo</button>
+            <button id="review-completed-demo" class="secondary" type="button">Go back to review</button>
+          </div>
+        </div>
+      </section>
+
     </main>
 
-    <script src="/demo/app.js?v=20260720-host-fallback-proposal"></script>
+    <script src="/demo/app.js?v=20260720-complete-overlay"></script>
   </body>
 </html>

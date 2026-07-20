@@ -35,6 +35,10 @@ const participantSetupForm = document.querySelector("#participant-setup-form");
 const participantHostNameInput = document.querySelector("#participant-host-name");
 const participantOneNameInput = document.querySelector("#participant-one-name");
 const participantTwoNameInput = document.querySelector("#participant-two-name");
+const demoCompleteOverlay = document.querySelector("#demo-complete-overlay");
+const demoCompleteCopy = document.querySelector("#demo-complete-copy");
+const returnInitialDemoButton = document.querySelector("#return-initial-demo");
+const reviewCompletedDemoButton = document.querySelector("#review-completed-demo");
 const timeWheelElements = document.querySelectorAll(".time-wheel[data-time-input]");
 const extensionSubtitle = document.querySelector("#extension-subtitle");
 const createStateNode = () => document.createElement("span");
@@ -67,7 +71,7 @@ const guideNext = document.querySelector("#guide-next");
 const guideCallout = document.querySelector("#guide-callout");
 
 const geminiKeyStorageName = "meetingSchedulerGeminiKey";
-const schedulerStateStorageName = "meetingSchedulerDemoStateV4";
+const schedulerStateStorageName = "meetingSchedulerDemoStateV5";
 const maxScheduledMeetings = 3;
 let sheetDragStartY = 0;
 let sheetDragStartOffset = 162;
@@ -323,6 +327,24 @@ function hideParticipantSetup() {
   }
 }
 
+function showDemoCompleteOverlay() {
+  if (!demoCompleteOverlay) {
+    return;
+  }
+
+  if (demoCompleteCopy) {
+    demoCompleteCopy.textContent = `All three meetings are visible on the calendars for ${getParticipantNameList()}. You can restart the demo or go back and review the completed chat.`;
+  }
+  demoCompleteOverlay.hidden = false;
+  returnInitialDemoButton?.focus();
+}
+
+function hideDemoCompleteOverlay() {
+  if (demoCompleteOverlay) {
+    demoCompleteOverlay.hidden = true;
+  }
+}
+
 function refreshEditableParticipantPresentation() {
   if (!scheduledMeetings.length) {
     schedulerMessages = getInitialSchedulerMessages();
@@ -415,6 +437,7 @@ function resetSchedulerState() {
   participantSetupComplete = false;
   scheduledMeetings = [];
   schedulerMessages = getInitialSchedulerMessages();
+  hideDemoCompleteOverlay();
   saveSchedulerState();
   updateSchedulerConversationPreview();
 }
@@ -1589,6 +1612,8 @@ function updateRunButtonForMeetingLimit() {
 }
 
 function returnToInitialDemo() {
+  closeSchedulerSheet();
+  hideDemoCompleteOverlay();
   resetSchedulerState();
   resetCalendarBusyCells();
   calendarWeekOffset = 0;
@@ -2186,6 +2211,11 @@ function hideAppDrawer() {
 }
 
 function showSchedulerSheet() {
+  if (scheduledMeetings.length >= maxScheduledMeetings) {
+    returnToInitialDemo();
+    return;
+  }
+
   if (shouldShowParticipantSetup()) {
     showParticipantSetupIfNeeded();
     return;
@@ -2638,7 +2668,9 @@ async function runSchedulingFlow({
     setGuideStep(4);
     setGuideVisibility(true);
     if (scheduledMeetings.length >= maxScheduledMeetings) {
-      addReturnToInitialDemoCard();
+      closeSchedulerSheet();
+      setGuideVisibility(false);
+      showDemoCompleteOverlay();
     }
   } catch (error) {
     resultStatus.textContent = "Error";
@@ -2803,6 +2835,14 @@ runAiDemoButton?.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
 window.addEventListener("resize", positionGuideCallout);
 window.addEventListener("orientationchange", positionGuideCallout);
+returnInitialDemoButton?.addEventListener("click", returnToInitialDemo);
+reviewCompletedDemoButton?.addEventListener("click", () => {
+  hideDemoCompleteOverlay();
+  showCalendarPlanner();
+  renderSchedulerConversation();
+  setGuideStep(4);
+  setGuideVisibility(true);
+});
 geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
 initializeScheduleWindowControls();
 initializeTimeWheels();
