@@ -84,6 +84,7 @@ let isRestoringSchedulerChat = false;
 let calendarWeekOffset = 0;
 let pendingOffscreenMeeting = null;
 let participantSetupComplete = false;
+let demoCompleteTimer;
 const timeWheelScrollTimers = new WeakMap();
 
 const sheetExpandedOffset = 0;
@@ -343,9 +344,17 @@ function showDemoCompleteOverlay() {
 }
 
 function hideDemoCompleteOverlay() {
+  window.clearTimeout(demoCompleteTimer);
   if (demoCompleteOverlay) {
     demoCompleteOverlay.hidden = true;
   }
+}
+
+function scheduleDemoCompleteOverlay(delay = 5000) {
+  window.clearTimeout(demoCompleteTimer);
+  demoCompleteTimer = window.setTimeout(() => {
+    showDemoCompleteOverlay();
+  }, delay);
 }
 
 function refreshEditableParticipantPresentation() {
@@ -507,6 +516,26 @@ function clearGuideCalloutPosition() {
   guideCallout.style.bottom = "";
 }
 
+function setGuideCalloutPosition(left, top) {
+  guideCallout.style.left = `${Math.round(left)}px`;
+  guideCallout.style.right = "auto";
+  guideCallout.style.top = `${Math.round(top)}px`;
+  guideCallout.style.bottom = "auto";
+}
+
+function getClampedGuidePosition(left, top, shellRect, calloutRect) {
+  return {
+    left: Math.min(
+      Math.max(left, 12),
+      shellRect.width - calloutRect.width - 12
+    ),
+    top: Math.min(
+      Math.max(top, 12),
+      shellRect.height - calloutRect.height - 12
+    )
+  };
+}
+
 function positionGuideCallout() {
   if (!guideCallout || !shell || !window.matchMedia("(min-width: 881px)").matches) {
     clearGuideCalloutPosition();
@@ -528,27 +557,42 @@ function positionGuideCallout() {
     return;
   }
 
+  const phoneRect = phone.getBoundingClientRect();
+  const formRect = form.getBoundingClientRect();
   const shellLeft = shellRect.left;
-  const minLeft = 12;
-  const maxLeft = shellRect.width - calloutRect.width - 12;
-  const minTop = 12;
-  const maxTop = shellRect.height - calloutRect.height - 12;
+
+  if (guideStepIndex === 2 && !form.hidden) {
+    const position = getClampedGuidePosition(
+      formRect.left - shellLeft + 18,
+      formRect.top - shellRect.top - calloutRect.height - 18,
+      shellRect,
+      calloutRect
+    );
+    setGuideCalloutPosition(position.left, position.top);
+    return;
+  }
+
+  if (guideStepIndex === 3 || guideStepIndex === 4) {
+    const position = getClampedGuidePosition(
+      phoneRect.right - shellLeft - calloutRect.width - 22,
+      phoneRect.top - shellRect.top + 92,
+      shellRect,
+      calloutRect
+    );
+    setGuideCalloutPosition(position.left, position.top);
+    return;
+  }
+
   const isCompactTarget = guideStepIndex === 0 || guideStepIndex === 1;
   const targetCenterLeft = targetRect.left - shellLeft + (targetRect.width / 2) - (calloutRect.width / 2);
   const targetSideLeft = targetRect.right - shellLeft + 12;
-  const left = Math.min(
-    Math.max(isCompactTarget ? targetSideLeft : targetCenterLeft, minLeft),
-    maxLeft
+  const position = getClampedGuidePosition(
+    isCompactTarget ? targetSideLeft : targetCenterLeft,
+    targetRect.top - shellRect.top - calloutRect.height - 16,
+    shellRect,
+    calloutRect
   );
-  const top = Math.min(
-    Math.max(targetRect.top - shellRect.top - calloutRect.height - 16, minTop),
-    maxTop
-  );
-
-  guideCallout.style.left = `${Math.round(left)}px`;
-  guideCallout.style.right = "auto";
-  guideCallout.style.top = `${Math.round(top)}px`;
-  guideCallout.style.bottom = "auto";
+  setGuideCalloutPosition(position.left, position.top);
 }
 
 function setModePresentation(useAi) {
@@ -2671,7 +2715,7 @@ async function runSchedulingFlow({
     if (hasCompletedDemoCycle()) {
       closeSchedulerSheet();
       setGuideVisibility(false);
-      showDemoCompleteOverlay();
+      scheduleDemoCompleteOverlay();
     }
   } catch (error) {
     resultStatus.textContent = "Error";
