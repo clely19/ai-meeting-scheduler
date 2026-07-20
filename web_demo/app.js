@@ -29,6 +29,8 @@ const scheduleEndDateInput = document.querySelector("#schedule-end-date");
 const scheduleEndTimeInput = document.querySelector("#schedule-end-time");
 const hostStyleSelect = document.querySelector("#host-style");
 const meetingPlatformSelect = document.querySelector("#meeting-platform");
+const participantSetupOverlay = document.querySelector("#participant-setup-overlay");
+const participantSetupForm = document.querySelector("#participant-setup-form");
 const participantHostNameInput = document.querySelector("#participant-host-name");
 const participantOneNameInput = document.querySelector("#participant-one-name");
 const participantTwoNameInput = document.querySelector("#participant-two-name");
@@ -51,6 +53,7 @@ const aiModeCard = document.querySelector("#ai-mode-card");
 const resultModeLabel = document.querySelector("#result-mode-label") || createStateNode();
 const chatName = document.querySelector(".chat-title h1");
 const groupAvatar = document.querySelector(".group-avatar");
+const schedulerConversationPreview = document.querySelector("#open-demo-chat .conversation-preview");
 const guideStepCount = document.querySelector("#guide-step-count");
 const guidePanelCount = document.querySelector("#guide-panel-count") || createStateNode();
 const guideTitle = document.querySelector("#guide-title");
@@ -71,6 +74,7 @@ let currentChatMode = "scheduler";
 let isRestoringSchedulerChat = false;
 let calendarWeekOffset = 0;
 let pendingOffscreenMeeting = null;
+let participantSetupComplete = false;
 
 const sheetExpandedOffset = 0;
 const sheetCollapsedOffset = 162;
@@ -192,6 +196,63 @@ function getParticipantNameList() {
   return `${names.host}, ${names.inviteeOne}, and ${names.inviteeTwo}`;
 }
 
+function setParticipantNameInputs(names = {}) {
+  const defaults = {
+    host: "Alex",
+    inviteeOne: "Taylor",
+    inviteeTwo: "Morgan"
+  };
+  if (participantHostNameInput) {
+    participantHostNameInput.value = cleanParticipantName(
+      names.host,
+      defaults.host
+    );
+  }
+  if (participantOneNameInput) {
+    participantOneNameInput.value = cleanParticipantName(
+      names.inviteeOne,
+      defaults.inviteeOne
+    );
+  }
+  if (participantTwoNameInput) {
+    participantTwoNameInput.value = cleanParticipantName(
+      names.inviteeTwo,
+      defaults.inviteeTwo
+    );
+  }
+}
+
+function updateSchedulerConversationPreview() {
+  if (!schedulerConversationPreview) {
+    return;
+  }
+
+  schedulerConversationPreview.textContent = `${getParticipantNameList()}: tap + to find a common time.`;
+}
+
+function shouldShowParticipantSetup() {
+  return currentChatMode === "scheduler" &&
+    !participantSetupComplete &&
+    scheduledMeetings.length === 0;
+}
+
+function showParticipantSetupIfNeeded() {
+  if (!participantSetupOverlay) {
+    return;
+  }
+
+  participantSetupOverlay.hidden = !shouldShowParticipantSetup();
+  if (!participantSetupOverlay.hidden) {
+    participantHostNameInput?.focus();
+  }
+}
+
+function hideParticipantSetup() {
+  if (participantSetupOverlay) {
+    participantSetupOverlay.hidden = true;
+  }
+}
+
 function refreshEditableParticipantPresentation() {
   if (!scheduledMeetings.length) {
     schedulerMessages = getInitialSchedulerMessages();
@@ -204,6 +265,7 @@ function refreshEditableParticipantPresentation() {
   if (!calendarPlanner?.hidden) {
     renderCalendarPlanner();
   }
+  updateSchedulerConversationPreview();
   applyHostStyleToScheduler();
 }
 
@@ -248,16 +310,22 @@ function loadSchedulerState() {
     const saved = JSON.parse(
       localStorage.getItem(schedulerStateStorageName) || "{}"
     );
+    setParticipantNameInputs(saved.participantNames || {});
     scheduledMeetings = Array.isArray(saved.scheduledMeetings)
       ? saved.scheduledMeetings.slice(0, maxScheduledMeetings)
       : [];
+    participantSetupComplete = Boolean(saved.participantSetupComplete) ||
+      scheduledMeetings.length > 0;
     schedulerMessages = Array.isArray(saved.messages) && saved.messages.length
       ? saved.messages
       : getInitialSchedulerMessages();
   } catch {
+    setParticipantNameInputs();
     scheduledMeetings = [];
+    participantSetupComplete = false;
     schedulerMessages = getInitialSchedulerMessages();
   }
+  updateSchedulerConversationPreview();
 }
 
 function saveSchedulerState() {
@@ -265,15 +333,20 @@ function saveSchedulerState() {
     schedulerStateStorageName,
     JSON.stringify({
       scheduledMeetings,
-      messages: schedulerMessages
+      messages: schedulerMessages,
+      participantNames: getParticipantNames(),
+      participantSetupComplete
     })
   );
 }
 
 function resetSchedulerState() {
+  setParticipantNameInputs();
+  participantSetupComplete = false;
   scheduledMeetings = [];
   schedulerMessages = getInitialSchedulerMessages();
   saveSchedulerState();
+  updateSchedulerConversationPreview();
 }
 
 function setGuideVisibility(visible) {
@@ -745,6 +818,8 @@ function addScheduledMeeting(title, slot, platform) {
     ...scheduledMeetings,
     meeting
   ].slice(0, maxScheduledMeetings);
+  participantSetupComplete = true;
+  hideParticipantSetup();
   saveSchedulerState();
 
   pendingOffscreenMeeting = isMeetingInViewedWeek(meeting)
@@ -1070,6 +1145,7 @@ function showChat() {
   scrollThreadToLatest();
   setGuideStep(0);
   scheduleGuideReveal();
+  showParticipantSetupIfNeeded();
 }
 
 function showLinkedInPostChat(post) {
@@ -1088,6 +1164,7 @@ function showLinkedInPostChat(post) {
   thread.innerHTML = "";
   addMessage("system", "LinkedIn", post.subtitle);
   addLinkedInPreview(post);
+  hideParticipantSetup();
 }
 
 function showSimpleChat(chat) {
@@ -1108,6 +1185,7 @@ function showSimpleChat(chat) {
   chat.messages.forEach(([kind, author, text]) => {
     addMessage(kind, author, text);
   });
+  hideParticipantSetup();
 }
 
 function showMessagesList() {
@@ -1122,6 +1200,7 @@ function showMessagesList() {
   updateSheetOffset(sheetCollapsedOffset);
   setModePresentation(false);
   setGuideStep(0);
+  hideParticipantSetup();
 }
 
 function closeFilterMenu() {
@@ -1148,6 +1227,11 @@ function hideAppDrawer() {
 }
 
 function showSchedulerSheet() {
+  if (shouldShowParticipantSetup()) {
+    showParticipantSetupIfNeeded();
+    return;
+  }
+
   appDrawer.hidden = true;
   form.hidden = false;
   showCalendarPlanner();
@@ -1689,6 +1773,14 @@ durationInputs.forEach((input) => {
   input.addEventListener("change", syncEndTimeToDuration);
 });
 hostStyleSelect?.addEventListener("change", applyHostStyleToScheduler);
+participantSetupForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  participantSetupComplete = true;
+  refreshEditableParticipantPresentation();
+  saveSchedulerState();
+  hideParticipantSetup();
+  openAppsButton.focus();
+});
 [
   participantHostNameInput,
   participantOneNameInput,

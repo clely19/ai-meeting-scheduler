@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260720-duration-calendar-blocks">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260720-participant-setup-modal">
   </head>
   <body>
     <main class="shell">
@@ -203,25 +203,6 @@
                 </div>
               </fieldset>
 
-              <fieldset class="participant-name-field">
-                <legend>People in this chat</legend>
-                <span class="hint">Names are pre-filled for the public demo. Edit them if you want.</span>
-                <div class="participant-name-grid">
-                  <label>
-                    Host
-                    <input id="participant-host-name" value="Alex" autocomplete="off">
-                  </label>
-                  <label>
-                    Invitee 1
-                    <input id="participant-one-name" value="Taylor" autocomplete="off">
-                  </label>
-                  <label>
-                    Invitee 2
-                    <input id="participant-two-name" value="Morgan" autocomplete="off">
-                  </label>
-                </div>
-              </fieldset>
-
               <label>
                 Meeting platform
                 <select id="meeting-platform">
@@ -282,8 +263,31 @@
         <div id="calendar-grid" class="calendar-grid"></div>
       </section>
 
+      <section id="participant-setup-overlay" class="participant-setup-overlay" aria-label="Set up group chat names" hidden>
+        <form id="participant-setup-form" class="participant-setup-card">
+          <p class="setup-kicker">Before the first demo meeting</p>
+          <h2>People in this chat</h2>
+          <p class="setup-copy">These names only personalize the group chat for the demo. They are not part of the Meeting Scheduler extension.</p>
+          <div class="participant-name-grid">
+            <label>
+              Host
+              <input id="participant-host-name" value="Alex" autocomplete="off">
+            </label>
+            <label>
+              Person 2
+              <input id="participant-one-name" value="Taylor" autocomplete="off">
+            </label>
+            <label>
+              Person 3
+              <input id="participant-two-name" value="Morgan" autocomplete="off">
+            </label>
+          </div>
+          <button id="save-participant-setup" type="submit">Continue to demo</button>
+        </form>
+      </section>
+
     </main>
 
-    <script src="/demo/app.js?v=20260720-duration-calendar-blocks"></script>
+    <script src="/demo/app.js?v=20260720-participant-setup-modal"></script>
   </body>
 </html>
