@@ -445,6 +445,39 @@ function getScheduledMeetingForCell(day, hour) {
   });
 }
 
+function getScheduledCellPosition(meeting, day, hour) {
+  if (!meeting) {
+    return null;
+  }
+
+  const previousHour = hour - 1;
+  const nextHour = hour + 1;
+  const previousMeeting = calendarHours.includes(previousHour)
+    ? getScheduledMeetingForCell(day, previousHour)
+    : null;
+  const nextMeeting = calendarHours.includes(nextHour)
+    ? getScheduledMeetingForCell(day, nextHour)
+    : null;
+  const isSameMeeting = (candidate) => (
+    candidate?.number === meeting.number &&
+    candidate?.start === meeting.start
+  );
+  const continuesFromPrevious = isSameMeeting(previousMeeting);
+  const continuesToNext = isSameMeeting(nextMeeting);
+
+  if (continuesFromPrevious && continuesToNext) {
+    return "middle";
+  }
+  if (continuesFromPrevious) {
+    return "end";
+  }
+  if (continuesToNext) {
+    return "start";
+  }
+
+  return "single";
+}
+
 function renderCalendarPlanner() {
   if (!calendarGrid) {
     return;
@@ -494,8 +527,17 @@ function renderCalendarPlanner() {
           `${participant.name} ${formatDayHeader(day)} ${hour}:00 busy`
         );
         if (scheduledMeeting) {
+          const scheduledPosition = getScheduledCellPosition(
+            scheduledMeeting,
+            day,
+            hour
+          );
           button.classList.add("is-scheduled");
-          button.textContent = `Meet ${scheduledMeeting.number}`;
+          button.classList.add(`scheduled-${scheduledPosition}`);
+          button.textContent = scheduledPosition === "start" ||
+            scheduledPosition === "single"
+            ? `Meet ${scheduledMeeting.number}`
+            : "";
           button.title = getMeetingDetailsText(scheduledMeeting);
         } else if (calendarBusyCells[participant.key]?.has(cellKey)) {
           button.classList.add("is-busy");

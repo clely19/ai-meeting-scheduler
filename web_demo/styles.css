@@ -124,34 +124,36 @@ select {
 }
 
 .shell.guide-step-0 .guide-callout {
-  left: 52px;
-  bottom: 66px;
+  left: 12px;
+  bottom: 70px;
 }
 
 .shell.guide-step-1 .guide-callout {
-  top: 112px;
-  right: 16px;
-  left: auto;
-  bottom: auto;
+  left: 68px;
+  bottom: 224px;
+  top: auto;
+  right: auto;
 }
 
 .shell.guide-step-2 .guide-callout {
-  top: 112px;
-  right: 16px;
-  left: auto;
-  bottom: auto;
+  left: 16px;
+  bottom: 92px;
+  top: auto;
+  right: auto;
 }
 
 .shell.guide-step-3 .guide-callout {
-  top: 112px;
-  right: 16px;
-  left: auto;
+  left: 18px;
+  top: 118px;
+  right: auto;
+  bottom: auto;
 }
 
 .shell.guide-step-4 .guide-callout {
-  top: 112px;
-  right: 16px;
-  left: auto;
+  left: 18px;
+  top: 118px;
+  right: auto;
+  bottom: auto;
 }
 
 .phone.guide-step-0 #open-apps,
@@ -804,6 +806,30 @@ h1 {
   background: linear-gradient(180deg, #0a84ff, #0066d6);
   font-weight: 800;
   cursor: default;
+}
+
+.busy-cell.is-scheduled.scheduled-start {
+  margin-bottom: -3px;
+  border-bottom-color: transparent;
+  border-radius: 8px 8px 0 0;
+}
+
+.busy-cell.is-scheduled.scheduled-middle {
+  margin-top: -3px;
+  margin-bottom: -3px;
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-radius: 0;
+}
+
+.busy-cell.is-scheduled.scheduled-end {
+  margin-top: -3px;
+  border-top-color: transparent;
+  border-radius: 0 0 8px 8px;
+}
+
+.busy-cell.is-scheduled.scheduled-single {
+  border-radius: 8px;
 }
 
 .busy-cell:focus-visible {
@@ -1681,35 +1707,35 @@ button.secondary {
   }
 
   .guide-callout {
-    width: min(260px, 18vw);
+    width: min(245px, 22vw);
   }
 
   .shell.guide-step-0 .guide-callout {
-    right: 24px;
-    bottom: 46px;
-    left: auto;
+    left: calc(var(--desktop-sidebar-width) + 52px);
+    bottom: 62px;
+    right: auto;
     top: auto;
   }
 
   .shell.guide-step-1 .guide-callout {
     top: auto;
-    right: 24px;
-    left: auto;
-    bottom: 138px;
+    right: auto;
+    left: calc(var(--desktop-sidebar-width) + 330px);
+    bottom: 132px;
   }
 
   .shell.guide-step-2 .guide-callout {
-    right: 24px;
+    right: 22px;
     left: auto;
     top: auto;
-    bottom: calc(var(--desktop-extension-height) + 24px);
+    bottom: 78px;
   }
 
   .shell.guide-step-3 .guide-callout,
   .shell.guide-step-4 .guide-callout {
-    right: 24px;
-    left: auto;
-    top: 24px;
+    left: calc(var(--desktop-sidebar-width) + 28px);
+    right: auto;
+    top: 98px;
     transform: none;
   }
 }
