@@ -2230,9 +2230,12 @@ body.scheduler-picker-open .guide-callout {
 
 .schedule-preferences-grid .hidden-controls {
   padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(10, 132, 255, 0.24);
   border-radius: 16px;
-  background: rgba(28, 28, 30, 0.50);
+  background:
+    linear-gradient(135deg, rgba(10, 132, 255, 0.14), rgba(10, 132, 255, 0.05) 72%),
+    rgba(28, 28, 30, 0.56);
+  box-shadow: inset 0 1px 0 rgba(100, 210, 255, 0.06);
 }
 
 .schedule-preferences-grid .hidden-controls label {
