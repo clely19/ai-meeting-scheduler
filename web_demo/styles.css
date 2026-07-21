@@ -931,6 +931,21 @@ h1 {
   display: none;
 }
 
+.calendar-planner .demo-love-widget {
+  position: static;
+  top: auto;
+  right: auto;
+  z-index: 2;
+  justify-self: end;
+  max-width: min(178px, 100%);
+  margin: -4px 0 -2px;
+  transform: translateY(8px) scale(0.98);
+}
+
+.calendar-planner .demo-love-widget:not([hidden]) {
+  transform: translateY(0) scale(1);
+}
+
 .demo-love-widget:hover,
 .demo-love-widget:focus-visible,
 .demo-love-widget[aria-pressed="true"] {
