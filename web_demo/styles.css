@@ -1734,7 +1734,7 @@ input::placeholder {
   align-items: center;
   justify-content: center;
   flex-wrap: nowrap;
-  gap: 9px;
+  gap: 2px;
   width: 100%;
   margin: -8px auto 6px;
   padding: 10px 0 8px;
@@ -1746,7 +1746,7 @@ input::placeholder {
 
 .welcome-script-word {
   display: inline-block;
-  width: 222px;
+  width: 212px;
   height: 74px;
   overflow: visible;
   flex: 0 0 auto;
@@ -1790,7 +1790,7 @@ input::placeholder {
 
 .welcome-title-rest {
   position: relative;
-  top: 3px;
+  top: 1px;
   color: rgba(245, 245, 247, 0.86);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   font-size: 20px;
@@ -2811,17 +2811,16 @@ button.secondary {
   }
 
   .welcome-script {
-    flex-wrap: wrap;
-    row-gap: 0;
+    gap: 1px;
   }
 
   .welcome-script-word {
-    width: 184px;
+    width: 176px;
     height: 62px;
   }
 
   .welcome-title-rest {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .participant-setup-card .participant-name-grid {
