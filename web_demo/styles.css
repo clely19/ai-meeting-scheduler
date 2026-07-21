@@ -1589,22 +1589,23 @@ input::placeholder {
 }
 
 .welcome-script {
-  width: min(390px, 74vw);
+  width: min(430px, 76vw);
   height: auto;
-  margin: 0 auto -6px;
+  margin: 0 auto -10px;
   overflow: visible;
-  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.08));
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.12));
 }
 
 .welcome-script-path {
   fill: none;
-  stroke: rgba(245, 245, 247, 0.97);
-  stroke-width: 9;
+  stroke: #fff;
+  stroke-width: 8;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: welcomeHandwrite 1.95s cubic-bezier(0.2, 0.84, 0.21, 1) 120ms both;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  opacity: 0;
+  animation: welcomeHandwrite 2.25s cubic-bezier(0.2, 0.84, 0.21, 1) 120ms both;
 }
 
 .setup-welcome-title small {
@@ -1619,19 +1620,16 @@ input::placeholder {
 @keyframes welcomeHandwrite {
   from {
     opacity: 0;
-    stroke-dashoffset: 1;
-    filter: blur(1.5px);
+    stroke-dashoffset: 1000;
   }
 
-  12% {
+  4% {
     opacity: 1;
-    filter: blur(0);
   }
 
   to {
     opacity: 1;
     stroke-dashoffset: 0;
-    filter: blur(0);
   }
 }
 
