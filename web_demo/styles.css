@@ -1239,6 +1239,30 @@ h1 {
   pointer-events: auto;
 }
 
+.scheduled-meeting-icon {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 12px;
+  height: 11px;
+  border-width: 1px;
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+}
+
+.scheduled-meeting-icon::before {
+  inset: 4px 2px auto;
+  height: 1px;
+}
+
+.scheduled-meeting-icon::after {
+  left: 3px;
+  bottom: 2px;
+  width: 2px;
+  height: 2px;
+}
+
 .scheduled-meeting-label,
 .scheduled-meeting-time {
   width: 100%;
@@ -1246,6 +1270,10 @@ h1 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.scheduled-meeting-label {
+  padding-right: 14px;
 }
 
 .scheduled-meeting-time {
@@ -1276,14 +1304,16 @@ h1 {
 }
 
 .scheduled-meeting-block:hover,
-.scheduled-meeting-block:focus-visible {
+.scheduled-meeting-block:focus-visible,
+.scheduled-meeting-block.is-open {
   z-index: 8;
   outline: 2px solid rgba(100, 210, 255, 0.48);
   outline-offset: 1px;
 }
 
 .scheduled-meeting-block:hover .scheduled-meeting-popover,
-.scheduled-meeting-block:focus-visible .scheduled-meeting-popover {
+.scheduled-meeting-block:focus-visible .scheduled-meeting-popover,
+.scheduled-meeting-block.is-open .scheduled-meeting-popover {
   display: grid;
 }
 

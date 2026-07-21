@@ -1647,6 +1647,9 @@ function renderScheduledMeetingOverlays(weekGrid, days) {
     if (dayIndex >= 4) {
       overlay.classList.add("popover-left");
     }
+    const icon = document.createElement("span");
+    icon.className = "scheduled-meeting-icon scheduler-icon";
+    icon.setAttribute("aria-hidden", "true");
     const label = document.createElement("span");
     label.className = "scheduled-meeting-label";
     label.textContent = meeting.title || `Meeting ${meeting.number}`;
@@ -1672,11 +1675,13 @@ function renderScheduledMeetingOverlays(weekGrid, days) {
       popover.append(popoverReason);
     }
     popover.append(popoverLink);
-    overlay.append(label, time, popover);
+    overlay.append(icon, label, time, popover);
     overlay.setAttribute(
       "aria-label",
       getMeetingDetailsText(meeting)
     );
+    overlay.setAttribute("role", "button");
+    overlay.setAttribute("aria-expanded", "false");
     overlay.tabIndex = 0;
     overlay.style.setProperty("--meeting-day", dayIndex + 1);
     overlay.style.setProperty("--meeting-start-offset", startOffset);
@@ -1690,6 +1695,16 @@ function renderScheduledMeetingOverlays(weekGrid, days) {
     );
     overlay.style.setProperty("--meeting-gap-count", gapCount);
     weekGrid.append(overlay);
+  });
+}
+
+function closeScheduledMeetingPopovers(exceptBlock = null) {
+  calendarGrid?.querySelectorAll(".scheduled-meeting-block.is-open").forEach((block) => {
+    if (block === exceptBlock) {
+      return;
+    }
+    block.classList.remove("is-open");
+    block.setAttribute("aria-expanded", "false");
   });
 }
 
@@ -3254,9 +3269,17 @@ filterMenu.addEventListener("click", (event) => {
   }
 });
 calendarGrid?.addEventListener("click", (event) => {
-  if (event.target.closest(".scheduled-meeting-block")) {
+  const scheduledBlock = event.target.closest(".scheduled-meeting-block");
+  if (scheduledBlock) {
+    const shouldOpen = !scheduledBlock.classList.contains("is-open");
+    closeScheduledMeetingPopovers(scheduledBlock);
+    scheduledBlock.classList.toggle("is-open", shouldOpen);
+    scheduledBlock.setAttribute("aria-expanded", String(shouldOpen));
+    event.stopPropagation();
     return;
   }
+
+  closeScheduledMeetingPopovers();
 
   const cell = event.target.closest(".busy-cell");
   if (!cell) {
@@ -3282,6 +3305,26 @@ calendarGrid?.addEventListener("click", (event) => {
     calendarBusyCells[participantKey].add(cellKey);
   }
   renderCalendarPlanner();
+});
+calendarGrid?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") {
+    return;
+  }
+  const scheduledBlock = event.target.closest(".scheduled-meeting-block");
+  if (!scheduledBlock) {
+    return;
+  }
+
+  event.preventDefault();
+  const shouldOpen = !scheduledBlock.classList.contains("is-open");
+  closeScheduledMeetingPopovers(scheduledBlock);
+  scheduledBlock.classList.toggle("is-open", shouldOpen);
+  scheduledBlock.setAttribute("aria-expanded", String(shouldOpen));
+});
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".scheduled-meeting-block")) {
+    closeScheduledMeetingPopovers();
+  }
 });
 calendarPrevWeekButton?.addEventListener("click", () => {
   calendarWeekOffset -= 1;
