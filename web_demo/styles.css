@@ -1968,18 +1968,19 @@ input::placeholder {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.13);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+  padding: 1px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .ios-date-time-row {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(80px, 1fr) auto auto;
+  grid-template-columns: minmax(96px, 1fr) max-content max-content;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
-  padding: 15px 0;
+  padding: 17px 0;
 }
 
 .ios-date-time-row + .ios-date-time-row {
@@ -1996,20 +1997,21 @@ input::placeholder {
 
 .ios-date-time-label {
   color: #f5f5f7;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 500;
   letter-spacing: 0;
 }
 
 .ios-value-pill {
   min-width: 0;
-  height: 44px;
+  height: 46px;
   border: 0;
   border-radius: 999px;
-  padding: 0 16px;
+  padding: 0 18px;
   color: #f5f5f7;
-  background: rgba(118, 118, 128, 0.34);
-  font-size: 19px;
+  background: rgba(118, 118, 128, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  font-size: 20px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
@@ -2018,16 +2020,17 @@ input::placeholder {
 .ios-value-pill:focus-visible,
 .ios-value-pill[aria-expanded="true"] {
   color: #ff453a;
-  outline: 2px solid rgba(255, 69, 58, 0.5);
+  background: rgba(118, 118, 128, 0.5);
+  outline: 2px solid rgba(255, 69, 58, 0.42);
   outline-offset: 2px;
 }
 
 .ios-date-pill {
-  width: 160px;
+  width: 174px;
 }
 
 .ios-time-pill {
-  width: 120px;
+  width: 132px;
 }
 
 .ios-picker-panel {
@@ -2035,13 +2038,14 @@ input::placeholder {
   top: calc(100% + 8px);
   right: 0;
   z-index: 12;
-  width: min(310px, calc(100vw - 40px));
+  width: min(420px, calc(100vw - 40px));
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 18px;
-  padding: 10px;
+  border-radius: 22px;
+  padding: 18px;
   color: #f5f5f7;
-  background: rgba(44, 44, 46, 0.98);
+  background: rgba(44, 44, 46, 0.99);
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(18px);
 }
 
 .ios-picker-panel.opens-up {
@@ -2055,53 +2059,77 @@ input::placeholder {
 
 .date-picker-header {
   display: grid;
-  grid-template-columns: 28px 1fr 28px;
+  grid-template-columns: 1fr 42px 42px;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 14px;
+  margin-bottom: 22px;
 }
 
 .date-picker-header strong {
-  font-size: 16px;
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  color: #f5f5f7;
+  font-size: 27px;
+  font-weight: 700;
   line-height: 1.1;
 }
 
 .date-picker-nav {
-  width: 28px;
-  height: 28px;
+  width: 42px;
+  height: 42px;
   border: 0;
   border-radius: 50%;
   color: #ff453a;
-  background: rgba(118, 118, 128, 0.2);
-  font-size: 24px;
+  background: transparent;
+  font-size: 48px;
+  font-weight: 300;
   line-height: 1;
   cursor: pointer;
+}
+
+.date-picker-header .date-picker-nav:first-child {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.date-picker-header .date-picker-nav:last-child {
+  grid-column: 3;
+  grid-row: 1;
 }
 
 .date-picker-weekdays,
 .date-picker-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 3px;
+  column-gap: 8px;
 }
 
 .date-picker-weekdays {
-  margin-bottom: 4px;
+  margin-bottom: 14px;
   color: #8e8e93;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 900;
+  line-height: 1;
   text-align: center;
   text-transform: uppercase;
 }
 
+.date-picker-grid {
+  row-gap: 18px;
+}
+
 .date-picker-day {
-  height: 22px;
+  justify-self: center;
+  width: 42px;
+  height: 42px;
   border: 0;
   border-radius: 50%;
   color: #f5f5f7;
   background: transparent;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 42px;
   cursor: pointer;
 }
 
@@ -2109,28 +2137,33 @@ input::placeholder {
   color: rgba(245, 245, 247, 0.34);
 }
 
+.date-picker-day.is-today:not(.is-selected) {
+  color: #ff453a;
+}
+
 .date-picker-day.is-selected {
-  color: #fff;
-  background: #ff453a;
+  color: #ff453a;
+  background: rgba(255, 69, 58, 0.22);
+  font-weight: 700;
 }
 
 .time-picker-panel {
-  --time-wheel-row-height: 38px;
-  --time-wheel-height: 174px;
+  --time-wheel-row-height: 54px;
+  --time-wheel-height: 270px;
   position: absolute;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  width: min(286px, calc(100vw - 40px));
-  padding: 10px;
+  gap: 10px;
+  width: min(420px, calc(100vw - 40px));
+  padding: 20px 18px;
   overflow: hidden;
 }
 
 .time-picker-panel::before {
   content: "";
   position: absolute;
-  left: 10px;
-  right: 10px;
+  left: 18px;
+  right: 18px;
   top: 50%;
   z-index: 0;
   height: var(--time-wheel-row-height);
@@ -2149,7 +2182,7 @@ input::placeholder {
   overscroll-behavior: contain;
   padding: calc((var(--time-wheel-height) - var(--time-wheel-row-height)) / 2) 3px;
   background:
-    linear-gradient(180deg, rgba(44, 44, 46, 0.98), transparent 26%, transparent 74%, rgba(44, 44, 46, 0.98)),
+    linear-gradient(180deg, rgba(44, 44, 46, 0.99), rgba(44, 44, 46, 0.35) 19%, transparent 38%, transparent 62%, rgba(44, 44, 46, 0.35) 81%, rgba(44, 44, 46, 0.99)),
     transparent;
   scroll-padding-block: calc((var(--time-wheel-height) - var(--time-wheel-row-height)) / 2);
   scroll-snap-type: y mandatory;
@@ -2171,8 +2204,8 @@ input::placeholder {
   border-radius: 9px;
   color: rgba(235, 235, 245, 0.42);
   background: transparent;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 500;
   line-height: var(--time-wheel-row-height);
   text-align: center;
   scroll-snap-align: center;
@@ -2814,6 +2847,11 @@ button.secondary {
   .ios-picker-panel {
     max-width: calc(100vw - 36px);
   }
+
+  .time-picker-panel {
+    --time-wheel-row-height: 50px;
+    --time-wheel-height: 240px;
+  }
 }
 
 @media (max-width: 520px) {
@@ -2960,40 +2998,87 @@ button.secondary {
 
   .ios-date-time-row {
     grid-template-columns: 1fr auto auto;
-    gap: 6px;
-    padding: 10px 0;
+    gap: 7px;
+    padding: 12px 0;
   }
 
   .ios-date-time-label {
-    font-size: 18px;
+    font-size: 19px;
   }
 
   .ios-date-pill {
-    width: 118px;
+    width: 124px;
   }
 
   .ios-time-pill {
-    width: 84px;
+    width: 94px;
   }
 
   .ios-value-pill {
-    height: 36px;
+    height: 38px;
     padding: 0 10px;
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .ios-picker-panel {
     right: 50%;
     transform: translateX(50%);
-    width: min(310px, calc(100vw - 28px));
+    width: min(350px, calc(100vw - 28px));
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .date-picker-header {
+    grid-template-columns: 1fr 34px 34px;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .date-picker-header strong {
+    font-size: 22px;
+  }
+
+  .date-picker-nav {
+    width: 34px;
+    height: 34px;
+    font-size: 38px;
+  }
+
+  .date-picker-weekdays,
+  .date-picker-grid {
+    column-gap: 4px;
+  }
+
+  .date-picker-weekdays {
+    margin-bottom: 10px;
+    font-size: 11px;
+  }
+
+  .date-picker-grid {
+    row-gap: 12px;
+  }
+
+  .date-picker-day {
+    width: 34px;
+    height: 34px;
+    font-size: 17px;
+    line-height: 34px;
   }
 
   .time-picker-panel {
-    width: min(286px, calc(100vw - 28px));
+    --time-wheel-row-height: 44px;
+    --time-wheel-height: 214px;
+    width: min(330px, calc(100vw - 28px));
+    padding: 16px 14px;
+  }
+
+  .time-picker-panel::before {
+    left: 14px;
+    right: 14px;
   }
 
   .time-wheel-option {
-    font-size: 20px;
+    font-size: 25px;
   }
 
   .guide-callout {

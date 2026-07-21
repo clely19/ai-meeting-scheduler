@@ -973,6 +973,7 @@ function renderDatePickerPanel(input) {
   }
 
   const selectedDate = parseDateInputValue(input.value) || new Date();
+  const todayValue = formatDateInputValue(new Date());
   const visibleMonth = datePickerMonths.get(input.id) || new Date(
     selectedDate.getFullYear(),
     selectedDate.getMonth(),
@@ -1023,6 +1024,7 @@ function renderDatePickerPanel(input) {
     button.textContent = String(date.getDate());
     button.dataset.dateValue = value;
     button.classList.toggle("outside-month", date.getMonth() !== monthStart.getMonth());
+    button.classList.toggle("is-today", value === todayValue);
     button.classList.toggle("is-selected", value === input.value);
     button.setAttribute("aria-label", date.toLocaleDateString([], {
       weekday: "long",
