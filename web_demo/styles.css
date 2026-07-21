@@ -19,9 +19,11 @@
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   background: #000;
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
 }
 
 button,
@@ -38,6 +40,7 @@ select {
   margin: 0 auto;
   padding: 12px 0;
   min-height: 100vh;
+  min-height: 100dvh;
   justify-items: center;
   align-items: start;
 }
@@ -53,8 +56,8 @@ select {
   border-radius: 2px;
   overflow: hidden;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.58);
-  --sheet-full-height: 520px;
-  --sheet-visible-height: 430px;
+  --sheet-full-height: min(520px, calc(100dvh - 96px));
+  --sheet-visible-height: min(430px, calc(100dvh - 154px));
   --sheet-offset: calc(var(--sheet-full-height) - var(--sheet-visible-height));
   --sheet-current-height: calc(var(--sheet-full-height) - var(--sheet-offset));
   --sheet-transition: 180ms ease;
@@ -2199,6 +2202,7 @@ button.secondary {
     width: 100%;
     max-width: none;
     height: calc(100vh - 24px);
+    height: calc(100dvh - 24px);
     display: grid;
     grid-template-columns: var(--desktop-sidebar-width) minmax(0, 1fr);
     border: 1px solid #2c2c2e;
@@ -2208,8 +2212,8 @@ button.secondary {
   }
 
   body.calendars-visible .shell {
-    grid-template-columns: minmax(760px, 1fr) minmax(360px, 440px);
-    gap: 18px;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, clamp(300px, 28vw, 440px));
+    gap: clamp(10px, 1.2vw, 18px);
     justify-items: stretch;
   }
 
@@ -2502,7 +2506,7 @@ button.secondary {
     align-self: stretch;
     justify-self: stretch;
     width: auto;
-    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
   }
 
   .calendar-grid {
@@ -2575,7 +2579,7 @@ button.secondary {
   }
 
   .guide-callout {
-    width: min(245px, 22vw);
+    width: min(245px, max(190px, 22vw));
   }
 
   .shell.guide-step-0 .guide-callout {
@@ -2610,7 +2614,16 @@ button.secondary {
 
 @media (max-width: 880px) {
   .shell {
+    width: min(760px, calc(100% - 24px));
+    min-height: 100dvh;
+    padding: 12px 0;
     align-items: start;
+  }
+
+  .phone {
+    max-width: none;
+    height: calc(100dvh - 24px);
+    min-height: min(620px, calc(100dvh - 24px));
   }
 
   body.calendars-visible .shell {
@@ -2623,6 +2636,50 @@ button.secondary {
     max-height: none;
     order: 2;
   }
+
+  .guide-callout {
+    position: fixed;
+  }
+
+  .demo-love-widget {
+    position: fixed;
+    right: 14px;
+    bottom: 76px;
+  }
+
+  .shell.guide-step-0 .guide-callout {
+    left: 20px;
+    bottom: 74px;
+  }
+
+  .shell.guide-step-1 .guide-callout {
+    left: 76px;
+    bottom: 210px;
+  }
+
+  .shell.guide-step-2 .guide-callout {
+    left: 20px;
+    right: auto;
+    bottom: 90px;
+  }
+
+  .shell.guide-step-3 .guide-callout,
+  .shell.guide-step-4 .guide-callout {
+    left: 20px;
+    top: 110px;
+  }
+
+  .participant-setup-overlay {
+    padding: 18px;
+  }
+
+  .ios-date-time-row {
+    grid-template-columns: minmax(64px, 1fr) auto auto;
+  }
+
+  .ios-picker-panel {
+    max-width: calc(100vw - 36px);
+  }
 }
 
 @media (max-width: 520px) {
@@ -2634,8 +2691,12 @@ button.secondary {
   .phone {
     max-width: none;
     height: 100vh;
+    height: 100dvh;
+    min-height: 0;
     border: 0;
     border-radius: 0;
+    --sheet-full-height: min(500px, calc(100dvh - 74px));
+    --sheet-visible-height: min(408px, calc(100dvh - 132px));
   }
 
   .calendar-planner {
@@ -2645,6 +2706,8 @@ button.secondary {
 
   .week-grid {
     --calendar-time-column-width: 32px;
+    --calendar-row-height: 22px;
+    --calendar-grid-gap: 3px;
     grid-template-columns: var(--calendar-time-column-width) repeat(7, minmax(30px, 1fr));
   }
 
@@ -2672,5 +2735,144 @@ button.secondary {
 
   .participant-setup-card .participant-name-grid {
     grid-template-columns: 1fr;
+  }
+
+  .phone-header {
+    grid-template-columns: 74px 1fr 48px;
+    min-height: 82px;
+    padding-inline: 12px;
+  }
+
+  .messages-title {
+    font-size: clamp(34px, 10vw, 42px);
+  }
+
+  .conversation-row {
+    min-height: 82px;
+    grid-template-columns: 52px 1fr auto;
+    gap: 11px;
+    padding-right: 14px;
+  }
+
+  .conversation-avatar {
+    width: 46px;
+    height: 46px;
+    font-size: 22px;
+  }
+
+  .conversation-name {
+    font-size: 17px;
+  }
+
+  .conversation-preview,
+  .conversation-date {
+    font-size: 13px;
+  }
+
+  .message {
+    max-width: 88%;
+    font-size: 16px;
+  }
+
+  .message.card,
+  .linkedin-preview,
+  .linkedin-context {
+    max-width: 90%;
+  }
+
+  .imessage-input {
+    grid-template-columns: 36px 1fr;
+    padding: 8px 12px 12px;
+  }
+
+  .app-drawer {
+    left: 10px;
+    right: 72px;
+    bottom: 82px;
+  }
+
+  .extension-sheet {
+    left: 0;
+    right: 0;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 24px 24px 0 0;
+  }
+
+  .extension-card {
+    padding-top: 18px;
+  }
+
+  .extension-header,
+  .field-stack,
+  .composer-actions {
+    padding-inline: 16px;
+  }
+
+  .hidden-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .ios-date-time-row {
+    grid-template-columns: 1fr auto auto;
+    gap: 6px;
+    padding: 10px 0;
+  }
+
+  .ios-date-time-label {
+    font-size: 15px;
+  }
+
+  .ios-date-pill {
+    width: 104px;
+  }
+
+  .ios-time-pill {
+    width: 76px;
+  }
+
+  .ios-picker-panel {
+    right: 50%;
+    transform: translateX(50%);
+    width: min(310px, calc(100vw - 28px));
+  }
+
+  .time-picker-panel {
+    width: min(286px, calc(100vw - 28px));
+  }
+
+  .time-wheel-option {
+    font-size: 20px;
+  }
+
+  .guide-callout {
+    width: min(230px, calc(100vw - 24px));
+  }
+
+  .shell.guide-step-0 .guide-callout {
+    left: 14px;
+    bottom: 70px;
+  }
+
+  .shell.guide-step-1 .guide-callout {
+    left: 58px;
+    bottom: 190px;
+  }
+
+  .shell.guide-step-2 .guide-callout {
+    left: 14px;
+    bottom: 86px;
+  }
+
+  .shell.guide-step-3 .guide-callout,
+  .shell.guide-step-4 .guide-callout {
+    left: 14px;
+    top: 96px;
+  }
+
+  .demo-love-widget {
+    right: 10px;
+    bottom: 72px;
+    max-width: calc(100vw - 20px);
   }
 }
