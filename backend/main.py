@@ -7,6 +7,7 @@ from api.users import router as users_router
 from api.calendar import router as calendar_router
 from api.agents import router as agents_router
 from api.negotiation import router as negotiation_router
+from api.demo_metrics import router as demo_metrics_router
 from database import get_db
 
 app = FastAPI(title="Personal Scheduling Agent API")
@@ -16,6 +17,7 @@ app.include_router(users_router)
 app.include_router(calendar_router)
 app.include_router(agents_router)
 app.include_router(negotiation_router)
+app.include_router(demo_metrics_router)
 
 if DEMO_DIR.exists():
     app.mount("/demo", StaticFiles(directory=DEMO_DIR, html=True), name="demo")

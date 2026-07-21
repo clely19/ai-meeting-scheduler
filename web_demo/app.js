@@ -72,9 +72,14 @@ const guideCopy = document.querySelector("#guide-copy");
 const guidePanelCopy = document.querySelector("#guide-panel-copy") || createStateNode();
 const guideNext = document.querySelector("#guide-next");
 const guideCallout = document.querySelector("#guide-callout");
+const demoLoveWidget = document.querySelector("#demo-love-widget");
+const demoLoveLabel = document.querySelector("#demo-love-label");
+const demoLoveCount = document.querySelector("#demo-love-count");
 
 const geminiKeyStorageName = "meetingSchedulerGeminiKey";
 const schedulerStateStorageName = "meetingSchedulerDemoStateV6";
+const demoLoveDeviceStorageName = "meetingSchedulerDemoDeviceId";
+const demoLoveAcknowledgedStorageName = "meetingSchedulerDemoLovedV1";
 const maxScheduledMeetings = 3;
 
 function readStoredValue(storageName, key, fallback = null) {
@@ -93,6 +98,25 @@ function writeStoredValue(storageName, key, value) {
   } catch {
     // Storage can be unavailable in restricted browser contexts.
   }
+}
+
+function createDeviceId() {
+  if (window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+
+  return `device-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function getDemoLoveDeviceId() {
+  const storedDeviceId = readStoredValue("localStorage", demoLoveDeviceStorageName);
+  if (storedDeviceId) {
+    return storedDeviceId;
+  }
+
+  const deviceId = createDeviceId();
+  writeStoredValue("localStorage", demoLoveDeviceStorageName, deviceId);
+  return deviceId;
 }
 
 let sheetDragStartY = 0;
@@ -491,6 +515,7 @@ function resetSchedulerState() {
   hideDemoCompleteOverlay();
   saveSchedulerState();
   updateSchedulerConversationPreview();
+  syncDemoLoveWidget();
 }
 
 function setGuideVisibility(visible) {
@@ -2330,6 +2355,7 @@ function addMeetingResultCard(meeting, options = {}) {
     });
   }
 
+  syncDemoLoveWidget();
   scrollThreadToLatest();
 }
 
@@ -2464,6 +2490,7 @@ function showChat() {
     scheduleGuideReveal();
   }
   showParticipantSetupIfNeeded();
+  syncDemoLoveWidget();
 }
 
 function showLinkedInPostChat(post) {
@@ -2486,6 +2513,7 @@ function showLinkedInPostChat(post) {
   addLinkedInPreview(post);
   addLinkedInCta(post);
   hideParticipantSetup();
+  syncDemoLoveWidget();
 }
 
 function showMessagesList() {
@@ -2501,6 +2529,7 @@ function showMessagesList() {
   setModePresentation(false);
   setGuideStep(0);
   hideParticipantSetup();
+  syncDemoLoveWidget();
 }
 
 function closeFilterMenu() {
@@ -2733,6 +2762,92 @@ async function api(path, options = {}) {
   }
 
   return body;
+}
+
+function formatDemoLoveCount(count) {
+  const value = Number.isFinite(Number(count)) ? Number(count) : 0;
+  return `${value.toLocaleString()} ${value === 1 ? "device" : "devices"} reached this far`;
+}
+
+function setDemoLoveState({ count, loved } = {}) {
+  if (!demoLoveWidget) {
+    return;
+  }
+
+  const hasLoved = loved ?? readStoredValue(
+    "localStorage",
+    demoLoveAcknowledgedStorageName,
+    "false"
+  ) === "true";
+  demoLoveWidget.setAttribute("aria-pressed", String(hasLoved));
+  if (demoLoveLabel) {
+    demoLoveLabel.textContent = hasLoved ? "Thanks for the love" : "Show some love";
+  }
+  if (demoLoveCount) {
+    demoLoveCount.textContent = formatDemoLoveCount(count);
+  }
+}
+
+async function refreshDemoLoveCount() {
+  if (!demoLoveWidget || demoLoveWidget.hidden) {
+    return;
+  }
+
+  try {
+    const response = await api("/demo/love");
+    setDemoLoveState({
+      count: response.count,
+      loved: readStoredValue(
+        "localStorage",
+        demoLoveAcknowledgedStorageName,
+        "false"
+      ) === "true"
+    });
+  } catch {
+    if (demoLoveCount) {
+      demoLoveCount.textContent = "Love count unavailable";
+    }
+  }
+}
+
+function syncDemoLoveWidget() {
+  if (!demoLoveWidget) {
+    return;
+  }
+
+  const shouldShow = scheduledMeetings.length > 0;
+  demoLoveWidget.hidden = !shouldShow;
+  if (shouldShow) {
+    setDemoLoveState();
+    refreshDemoLoveCount();
+  }
+}
+
+async function registerDemoLove() {
+  if (!demoLoveWidget || demoLoveWidget.hidden) {
+    return;
+  }
+
+  demoLoveWidget.disabled = true;
+  try {
+    const response = await api("/demo/love", {
+      method: "POST",
+      body: JSON.stringify({
+        device_id: getDemoLoveDeviceId()
+      })
+    });
+    writeStoredValue("localStorage", demoLoveAcknowledgedStorageName, "true");
+    setDemoLoveState({
+      count: response.count,
+      loved: true
+    });
+  } catch {
+    if (demoLoveCount) {
+      demoLoveCount.textContent = "Try again in a moment";
+    }
+  } finally {
+    demoLoveWidget.disabled = false;
+  }
 }
 
 async function registerUser(displayName, schedulingStyle) {
@@ -3117,6 +3232,7 @@ resetCalendarsButton?.addEventListener("click", () => {
   resetCalendarBusyCells();
   renderCalendarPlanner();
 });
+demoLoveWidget?.addEventListener("click", registerDemoLove);
 [
   scheduleStartDateInput,
   scheduleStartTimeInput,

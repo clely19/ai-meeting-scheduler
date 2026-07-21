@@ -21,6 +21,19 @@ except ModuleNotFoundError:
     AvailabilityRequest = None
     fetch_and_calculate_slots = None
 
+try:
+    from api.demo_metrics import (
+        LOCAL_LOVE_DEVICES,
+        DemoLoveRequest,
+        get_demo_love_count,
+        register_demo_love,
+    )
+except ModuleNotFoundError:
+    LOCAL_LOVE_DEVICES = None
+    DemoLoveRequest = None
+    get_demo_love_count = None
+    register_demo_love = None
+
 
 class FreeSlotCalculatorTests(unittest.TestCase):
     def test_calculates_slots_around_busy_blocks(self):
@@ -165,6 +178,37 @@ class CalendarApiTests(unittest.TestCase):
             )
 
         self.assertEqual(context.exception.status_code, 400)
+
+
+@unittest.skipIf(
+    DemoLoveRequest is None,
+    "FastAPI dependency is not installed in this interpreter",
+)
+class DemoMetricsTests(unittest.TestCase):
+    def setUp(self):
+        LOCAL_LOVE_DEVICES.clear()
+
+    def tearDown(self):
+        LOCAL_LOVE_DEVICES.clear()
+
+    @patch("api.demo_metrics.get_db", side_effect=ValueError("no db"))
+    def test_demo_love_counts_unique_devices_once(self, _get_db):
+        first = register_demo_love(DemoLoveRequest(device_id="device-a"))
+        duplicate = register_demo_love(DemoLoveRequest(device_id="device-a"))
+        second = register_demo_love(DemoLoveRequest(device_id="device-b"))
+
+        self.assertEqual(first["count"], 1)
+        self.assertEqual(duplicate["count"], 1)
+        self.assertEqual(second["count"], 2)
+
+    @patch("api.demo_metrics.get_db", side_effect=ValueError("no db"))
+    def test_demo_love_count_endpoint_uses_local_fallback(self, _get_db):
+        register_demo_love(DemoLoveRequest(device_id="device-a"))
+
+        response = get_demo_love_count()
+
+        self.assertEqual(response["count"], 1)
+        self.assertEqual(response["storage"], "temporary_demo")
 
 
 class AgentFallbackTests(unittest.TestCase):
