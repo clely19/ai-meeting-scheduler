@@ -54,7 +54,7 @@ select {
   overflow: hidden;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.58);
   --sheet-full-height: 520px;
-  --sheet-visible-height: 358px;
+  --sheet-visible-height: 430px;
   --sheet-offset: calc(var(--sheet-full-height) - var(--sheet-visible-height));
   --sheet-current-height: calc(var(--sheet-full-height) - var(--sheet-offset));
   --sheet-transition: 180ms ease;
@@ -1454,7 +1454,7 @@ h1 {
 }
 
 .extension-card {
-  height: calc(var(--sheet-current-height) - 14px);
+  height: calc(var(--sheet-full-height) - 42px);
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1576,60 +1576,107 @@ input::placeholder {
 }
 
 .setup-welcome-title {
-  width: min(520px, 100%);
+  width: min(620px, calc(100vw - 32px));
   margin: 0;
+  padding: 6px 0;
   text-align: center;
   letter-spacing: 0;
+  overflow: visible;
   animation: welcomeRise 720ms ease-out both;
 }
 
-.welcome-script,
-.setup-welcome-title small {
-  display: block;
-}
-
 .welcome-script {
-  width: min(430px, 76vw);
-  height: auto;
-  margin: 0 auto -10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 9px;
+  width: 100%;
+  margin: -8px auto 6px;
+  padding: 10px 0 8px;
   overflow: visible;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.12));
+  filter:
+    drop-shadow(0 0 4px rgba(255, 255, 255, 0.34))
+    drop-shadow(0 0 16px rgba(255, 255, 255, 0.08));
 }
 
-.welcome-script-path {
+.welcome-script-word {
+  display: inline-block;
+  width: 222px;
+  height: 74px;
+  overflow: visible;
+  flex: 0 0 auto;
+  transform: translateY(3px);
+}
+
+.welcome-script-text {
+  fill: #fff;
+  font-family: "Playwrite TZ", "Snell Roundhand", "Apple Chancery", "Bradley Hand", cursive;
+  font-size: 46px;
+  font-weight: 400;
+  font-style: normal;
+  letter-spacing: 0;
+  filter:
+    drop-shadow(0 0 1px rgba(255, 255, 255, 0.96))
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.28));
+}
+
+.welcome-mask-stroke {
   fill: none;
   stroke: #fff;
-  stroke-width: 8;
+  stroke-width: 24;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: welcomeStrokeWrite var(--stroke-duration) cubic-bezier(0.24, 0.04, 0.18, 1) both;
+  animation-delay: var(--stroke-delay);
+}
+
+.welcome-mask-complete {
   opacity: 0;
-  animation: welcomeHandwrite 2.25s cubic-bezier(0.2, 0.84, 0.21, 1) 120ms both;
+  animation: welcomeMaskComplete 220ms ease-out 2090ms forwards;
 }
 
-.setup-welcome-title small {
-  margin-top: 9px;
-  color: rgba(245, 245, 247, 0.76);
-  font-size: 16px;
-  font-weight: 700;
+.welcome-mask-letter-fill {
+  opacity: 0;
+  animation: welcomeLetterFill 300ms ease-out both;
+  animation-delay: var(--fill-delay);
+}
+
+.welcome-title-rest {
+  position: relative;
+  top: 3px;
+  color: rgba(245, 245, 247, 0.86);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 650;
   line-height: 1.2;
-  animation: welcomeSubtitle 900ms ease-out 180ms both;
+  letter-spacing: 0;
+  white-space: nowrap;
+  text-shadow: 0 0 7px rgba(255, 255, 255, 0.14);
+  animation: welcomeSubtitle 520ms ease-out 1320ms both;
 }
 
-@keyframes welcomeHandwrite {
+@keyframes welcomeStrokeWrite {
   from {
-    opacity: 0;
-    stroke-dashoffset: 1000;
-  }
-
-  4% {
-    opacity: 1;
+    stroke-dashoffset: 100;
   }
 
   to {
-    opacity: 1;
     stroke-dashoffset: 0;
+  }
+}
+
+@keyframes welcomeMaskComplete {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes welcomeLetterFill {
+  to {
+    opacity: 1;
   }
 }
 
@@ -1715,16 +1762,16 @@ input::placeholder {
 
 .schedule-window-control {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 0;
 }
 
 .ios-date-time-row {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(78px, 1fr) auto auto;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
   padding: 11px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -1741,7 +1788,7 @@ input::placeholder {
 
 .ios-date-time-label {
   color: #f5f5f7;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
 }
 
@@ -1750,10 +1797,10 @@ input::placeholder {
   height: 32px;
   border: 0;
   border-radius: 999px;
-  padding: 0 12px;
+  padding: 0 10px;
   color: #f5f5f7;
   background: rgba(118, 118, 128, 0.34);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
@@ -1767,11 +1814,11 @@ input::placeholder {
 }
 
 .ios-date-pill {
-  width: 116px;
+  width: 106px;
 }
 
 .ios-time-pill {
-  width: 86px;
+  width: 78px;
 }
 
 .ios-picker-panel {
@@ -1779,13 +1826,18 @@ input::placeholder {
   top: calc(100% + 8px);
   right: 0;
   z-index: 12;
-  width: min(420px, calc(100vw - 40px));
+  width: min(310px, calc(100vw - 40px));
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 18px;
-  padding: 14px;
+  padding: 10px;
   color: #f5f5f7;
   background: rgba(44, 44, 46, 0.98);
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
+}
+
+.ios-picker-panel.opens-up {
+  top: auto;
+  bottom: calc(100% + 8px);
 }
 
 .ios-picker-panel[hidden] {
@@ -1794,25 +1846,25 @@ input::placeholder {
 
 .date-picker-header {
   display: grid;
-  grid-template-columns: 32px 1fr 32px;
+  grid-template-columns: 28px 1fr 28px;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .date-picker-header strong {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.1;
 }
 
 .date-picker-nav {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: 0;
   border-radius: 50%;
   color: #ff453a;
   background: rgba(118, 118, 128, 0.2);
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1;
   cursor: pointer;
 }
@@ -1821,11 +1873,11 @@ input::placeholder {
 .date-picker-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+  gap: 3px;
 }
 
 .date-picker-weekdays {
-  margin-bottom: 7px;
+  margin-bottom: 4px;
   color: #8e8e93;
   font-size: 11px;
   font-weight: 900;
@@ -1834,12 +1886,12 @@ input::placeholder {
 }
 
 .date-picker-day {
-  aspect-ratio: 1;
+  height: 22px;
   border: 0;
   border-radius: 50%;
   color: #f5f5f7;
   background: transparent;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -1856,19 +1908,19 @@ input::placeholder {
 .time-picker-panel {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  width: min(360px, calc(100vw - 40px));
-  padding: 18px 12px;
+  gap: 6px;
+  width: min(286px, calc(100vw - 40px));
+  padding: 12px 10px;
 }
 
 .time-wheel {
   position: relative;
-  height: 150px;
+  height: 132px;
   display: grid;
   gap: 2px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 56px 4px;
+  padding: 48px 3px;
   background:
     linear-gradient(180deg, rgba(44, 44, 46, 0.98), transparent 30%, transparent 70%, rgba(44, 44, 46, 0.98)),
     transparent;
@@ -1883,8 +1935,8 @@ input::placeholder {
   position: sticky;
   top: 50%;
   z-index: -1;
-  height: 34px;
-  margin-top: -17px;
+  height: 32px;
+  margin-top: -16px;
   border-radius: 999px;
   background: rgba(118, 118, 128, 0.34);
   grid-row: 1;
@@ -1896,12 +1948,12 @@ input::placeholder {
 
 .time-wheel-option {
   position: relative;
-  height: 34px;
+  height: 32px;
   border: 0;
   border-radius: 9px;
   color: rgba(235, 235, 245, 0.42);
   background: transparent;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   scroll-snap-align: center;
   cursor: pointer;
@@ -1909,6 +1961,10 @@ input::placeholder {
 
 .time-wheel-option.is-selected {
   color: #f5f5f7;
+}
+
+body.scheduler-picker-open .guide-callout {
+  display: none;
 }
 
 .hidden-controls {
@@ -2375,7 +2431,7 @@ button.secondary {
   }
 
   .extension-card {
-    height: calc(var(--sheet-current-height) - 14px);
+    height: calc(var(--sheet-full-height) - 42px);
     max-height: none;
     padding-top: 20px;
   }
@@ -2413,7 +2469,7 @@ button.secondary {
   }
 
   .schedule-window-control {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .composer-actions {
@@ -2504,6 +2560,20 @@ button.secondary {
 
   .participant-setup-card h2 {
     font-size: 24px;
+  }
+
+  .welcome-script {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .welcome-script-word {
+    width: 184px;
+    height: 62px;
+  }
+
+  .welcome-title-rest {
+    font-size: 16px;
   }
 
   .participant-setup-card .participant-name-grid {

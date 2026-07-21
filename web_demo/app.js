@@ -76,9 +76,28 @@ const guideCallout = document.querySelector("#guide-callout");
 const geminiKeyStorageName = "meetingSchedulerGeminiKey";
 const schedulerStateStorageName = "meetingSchedulerDemoStateV6";
 const maxScheduledMeetings = 3;
+
+function readStoredValue(storageName, key, fallback = null) {
+  try {
+    const storage = window[storageName];
+    return storage?.getItem(key) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeStoredValue(storageName, key, value) {
+  try {
+    const storage = window[storageName];
+    storage?.setItem(key, value);
+  } catch {
+    // Storage can be unavailable in restricted browser contexts.
+  }
+}
+
 let sheetDragStartY = 0;
-let sheetDragStartOffset = 162;
-let sheetOffset = 162;
+let sheetDragStartOffset = 90;
+let sheetOffset = 90;
 let isDraggingSheet = false;
 let guideStepIndex = 0;
 let guideDelayTimer;
@@ -91,7 +110,7 @@ let demoCompleteTimer;
 const timeWheelScrollTimers = new WeakMap();
 
 const sheetExpandedOffset = 0;
-const sheetCollapsedOffset = 162;
+const sheetCollapsedOffset = 90;
 const sheetCloseOffset = 270;
 const demoWindowDays = 7;
 const timeWheelIncrementMinutes = 15;
@@ -139,6 +158,7 @@ const schedulingStyleDetails = {
 let calendarBusyCells = {};
 let scheduledMeetings = [];
 let schedulerMessages = [];
+let participantSetupDismissedInSession = false;
 const guideSteps = [
   {
     title: "Open iMessage apps",
@@ -299,8 +319,17 @@ function updateSchedulerConversationPreview() {
 }
 
 function shouldShowParticipantSetup() {
+  const hasStoredSchedulerState = readStoredValue(
+    "localStorage",
+    schedulerStateStorageName,
+    null
+  ) !== null;
+  const isFreshUnstoredStart = !hasStoredSchedulerState &&
+    !participantSetupDismissedInSession &&
+    scheduledMeetings.length === 0;
+
   return currentChatMode === "scheduler" &&
-    !participantSetupComplete &&
+    (!participantSetupComplete || isFreshUnstoredStart) &&
     scheduledMeetings.length === 0;
 }
 
@@ -317,6 +346,20 @@ function showParticipantSetupIfNeeded() {
   if (!participantSetupOverlay.hidden) {
     participantHostNameInput?.focus();
   }
+}
+
+function ensureInitialParticipantSetupVisible() {
+  if (
+    !participantSetupOverlay ||
+    currentChatMode !== "scheduler" ||
+    scheduledMeetings.length > 0 ||
+    participantSetupDismissedInSession
+  ) {
+    return;
+  }
+
+  participantSetupOverlay.hidden = false;
+  participantHostNameInput?.focus();
 }
 
 function hideParticipantSetup() {
@@ -406,7 +449,7 @@ function getInitialSchedulerMessages() {
 function loadSchedulerState() {
   try {
     const saved = JSON.parse(
-      localStorage.getItem(schedulerStateStorageName) || "{}"
+      readStoredValue("localStorage", schedulerStateStorageName, "{}")
     );
     setParticipantNameInputs(saved.participantNames || {});
     scheduledMeetings = Array.isArray(saved.scheduledMeetings)
@@ -427,7 +470,8 @@ function loadSchedulerState() {
 }
 
 function saveSchedulerState() {
-  localStorage.setItem(
+  writeStoredValue(
+    "localStorage",
     schedulerStateStorageName,
     JSON.stringify({
       scheduledMeetings,
@@ -441,6 +485,7 @@ function saveSchedulerState() {
 function resetSchedulerState() {
   setParticipantNameInputs();
   participantSetupComplete = false;
+  participantSetupDismissedInSession = false;
   scheduledMeetings = [];
   schedulerMessages = getInitialSchedulerMessages();
   hideDemoCompleteOverlay();
@@ -838,10 +883,35 @@ function parseDateInputValue(value) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function syncSchedulePickerState() {
+  const hasOpenPicker = [...datePickerPanels, ...timePickerPanels].some((panel) => !panel.hidden);
+  phone.classList.toggle("picker-open", hasOpenPicker);
+  document.body.classList.toggle("scheduler-picker-open", hasOpenPicker);
+}
+
+function positionSchedulePickerPanel(panel) {
+  if (!panel || panel.hidden) {
+    syncSchedulePickerState();
+    return;
+  }
+
+  panel.classList.remove("opens-up");
+  requestAnimationFrame(() => {
+    const sheetRect = form.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    const availableBottom = Math.min(window.innerHeight - 12, sheetRect.bottom - 12);
+    if (panelRect.bottom > availableBottom) {
+      panel.classList.add("opens-up");
+    }
+    syncSchedulePickerState();
+  });
+}
+
 function closeSchedulePickers(exceptPanel = null) {
   [...datePickerPanels, ...timePickerPanels].forEach((panel) => {
     if (panel !== exceptPanel) {
       panel.hidden = true;
+      panel.classList.remove("opens-up");
     }
   });
   datePickerButtons.forEach((button) => {
@@ -852,6 +922,7 @@ function closeSchedulePickers(exceptPanel = null) {
     const panel = document.querySelector(`[data-time-panel="${button.dataset.timePicker}"]`);
     button.setAttribute("aria-expanded", String(Boolean(panel && !panel.hidden)));
   });
+  syncSchedulePickerState();
 }
 
 function renderDatePickerPanel(input) {
@@ -2478,6 +2549,7 @@ function showSchedulerSheet() {
 }
 
 function closeSchedulerSheet(options = {}) {
+  closeSchedulePickers();
   form.hidden = true;
   appDrawer.hidden = true;
   if (!options.keepCalendarPlanner) {
@@ -2490,6 +2562,7 @@ function closeSchedulerSheet(options = {}) {
 
 function startSheetDrag(event) {
   isDraggingSheet = true;
+  closeSchedulePickers();
   sheetDragStartY = event.clientY;
   sheetDragStartOffset = sheetOffset;
   closeSheetButton.setPointerCapture?.(event.pointerId);
@@ -2549,6 +2622,7 @@ function getMeetingPlatform() {
   const platform = meetingPlatformSelect?.value || "google-meet";
   const labels = {
     "google-meet": "Google Meet",
+    facetime: "Apple FaceTime",
     zoom: "Zoom",
     teams: "Microsoft Teams"
   };
@@ -2584,6 +2658,10 @@ function createMeetingLink(platformId, title, slot) {
 
   if (platformId === "teams") {
     return `https://teams.microsoft.com/l/meetup-join/${code}`;
+  }
+
+  if (platformId === "facetime") {
+    return `https://facetime.apple.com/join/${code}`;
   }
 
   return `https://meet.google.com/${code}`;
@@ -2752,7 +2830,7 @@ async function runPersonalizedAiDemo() {
     return;
   }
 
-  sessionStorage.setItem(geminiKeyStorageName, geminiApiKey);
+  writeStoredValue("sessionStorage", geminiKeyStorageName, geminiApiKey);
   await runSchedulingFlow({ useAi: true, geminiApiKey });
 }
 
@@ -3072,6 +3150,7 @@ datePickerButtons.forEach((button) => {
     }
     panel.hidden = !willOpen;
     closeSchedulePickers(willOpen ? panel : null);
+    positionSchedulePickerPanel(panel);
   });
 });
 timePickerButtons.forEach((button) => {
@@ -3089,6 +3168,7 @@ timePickerButtons.forEach((button) => {
     if (willOpen) {
       updateTimeWheelSelection(input);
     }
+    positionSchedulePickerPanel(panel);
   });
 });
 datePickerPanels.forEach((panel) => {
@@ -3108,6 +3188,8 @@ datePickerPanels.forEach((panel) => {
     datePickerMonths.set(input.id, new Date(date.getFullYear(), date.getMonth(), 1));
     renderDatePickerPanel(input);
     panel.hidden = true;
+    panel.classList.remove("opens-up");
+    syncSchedulePickerState();
     input.dispatchEvent(new Event("change", {
       bubbles: true
     }));
@@ -3126,6 +3208,7 @@ inviteeMixSelect?.addEventListener("change", updateStyleGuide);
 participantSetupForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   participantSetupComplete = true;
+  participantSetupDismissedInSession = true;
   refreshEditableParticipantPresentation();
   saveSchedulerState();
   hideParticipantSetup();
@@ -3156,7 +3239,7 @@ reviewCompletedDemoButton?.addEventListener("click", () => {
   setGuideStep(4);
   setGuideVisibility(true);
 });
-geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
+geminiApiKeyInput.value = readStoredValue("sessionStorage", geminiKeyStorageName, "");
 initializeScheduleWindowControls();
 initializeTimeWheels();
 initializeDatePickers();
@@ -3166,5 +3249,6 @@ setModePresentation(false);
 applyHostStyleToScheduler();
 updateStyleGuide();
 showChat();
+ensureInitialParticipantSetupVisible();
 updateRunButtonForMeetingLimit();
 checkHealth();

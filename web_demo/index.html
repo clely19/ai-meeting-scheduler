@@ -4,7 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260721-ios-date-time">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+TZ:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260721-facetime-platform">
   </head>
   <body>
     <main class="shell">
@@ -187,6 +190,7 @@
                 Meeting platform
                 <select id="meeting-platform">
                   <option value="google-meet" selected>Google Meet</option>
+                  <option value="facetime">Apple FaceTime</option>
                   <option value="zoom">Zoom</option>
                   <option value="teams">Microsoft Teams</option>
                 </select>
@@ -253,36 +257,34 @@
 
       <section id="participant-setup-overlay" class="participant-setup-overlay" aria-label="Set up group chat names" hidden>
         <div class="setup-welcome-title" aria-label="Welcome to the Meeting Scheduler">
-          <svg class="welcome-script" viewBox="0 0 680 160" role="img" aria-hidden="true">
-            <path class="welcome-script-path" pathLength="1000" d="
-              M 36 88
-              C 50 122, 76 126, 92 86
-              C 101 62, 107 61, 112 88
-              C 120 128, 151 126, 166 86
-              C 175 60, 166 51, 150 64
-              C 130 81, 139 108, 168 104
-              C 201 100, 218 74, 222 45
-              C 226 19, 207 18, 201 45
-              C 193 82, 207 108, 235 104
-              C 263 100, 277 75, 281 45
-              C 285 19, 266 18, 260 45
-              C 252 82, 267 108, 296 104
-              C 326 100, 343 74, 337 62
-              C 330 48, 306 61, 306 82
-              C 306 105, 334 112, 361 95
-              C 385 80, 397 57, 415 61
-              C 431 65, 427 91, 420 106
-              C 437 86, 452 58, 471 62
-              C 490 66, 481 96, 478 106
-              C 502 111, 526 97, 535 75
-              C 543 56, 524 50, 510 64
-              C 490 84, 501 109, 532 105
-              C 565 101, 582 75, 586 57
-              C 591 35, 561 39, 556 65
-              C 550 96, 582 113, 616 88
-              C 630 78, 640 69, 650 58" />
-          </svg>
-          <small>to the Meeting Scheduler</small>
+          <div class="welcome-script" aria-hidden="true">
+            <svg class="welcome-script-word" viewBox="0 0 248 82" role="img" aria-hidden="true">
+              <defs>
+                <mask id="welcome-script-mask" maskUnits="userSpaceOnUse" x="-20" y="-24" width="292" height="132">
+                  <rect x="-20" y="-24" width="292" height="132" fill="#000"></rect>
+                  <path class="welcome-mask-stroke" style="--stroke-delay: 90ms; --stroke-duration: 420ms;" pathLength="100" d="M 8 49 C 13 24, 22 18, 28 43 C 33 65, 43 62, 49 41 C 56 19, 67 20, 71 43 C 75 63, 84 62, 91 40"></path>
+                  <path class="welcome-mask-stroke" style="--stroke-delay: 350ms; --stroke-duration: 420ms;" pathLength="100" d="M 87 44 C 97 30, 115 34, 110 47 C 106 58, 87 58, 86 47 C 86 40, 93 35, 102 36"></path>
+                  <path class="welcome-mask-stroke" style="--stroke-delay: 610ms; --stroke-duration: 420ms;" pathLength="100" d="M 118 56 C 123 42, 127 23, 133 18 C 138 14, 142 18, 139 30 C 136 43, 130 54, 126 58"></path>
+                  <path class="welcome-mask-stroke" style="--stroke-delay: 820ms; --stroke-duration: 500ms;" pathLength="100" d="M 142 47 C 151 32, 168 33, 169 43 C 170 53, 158 61, 146 56 C 138 52, 137 45, 142 39"></path>
+                  <path class="welcome-mask-stroke" style="--stroke-delay: 1040ms; --stroke-duration: 520ms;" pathLength="100" d="M 174 48 C 178 34, 195 31, 202 42 C 209 54, 197 65, 183 60 C 173 56, 171 48, 176 39"></path>
+                  <path class="welcome-mask-stroke" style="--stroke-delay: 1240ms; --stroke-duration: 650ms;" pathLength="100" d="M 207 58 C 210 43, 217 35, 223 41 C 228 47, 221 59, 226 59 C 231 43, 238 35, 244 42 C 250 50, 244 61, 248 61"></path>
+                  <path class="welcome-mask-stroke" style="--stroke-delay: 1600ms; --stroke-duration: 480ms;" pathLength="100" d="M 247 47 C 256 33, 272 36, 266 49 C 262 59, 246 59, 245 49 C 245 43, 251 38, 260 39"></path>
+                  <rect class="welcome-mask-letter-fill" style="--fill-delay: 240ms;" x="-6" y="-24" width="104" height="132" fill="#fff"></rect>
+                  <rect class="welcome-mask-letter-fill" style="--fill-delay: 500ms;" x="84" y="-24" width="34" height="132" fill="#fff"></rect>
+                  <rect class="welcome-mask-letter-fill" style="--fill-delay: 760ms;" x="114" y="-24" width="28" height="132" fill="#fff"></rect>
+                  <rect class="welcome-mask-letter-fill" style="--fill-delay: 1000ms;" x="138" y="-24" width="38" height="132" fill="#fff"></rect>
+                  <rect class="welcome-mask-letter-fill" style="--fill-delay: 1230ms;" x="170" y="-24" width="38" height="132" fill="#fff"></rect>
+                  <rect class="welcome-mask-letter-fill" style="--fill-delay: 1510ms;" x="202" y="-24" width="48" height="132" fill="#fff"></rect>
+                  <rect class="welcome-mask-letter-fill" style="--fill-delay: 1790ms;" x="242" y="-24" width="42" height="132" fill="#fff"></rect>
+                  <rect class="welcome-mask-complete" x="-20" y="-24" width="292" height="132" fill="#fff"></rect>
+                </mask>
+              </defs>
+              <g mask="url(#welcome-script-mask)">
+                <text class="welcome-script-text" x="0" y="58">Welcome</text>
+              </g>
+            </svg>
+            <span class="welcome-title-rest">to the Meeting Scheduler</span>
+          </div>
         </div>
         <form id="participant-setup-form" class="participant-setup-card">
           <p class="setup-kicker">Before the first demo meeting</p>
@@ -320,6 +322,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260721-ios-date-time"></script>
+    <script src="/demo/app.js?v=20260721-facetime-platform"></script>
   </body>
 </html>
