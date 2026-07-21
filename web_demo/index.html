@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Meeting Scheduler Demo</title>
-    <link rel="stylesheet" href="/demo/styles.css?v=20260721-welcome-title">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260721-scheduler-icon-welcome">
   </head>
   <body>
     <main class="shell">
@@ -48,27 +48,21 @@
           </nav>
           <h1 class="messages-title">Messages</h1>
           <section class="conversation-list" aria-label="Recent conversations">
-            <button id="open-demo-chat" class="conversation-row" type="button">
-              <span class="conversation-avatar">3</span>
+            <button id="open-demo-chat" class="conversation-row primary-demo-row" type="button">
+              <span class="conversation-avatar scheduler-avatar" aria-hidden="true">
+                <span class="scheduler-icon"></span>
+              </span>
               <span class="conversation-copy">
                 <span class="conversation-name">Meeting Scheduler Demo</span>
                 <span class="conversation-preview">Alex, Taylor, Morgan: tap + to find a common time.</span>
               </span>
               <span class="conversation-date">Now</span>
             </button>
-            <button class="conversation-row simple-chat-row" type="button" data-chat-id="launch-plan">
-              <span class="conversation-avatar muted">2</span>
-              <span class="conversation-copy">
-                <span class="conversation-name">Launch Plan</span>
-                <span class="conversation-preview">Maya: I added the checklist for the demo.</span>
-              </span>
-              <span class="conversation-date">10m</span>
-            </button>
             <button class="conversation-row linkedin-row" type="button" data-post-id="agentic-ai">
               <span class="conversation-avatar linkedin">in</span>
               <span class="conversation-copy">
                 <span class="conversation-name">Agentic AI + Data Cloud</span>
-                <span class="conversation-preview">LinkedIn post preview: agentic AI, Data Cloud, Salesforce.</span>
+                <span class="conversation-preview">Data Cloud, metadata, and unified datasets.</span>
               </span>
               <span class="conversation-date">Post</span>
             </button>
@@ -76,17 +70,9 @@
               <span class="conversation-avatar linkedin">in</span>
               <span class="conversation-copy">
                 <span class="conversation-name">Vibe Coding</span>
-                <span class="conversation-preview">LinkedIn post preview: vibe coding, building in public, AI.</span>
+                <span class="conversation-preview">Building an AI scheduler inside iMessage.</span>
               </span>
               <span class="conversation-date">Post</span>
-            </button>
-            <button class="conversation-row simple-chat-row" type="button" data-chat-id="design-review">
-              <span class="conversation-avatar muted">4</span>
-              <span class="conversation-copy">
-                <span class="conversation-name">Design Review</span>
-                <span class="conversation-preview">Jordan: The calendar view is ready to test.</span>
-              </span>
-              <span class="conversation-date">1h</span>
             </button>
           </section>
           <div class="search-bar" aria-hidden="true">
@@ -105,11 +91,13 @@
               <strong>29</strong>
             </button>
             <div class="chat-title">
-              <div class="group-avatar">M</div>
+              <div class="group-avatar scheduler-avatar" aria-hidden="true">
+                <span class="scheduler-icon"></span>
+              </div>
               <h1>Me</h1>
             </div>
             <button class="video-button" type="button" aria-label="Video call">
-              <img src="/demo/assets/video-call-icon.png" alt="">
+              <span class="video-glyph" aria-hidden="true"></span>
             </button>
           </header>
 
@@ -256,7 +244,10 @@
       </section>
 
       <section id="participant-setup-overlay" class="participant-setup-overlay" aria-label="Set up group chat names" hidden>
-        <p class="setup-welcome-title">Welcome to the Meeting Scheduler</p>
+        <div class="setup-welcome-title" aria-label="Welcome to the Meeting Scheduler">
+          <span>Welcome</span>
+          <small>to the Meeting Scheduler</small>
+        </div>
         <form id="participant-setup-form" class="participant-setup-card">
           <p class="setup-kicker">Before the first demo meeting</p>
           <h2>People in this chat</h2>
@@ -293,6 +284,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260721-welcome-title"></script>
+    <script src="/demo/app.js?v=20260721-scheduler-icon-welcome"></script>
   </body>
 </html>

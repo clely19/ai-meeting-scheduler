@@ -16,7 +16,6 @@ const calendarPrevWeekButton = document.querySelector("#calendar-prev-week");
 const calendarNextWeekButton = document.querySelector("#calendar-next-week");
 const resetCalendarsButton = document.querySelector("#reset-calendars");
 const linkedinPostButtons = document.querySelectorAll(".linkedin-row");
-const simpleChatButtons = document.querySelectorAll(".simple-chat-row");
 const filterMenuButton = document.querySelector("#filter-menu-button");
 const filterMenu = document.querySelector("#filter-menu");
 const backButton = document.querySelector(".back-pill");
@@ -169,6 +168,14 @@ const linkedInPosts = {
     subtitle: "Agentic AI, Data Cloud, Salesforce",
     url: "https://www.linkedin.com/posts/clely-fernandes_agenticai-datacloud-salesforce-ugcPost-7457422569668014080-mlCK/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADcM6rYBYDfuAouEWwFrlY1giwgoCPkgrkI",
     preview: "I didn't expect a sketch of Mickey Mouse to change how I think about data.",
+    context: [
+      "One area I found interesting was Data Cloud (Data 360).",
+      "It uses metadata to run analytics without touching raw data:",
+      "- Keep raw data intact",
+      "- Structure through metadata",
+      "- Query across unified datasets",
+      "This shifted how I think about data as a long-term asset."
+    ].join("\n"),
     image: "/demo/assets/linkedin-agentic-preview.png",
     imageAlt: "LinkedIn post preview about Salesforce and agentic AI"
   },
@@ -177,30 +184,13 @@ const linkedInPosts = {
     subtitle: "Vibe coding, building in public, AI",
     url: "https://www.linkedin.com/posts/clely-fernandes_vibecoding-buildinginpublic-ai-share-7441626369769308160-J6gb/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADcM6rYBYDfuAouEWwFrlY1giwgoCPkgrkI",
     preview: "I've been trying to build something new. A skill, and a project.",
+    context: [
+      "At some point I asked myself: is scheduling a meeting just noise? I want to spend my time building, not negotiating a time to meet.",
+      "So I started building an iMessage extension where an AI agent negotiates meeting times for everyone in the chat. No back-and-forth. Just a slot that works.",
+      "I haven't finished it yet, and I'm okay not knowing what comes next. This is also my first real vibe coding project. Honestly, I'm still figuring out how to actually vibe."
+    ].join("\n\n"),
     image: "/demo/assets/linkedin-vibe-coding-preview.png",
     imageAlt: "LinkedIn post preview about vibe coding"
-  }
-};
-const simpleChats = {
-  "launch-plan": {
-    title: "Launch Plan",
-    avatar: "2",
-    subtitle: "Clely and Maya",
-    messages: [
-      ["agent", "Maya", "I added the checklist for the demo walkthrough."],
-      ["user", "Clely", "Perfect. I want the first screen to feel less crowded."],
-      ["agent", "Maya", "Agreed. The scheduler should feel like something the user opens on purpose."]
-    ]
-  },
-  "design-review": {
-    title: "Design Review",
-    avatar: "4",
-    subtitle: "Clely, Maya, Jordan, Alex",
-    messages: [
-      ["agent", "Jordan", "The calendar view is ready to test beside the Messages app."],
-      ["agent", "Alex", "The main flow should stay focused on the chat."],
-      ["user", "Clely", "Let's keep the calendars useful but secondary."]
-    ]
   }
 };
 
@@ -1773,7 +1763,8 @@ function renderSchedulerConversation() {
   currentChatMode = "scheduler";
   thread.innerHTML = "";
   chatName.textContent = "Meeting Scheduler Demo";
-  groupAvatar.textContent = "3";
+  groupAvatar.className = "group-avatar scheduler-avatar";
+  groupAvatar.innerHTML = '<span class="scheduler-icon" aria-hidden="true"></span>';
   phone.classList.remove("post-chat");
   openAppsButton.disabled = false;
   isRestoringSchedulerChat = true;
@@ -2152,6 +2143,31 @@ function addLinkedInPreview(post) {
   scrollThreadToLatest();
 }
 
+function addLinkedInContext(post) {
+  const message = document.createElement("article");
+  message.className = "message agent linkedin-context";
+  const authorElement = document.createElement("strong");
+  authorElement.textContent = post.title;
+  message.append(authorElement, document.createTextNode(post.context));
+  thread.appendChild(message);
+  scrollThreadToLatest();
+}
+
+function addLinkedInCta(post) {
+  const message = document.createElement("article");
+  message.className = "message agent linkedin-open-post";
+  const authorElement = document.createElement("strong");
+  authorElement.textContent = "LinkedIn";
+  const link = document.createElement("a");
+  link.href = post.url;
+  link.target = "_blank";
+  link.rel = "noreferrer";
+  link.textContent = "Check the post out on LinkedIn";
+  message.append(authorElement, link);
+  thread.appendChild(message);
+  scrollThreadToLatest();
+}
+
 function setInitialConversation() {
   renderSchedulerConversation();
 }
@@ -2193,32 +2209,14 @@ function showLinkedInPostChat(post) {
   phone.classList.remove("sheet-open");
   updateSheetOffset(sheetCollapsedOffset);
   chatName.textContent = post.title;
+  groupAvatar.className = "group-avatar";
   groupAvatar.textContent = "in";
   openAppsButton.disabled = true;
   thread.innerHTML = "";
   addMessage("system", "LinkedIn", post.subtitle);
+  addLinkedInContext(post);
   addLinkedInPreview(post);
-  hideParticipantSetup();
-}
-
-function showSimpleChat(chat) {
-  currentChatMode = "simple";
-  phone.classList.add("in-chat");
-  phone.classList.add("post-chat");
-  setGuideVisibility(false);
-  hideAppDrawer();
-  hideCalendarPlanner();
-  form.hidden = true;
-  phone.classList.remove("sheet-open");
-  updateSheetOffset(sheetCollapsedOffset);
-  chatName.textContent = chat.title;
-  groupAvatar.textContent = chat.avatar;
-  openAppsButton.disabled = true;
-  thread.innerHTML = "";
-  addMessage("system", "Group", chat.subtitle);
-  chat.messages.forEach(([kind, author, text]) => {
-    addMessage(kind, author, text);
-  });
+  addLinkedInCta(post);
   hideParticipantSetup();
 }
 
@@ -2762,9 +2760,6 @@ openSchedulerButton.addEventListener("click", showSchedulerSheet);
 openDemoChatButton.addEventListener("click", showChat);
 linkedinPostButtons.forEach((button) => {
   button.addEventListener("click", () => showLinkedInPostChat(linkedInPosts[button.dataset.postId]));
-});
-simpleChatButtons.forEach((button) => {
-  button.addEventListener("click", () => showSimpleChat(simpleChats[button.dataset.chatId]));
 });
 filterMenuButton.addEventListener("click", toggleFilterMenu);
 filterMenu.addEventListener("click", (event) => {
