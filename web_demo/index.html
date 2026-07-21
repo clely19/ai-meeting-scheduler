@@ -254,7 +254,15 @@
       <section id="participant-setup-overlay" class="participant-setup-overlay" aria-label="Set up group chat names" hidden>
         <div class="setup-welcome-title" aria-label="Welcome to the Meeting Scheduler">
           <svg class="welcome-script" viewBox="0 0 560 130" role="img" aria-hidden="true">
-            <text class="welcome-script-text" x="280" y="88" text-anchor="middle">welcome</text>
+            <defs>
+              <clipPath id="welcome-script-reveal">
+                <rect class="welcome-script-mask" x="0" y="0" width="560" height="130"></rect>
+              </clipPath>
+            </defs>
+            <g clip-path="url(#welcome-script-reveal)">
+              <text class="welcome-script-text welcome-script-stroke" x="280" y="88" text-anchor="middle">welcome</text>
+              <text class="welcome-script-text welcome-script-fill" x="280" y="88" text-anchor="middle">welcome</text>
+            </g>
           </svg>
           <small>to the Meeting Scheduler</small>
         </div>

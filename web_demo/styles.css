@@ -1589,30 +1589,48 @@ input::placeholder {
 }
 
 .welcome-script {
-  width: min(360px, 72vw);
+  width: min(390px, 74vw);
   height: auto;
-  margin: 0 auto -2px;
+  margin: 0 auto -4px;
   overflow: visible;
   filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.08));
 }
 
 .welcome-script-text {
-  font-family: "Snell Roundhand", "SignPainter", "Brush Script MT", "Segoe Script", cursive;
-  font-size: 96px;
-  font-weight: 500;
+  font-family: "SignPainter", "Savoye LET", "Snell Roundhand", "Brush Script MT", "Segoe Script", cursive;
+  font-size: 104px;
+  font-weight: 400;
   font-style: normal;
   letter-spacing: 0;
-  fill: rgba(245, 245, 247, 0);
-  stroke: rgba(245, 245, 247, 0.96);
-  stroke-width: 1.35;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: skewX(-7deg);
+}
+
+.welcome-script-stroke {
+  fill: none;
+  stroke: rgba(245, 245, 247, 0.98);
+  stroke-width: 1.9;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 780;
-  stroke-dashoffset: 780;
-  paint-order: stroke fill;
+  stroke-dasharray: 920;
+  stroke-dashoffset: 920;
+  paint-order: stroke;
+  animation: welcomeStroke 1.65s cubic-bezier(0.19, 1, 0.22, 1) 120ms both;
+}
+
+.welcome-script-fill {
+  fill: rgba(245, 245, 247, 0);
+  stroke: none;
   animation:
-    welcomeStroke 1.45s cubic-bezier(0.19, 1, 0.22, 1) 80ms both,
-    welcomeFill 520ms ease-out 1.05s both;
+    welcomeFill 680ms ease-out 1.12s both;
+}
+
+.welcome-script-mask {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: welcomeReveal 1.6s cubic-bezier(0.18, 0.92, 0.2, 1) 80ms both;
 }
 
 .setup-welcome-title small {
@@ -1627,8 +1645,8 @@ input::placeholder {
 @keyframes welcomeStroke {
   from {
     opacity: 0;
-    stroke-dashoffset: 780;
-    filter: blur(3px);
+    stroke-dashoffset: 920;
+    filter: blur(2px);
   }
 
   to {
@@ -1638,15 +1656,23 @@ input::placeholder {
   }
 }
 
+@keyframes welcomeReveal {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @keyframes welcomeFill {
   from {
     fill: rgba(245, 245, 247, 0);
-    stroke: rgba(245, 245, 247, 0.96);
   }
 
   to {
     fill: rgba(245, 245, 247, 0.96);
-    stroke: rgba(245, 245, 247, 0.5);
   }
 }
 
