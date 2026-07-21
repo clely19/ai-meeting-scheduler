@@ -574,8 +574,8 @@ function positionGuideCallout() {
 
   if (guideStepIndex === 3 || guideStepIndex === 4) {
     const position = getClampedGuidePosition(
-      phoneRect.right - shellLeft - calloutRect.width - 22,
-      phoneRect.top - shellRect.top + 92,
+      phoneRect.right - shellLeft - calloutRect.width - 28,
+      phoneRect.top - shellRect.top + 210,
       shellRect,
       calloutRect
     );
@@ -977,7 +977,7 @@ function getBusyBlocksFromCells(participantKey, days) {
       }
 
       return days
-        .filter((day) => day.getDay() === dayIndex + 1)
+        .filter((_, dateIndex) => dateIndex % demoWindowDays === dayIndex)
         .map((day) => {
           const start = new Date(day);
           start.setHours(hour, 0, 0, 0);
@@ -1711,6 +1711,7 @@ function updateSheetOffset(offset) {
   phone.style.setProperty("--sheet-offset", `${sheetOffset}px`);
   if (phone.classList.contains("sheet-open")) {
     scrollThreadToLatest();
+    positionGuideCallout();
   }
 }
 
