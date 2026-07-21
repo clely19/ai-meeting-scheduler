@@ -376,14 +376,40 @@ select {
 }
 
 .primary-demo-row {
-  background: rgba(10, 132, 255, 0.08);
-  box-shadow:
-    inset 3px 0 0 #0a84ff,
-    inset 0 0 0 1px rgba(10, 132, 255, 0.13);
+  animation: schedulerRowNudge 2.8s ease-in-out infinite;
+  box-shadow: inset 3px 0 0 rgba(10, 132, 255, 0.7);
 }
 
 .primary-demo-row .conversation-name {
   color: #f9fbff;
+}
+
+.primary-demo-row .scheduler-avatar {
+  animation: schedulerAvatarPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes schedulerRowNudge {
+  0%,
+  100% {
+    transform: translateX(0);
+    background: rgba(10, 132, 255, 0.035);
+  }
+
+  45% {
+    transform: translateX(3px);
+    background: rgba(10, 132, 255, 0.095);
+  }
+}
+
+@keyframes schedulerAvatarPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(10, 132, 255, 0);
+  }
+
+  45% {
+    box-shadow: 0 0 0 5px rgba(10, 132, 255, 0.14);
+  }
 }
 
 .conversation-avatar {
@@ -584,10 +610,10 @@ h1 {
 
 .video-glyph {
   position: relative;
-  width: 25px;
-  height: 17px;
+  width: 24px;
+  height: 18px;
   display: block;
-  border: 3px solid rgba(245, 245, 247, 0.92);
+  border: 2.5px solid rgba(245, 245, 247, 0.92);
   border-radius: 6px;
 }
 
@@ -595,12 +621,14 @@ h1 {
   content: "";
   position: absolute;
   top: 2px;
-  right: -11px;
-  width: 10px;
-  height: 13px;
-  border-radius: 2px;
-  background: rgba(245, 245, 247, 0.92);
-  clip-path: polygon(0 24%, 100% 0, 100% 100%, 0 76%);
+  right: -10px;
+  width: 9px;
+  height: 14px;
+  border: 2.5px solid rgba(245, 245, 247, 0.92);
+  border-left: 0;
+  border-radius: 0 4px 4px 0;
+  background: transparent;
+  clip-path: polygon(0 28%, 100% 2%, 100% 98%, 0 72%);
 }
 
 .thread {
@@ -1115,15 +1143,27 @@ h1 {
   white-space: pre-line;
 }
 
+.linkedin-post-bubble {
+  margin-left: 36px;
+  background: #248a3d;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 5px;
+}
+
 .linkedin-open-post {
+  align-self: flex-end;
   padding: 0;
   overflow: hidden;
+  color: #fff;
+  background: var(--bubble-out);
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 5px;
 }
 
 .linkedin-open-post a {
   display: block;
   padding: 10px 13px;
-  color: #64d2ff;
+  color: #fff;
   font-weight: 900;
   text-decoration: none;
 }
@@ -1550,10 +1590,12 @@ input::placeholder {
 
 .setup-welcome-title span {
   color: #f5f5f7;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
-  font-size: clamp(36px, 5vw, 58px);
-  font-weight: 700;
-  line-height: 0.98;
+  font-family: "Apple Chancery", "Snell Roundhand", "Brush Script MT", cursive;
+  font-size: clamp(54px, 7vw, 84px);
+  font-weight: 400;
+  line-height: 0.82;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+  animation: welcomeTrace 980ms cubic-bezier(0.19, 1, 0.22, 1) both;
 }
 
 .setup-welcome-title small {
@@ -1563,6 +1605,28 @@ input::placeholder {
   font-weight: 700;
   line-height: 1.2;
   animation: welcomeSubtitle 900ms ease-out 180ms both;
+}
+
+@keyframes welcomeTrace {
+  from {
+    opacity: 0;
+    letter-spacing: 0.12em;
+    transform: translateY(8px) scale(0.96);
+    filter: blur(8px);
+  }
+
+  65% {
+    opacity: 1;
+    letter-spacing: 0.02em;
+    filter: blur(0);
+  }
+
+  to {
+    opacity: 1;
+    letter-spacing: 0;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
 }
 
 @keyframes welcomeRise {
@@ -1648,66 +1712,199 @@ input::placeholder {
 .schedule-window-control {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
-.schedule-window-control label {
-  gap: 6px;
-  font-size: 12px;
-}
-
-.schedule-window-control input {
-  font-size: 14px;
-}
-
-.time-wheel-field {
+.ios-date-time-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
+  padding: 11px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ios-date-time-row input[type="date"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ios-date-time-label {
+  color: #f5f5f7;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.ios-value-pill {
+  min-width: 0;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 12px;
+  color: #f5f5f7;
+  background: rgba(118, 118, 128, 0.34);
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ios-value-pill:focus-visible,
+.ios-value-pill[aria-expanded="true"] {
+  color: #ff453a;
+  outline: 2px solid rgba(255, 69, 58, 0.5);
+  outline-offset: 2px;
+}
+
+.ios-date-pill {
+  width: 116px;
+}
+
+.ios-time-pill {
+  width: 86px;
+}
+
+.ios-picker-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 12;
+  width: min(420px, calc(100vw - 40px));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: 14px;
+  color: #f5f5f7;
+  background: rgba(44, 44, 46, 0.98);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
+}
+
+.ios-picker-panel[hidden] {
+  display: none;
+}
+
+.date-picker-header {
+  display: grid;
+  grid-template-columns: 32px 1fr 32px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.date-picker-header strong {
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.date-picker-nav {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  color: #ff453a;
+  background: rgba(118, 118, 128, 0.2);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.date-picker-weekdays,
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.date-picker-weekdays {
+  margin-bottom: 7px;
+  color: #8e8e93;
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.date-picker-day {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 50%;
+  color: #f5f5f7;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.date-picker-day.outside-month {
+  color: rgba(245, 245, 247, 0.34);
+}
+
+.date-picker-day.is-selected {
+  color: #fff;
+  background: #ff453a;
+}
+
+.time-picker-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: min(360px, calc(100vw - 40px));
+  padding: 18px 12px;
 }
 
 .time-wheel {
   position: relative;
-  height: 92px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  height: 150px;
   display: grid;
   gap: 2px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 30px 6px;
+  padding: 56px 4px;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.92), transparent 28%, transparent 72%, rgba(0, 0, 0, 0.92)),
-    #050505;
+    linear-gradient(180deg, rgba(44, 44, 46, 0.98), transparent 30%, transparent 70%, rgba(44, 44, 46, 0.98)),
+    transparent;
   scroll-snap-type: y mandatory;
-  scrollbar-color: rgba(255, 255, 255, 0.32) transparent;
-  scrollbar-width: thin;
+  scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
 }
 
-.time-wheel::-webkit-scrollbar {
-  width: 6px;
+.time-wheel::before {
+  content: "";
+  position: sticky;
+  top: 50%;
+  z-index: -1;
+  height: 34px;
+  margin-top: -17px;
+  border-radius: 999px;
+  background: rgba(118, 118, 128, 0.34);
+  grid-row: 1;
 }
 
-.time-wheel::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.32);
+.time-wheel::-webkit-scrollbar {
+  display: none;
 }
 
 .time-wheel-option {
   position: relative;
-  height: 30px;
+  height: 34px;
+  border: 0;
   border-radius: 9px;
-  color: #8e8e93;
+  color: rgba(235, 235, 245, 0.42);
   background: transparent;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 700;
   scroll-snap-align: center;
   cursor: pointer;
 }
 
 .time-wheel-option.is-selected {
-  color: #fff;
-  background: rgba(10, 132, 255, 0.88);
+  color: #f5f5f7;
 }
 
 .hidden-controls {
@@ -2055,15 +2252,17 @@ button.secondary {
   }
 
   .video-glyph {
-    width: 20px;
-    height: 14px;
+    width: 22px;
+    height: 16px;
     border-width: 2px;
   }
 
   .video-glyph::after {
+    top: 2px;
     right: -9px;
     width: 8px;
-    height: 10px;
+    height: 12px;
+    border-width: 2px;
   }
 
   .thread {
@@ -2210,7 +2409,7 @@ button.secondary {
   }
 
   .schedule-window-control {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .composer-actions {

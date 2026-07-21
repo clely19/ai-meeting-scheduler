@@ -26,6 +26,10 @@ const scheduleStartDateInput = document.querySelector("#schedule-start-date");
 const scheduleStartTimeInput = document.querySelector("#schedule-start-time");
 const scheduleEndDateInput = document.querySelector("#schedule-end-date");
 const scheduleEndTimeInput = document.querySelector("#schedule-end-time");
+const datePickerButtons = document.querySelectorAll("[data-date-picker]");
+const timePickerButtons = document.querySelectorAll("[data-time-picker]");
+const datePickerPanels = document.querySelectorAll("[data-date-panel]");
+const timePickerPanels = document.querySelectorAll("[data-time-panel]");
 const hostStyleSelect = document.querySelector("#host-style");
 const inviteeMixSelect = document.querySelector("#invitee-mix");
 const meetingPlatformSelect = document.querySelector("#meeting-platform");
@@ -91,7 +95,7 @@ const sheetCollapsedOffset = 162;
 const sheetCloseOffset = 270;
 const demoWindowDays = 7;
 const timeWheelIncrementMinutes = 15;
-const timeWheelStartMinutes = 9 * 60;
+const datePickerMonths = new Map();
 const balancedStyleBufferMinutes = 30;
 const fallbackSearchDays = 42;
 const calendarHours = [9, 10, 11, 12, 13, 14, 15, 16, 17];
@@ -654,13 +658,51 @@ function formatTimeWheelLabel(value) {
   });
 }
 
-function getTimeWheelOptions() {
-  return Array.from(
-    { length: Math.floor((24 * 60) / timeWheelIncrementMinutes) },
-    (_, index) => minutesToTimeInputValue(
-      timeWheelStartMinutes + index * timeWheelIncrementMinutes
-    )
-  );
+function formatDatePillLabel(value) {
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    return "Choose date";
+  }
+
+  return date.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
+}
+
+function getTimeParts(value) {
+  const totalMinutes = timeInputValueToMinutes(value);
+  const hour24 = Math.floor(totalMinutes / 60);
+  return {
+    hour: ((hour24 + 11) % 12) + 1,
+    minute: totalMinutes % 60,
+    period: hour24 >= 12 ? "PM" : "AM"
+  };
+}
+
+function combineTimeParts(parts) {
+  let hour = Number(parts.hour);
+  const minute = Number(parts.minute);
+  if (parts.period === "PM" && hour < 12) {
+    hour += 12;
+  }
+  if (parts.period === "AM" && hour === 12) {
+    hour = 0;
+  }
+
+  return minutesToTimeInputValue(hour * 60 + minute);
+}
+
+function updateDateTimePills() {
+  datePickerButtons.forEach((button) => {
+    const input = document.querySelector(`#${button.dataset.datePicker}`);
+    button.textContent = formatDatePillLabel(input?.value);
+  });
+  timePickerButtons.forEach((button) => {
+    const input = document.querySelector(`#${button.dataset.timePicker}`);
+    button.textContent = formatTimeWheelLabel(input?.value || "09:00");
+  });
 }
 
 function updateTimeWheelSelection(input, options = {}) {
@@ -668,23 +710,26 @@ function updateTimeWheelSelection(input, options = {}) {
     return;
   }
 
-  const wheel = document.querySelector(`.time-wheel[data-time-input="${input.id}"]`);
-  if (!wheel) {
-    return;
-  }
+  const parts = getTimeParts(input.value);
+  const wheels = document.querySelectorAll(`.time-wheel[data-time-input="${input.id}"]`);
 
-  wheel.querySelectorAll(".time-wheel-option").forEach((button) => {
-    const selected = button.dataset.timeValue === input.value;
-    button.classList.toggle("is-selected", selected);
-    button.setAttribute("aria-selected", String(selected));
-    if (selected && options.scroll !== false) {
-      requestAnimationFrame(() => {
-        button.scrollIntoView({
-          block: "center"
+  wheels.forEach((wheel) => {
+    const part = wheel.dataset.timePart;
+    const selectedValue = String(parts[part]).padStart(part === "minute" ? 2 : 1, "0");
+    wheel.querySelectorAll(".time-wheel-option").forEach((button) => {
+      const selected = button.dataset.timeValue === selectedValue;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-selected", String(selected));
+      if (selected && options.scroll !== false) {
+        requestAnimationFrame(() => {
+          button.scrollIntoView({
+            block: "center"
+          });
         });
-      });
-    }
+      }
+    });
   });
+  updateDateTimePills();
 }
 
 function selectCenteredTimeWheelOption(wheel, input) {
@@ -707,8 +752,22 @@ function selectCenteredTimeWheelOption(wheel, input) {
     return closest;
   }, null)?.button;
 
-  if (closestButton?.dataset.timeValue && closestButton.dataset.timeValue !== input.value) {
-    setTimeInputValue(input, closestButton.dataset.timeValue, {
+  if (!closestButton?.dataset.timeValue) {
+    return;
+  }
+
+  const parts = getTimeParts(input.value);
+  if (wheel.dataset.timePart === "hour") {
+    parts.hour = Number(closestButton.dataset.timeValue);
+  } else if (wheel.dataset.timePart === "minute") {
+    parts.minute = Number(closestButton.dataset.timeValue);
+  } else {
+    parts.period = closestButton.dataset.timeValue;
+  }
+
+  const nextValue = combineTimeParts(parts);
+  if (nextValue !== input.value) {
+    setTimeInputValue(input, nextValue, {
       scroll: false
     });
   }
@@ -731,19 +790,35 @@ function setTimeInputValue(input, value, options = {}) {
 }
 
 function initializeTimeWheels() {
-  const options = getTimeWheelOptions();
   timeWheelElements.forEach((wheel) => {
     const input = document.querySelector(`#${wheel.dataset.timeInput}`);
     wheel.innerHTML = "";
+    const part = wheel.dataset.timePart;
+    const options = part === "hour"
+      ? Array.from({ length: 12 }, (_, index) => String(index + 1))
+      : part === "minute"
+        ? Array.from(
+          { length: 60 / timeWheelIncrementMinutes },
+          (_, index) => String(index * timeWheelIncrementMinutes).padStart(2, "0")
+        )
+        : ["AM", "PM"];
     options.forEach((value) => {
       const button = document.createElement("button");
       button.className = "time-wheel-option";
       button.type = "button";
       button.setAttribute("role", "option");
       button.dataset.timeValue = value;
-      button.textContent = formatTimeWheelLabel(value);
+      button.textContent = value;
       button.addEventListener("click", () => {
-        setTimeInputValue(input, value);
+        const parts = getTimeParts(input.value);
+        if (part === "hour") {
+          parts.hour = Number(value);
+        } else if (part === "minute") {
+          parts.minute = Number(value);
+        } else {
+          parts.period = value;
+        }
+        setTimeInputValue(input, combineTimeParts(parts));
       });
       wheel.append(button);
     });
@@ -756,6 +831,127 @@ function initializeTimeWheels() {
     });
     updateTimeWheelSelection(input);
   });
+}
+
+function parseDateInputValue(value) {
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function closeSchedulePickers(exceptPanel = null) {
+  [...datePickerPanels, ...timePickerPanels].forEach((panel) => {
+    if (panel !== exceptPanel) {
+      panel.hidden = true;
+    }
+  });
+  datePickerButtons.forEach((button) => {
+    const panel = document.querySelector(`[data-date-panel="${button.dataset.datePicker}"]`);
+    button.setAttribute("aria-expanded", String(Boolean(panel && !panel.hidden)));
+  });
+  timePickerButtons.forEach((button) => {
+    const panel = document.querySelector(`[data-time-panel="${button.dataset.timePicker}"]`);
+    button.setAttribute("aria-expanded", String(Boolean(panel && !panel.hidden)));
+  });
+}
+
+function renderDatePickerPanel(input) {
+  if (!input) {
+    return;
+  }
+
+  const panel = document.querySelector(`[data-date-panel="${input.id}"]`);
+  if (!panel) {
+    return;
+  }
+
+  const selectedDate = parseDateInputValue(input.value) || new Date();
+  const visibleMonth = datePickerMonths.get(input.id) || new Date(
+    selectedDate.getFullYear(),
+    selectedDate.getMonth(),
+    1
+  );
+  const monthStart = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+  const gridStart = new Date(monthStart);
+  gridStart.setDate(gridStart.getDate() - gridStart.getDay());
+  const monthLabel = monthStart.toLocaleDateString([], {
+    month: "long",
+    year: "numeric"
+  });
+
+  panel.innerHTML = "";
+  const header = document.createElement("div");
+  header.className = "date-picker-header";
+  const previous = document.createElement("button");
+  previous.type = "button";
+  previous.className = "date-picker-nav";
+  previous.textContent = "‹";
+  previous.setAttribute("aria-label", "Previous month");
+  const title = document.createElement("strong");
+  title.textContent = monthLabel;
+  const next = document.createElement("button");
+  next.type = "button";
+  next.className = "date-picker-nav";
+  next.textContent = "›";
+  next.setAttribute("aria-label", "Next month");
+  header.append(previous, title, next);
+
+  const weekdays = document.createElement("div");
+  weekdays.className = "date-picker-weekdays";
+  ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach((day) => {
+    const label = document.createElement("span");
+    label.textContent = day;
+    weekdays.append(label);
+  });
+
+  const grid = document.createElement("div");
+  grid.className = "date-picker-grid";
+  Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart);
+    date.setDate(gridStart.getDate() + index);
+    const value = formatDateInputValue(date);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "date-picker-day";
+    button.textContent = String(date.getDate());
+    button.dataset.dateValue = value;
+    button.classList.toggle("outside-month", date.getMonth() !== monthStart.getMonth());
+    button.classList.toggle("is-selected", value === input.value);
+    button.setAttribute("aria-label", date.toLocaleDateString([], {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric"
+    }));
+    grid.append(button);
+  });
+
+  previous.addEventListener("click", () => {
+    datePickerMonths.set(input.id, new Date(
+      visibleMonth.getFullYear(),
+      visibleMonth.getMonth() - 1,
+      1
+    ));
+    renderDatePickerPanel(input);
+  });
+  next.addEventListener("click", () => {
+    datePickerMonths.set(input.id, new Date(
+      visibleMonth.getFullYear(),
+      visibleMonth.getMonth() + 1,
+      1
+    ));
+    renderDatePickerPanel(input);
+  });
+
+  panel.append(header, weekdays, grid);
+}
+
+function initializeDatePickers() {
+  [scheduleStartDateInput, scheduleEndDateInput].forEach((input) => {
+    const date = parseDateInputValue(input?.value) || new Date();
+    datePickerMonths.set(input.id, new Date(date.getFullYear(), date.getMonth(), 1));
+    renderDatePickerPanel(input);
+  });
+  updateDateTimePills();
 }
 
 function getDemoDateRange() {
@@ -869,6 +1065,7 @@ function setScheduleWindowFromSlot(slot) {
       bubbles: true
     }));
   });
+  updateDateTimePills();
   return true;
 }
 
@@ -2122,7 +2319,7 @@ function addRoundSummaryMessage(title, lines, options = {}) {
 
 function addLinkedInPreview(post) {
   const message = document.createElement("article");
-  message.className = "message card linkedin-preview";
+  message.className = "message card linkedin-preview linkedin-post-bubble";
   const media = post.image
     ? `<img class="linkedin-post-media" src="${post.image}" alt="${post.imageAlt}">`
     : `<span class="linkedin-post-media linkedin-post-placeholder" aria-label="${post.imageAlt}">
@@ -2155,7 +2352,7 @@ function addLinkedInContext(post) {
 
 function addLinkedInCta(post) {
   const message = document.createElement("article");
-  message.className = "message agent linkedin-open-post";
+  message.className = "message user linkedin-open-post";
   const authorElement = document.createElement("strong");
   authorElement.textContent = "LinkedIn";
   const link = document.createElement("a");
@@ -2845,10 +3042,77 @@ resetCalendarsButton?.addEventListener("click", () => {
   scheduleEndTimeInput
 ].forEach((input) => {
   input?.addEventListener("change", () => {
+    if (input === scheduleStartDateInput || input === scheduleEndDateInput) {
+      const date = parseDateInputValue(input.value) || new Date();
+      datePickerMonths.set(input.id, new Date(date.getFullYear(), date.getMonth(), 1));
+      renderDatePickerPanel(input);
+    }
+    updateDateTimePills();
     if (!calendarPlanner?.hidden) {
       renderCalendarPlanner();
     }
   });
+});
+datePickerButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const input = document.querySelector(`#${button.dataset.datePicker}`);
+    const panel = document.querySelector(`[data-date-panel="${button.dataset.datePicker}"]`);
+    if (!input || !panel) {
+      return;
+    }
+
+    const willOpen = panel.hidden;
+    closeSchedulePickers(willOpen ? panel : null);
+    if (willOpen) {
+      renderDatePickerPanel(input);
+    }
+    panel.hidden = !willOpen;
+    closeSchedulePickers(willOpen ? panel : null);
+  });
+});
+timePickerButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const input = document.querySelector(`#${button.dataset.timePicker}`);
+    const panel = document.querySelector(`[data-time-panel="${button.dataset.timePicker}"]`);
+    if (!input || !panel) {
+      return;
+    }
+
+    const willOpen = panel.hidden;
+    closeSchedulePickers(willOpen ? panel : null);
+    panel.hidden = !willOpen;
+    closeSchedulePickers(willOpen ? panel : null);
+    if (willOpen) {
+      updateTimeWheelSelection(input);
+    }
+  });
+});
+datePickerPanels.forEach((panel) => {
+  panel.addEventListener("click", (event) => {
+    const dayButton = event.target.closest("[data-date-value]");
+    if (!dayButton) {
+      return;
+    }
+
+    const input = document.querySelector(`#${panel.dataset.datePanel}`);
+    if (!input) {
+      return;
+    }
+
+    input.value = dayButton.dataset.dateValue;
+    const date = parseDateInputValue(input.value) || new Date();
+    datePickerMonths.set(input.id, new Date(date.getFullYear(), date.getMonth(), 1));
+    renderDatePickerPanel(input);
+    panel.hidden = true;
+    input.dispatchEvent(new Event("change", {
+      bubbles: true
+    }));
+  });
+});
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".ios-date-time-row")) {
+    closeSchedulePickers();
+  }
 });
 hostStyleSelect?.addEventListener("change", () => {
   applyHostStyleToScheduler();
@@ -2891,6 +3155,7 @@ reviewCompletedDemoButton?.addEventListener("click", () => {
 geminiApiKeyInput.value = sessionStorage.getItem(geminiKeyStorageName) || "";
 initializeScheduleWindowControls();
 initializeTimeWheels();
+initializeDatePickers();
 loadSchedulerState();
 resetCalendarBusyCells();
 setModePresentation(false);
