@@ -927,19 +927,10 @@ function syncSchedulePickerState() {
 }
 
 function positionSchedulePickerPanel(panel) {
-  if (!panel || panel.hidden) {
-    syncSchedulePickerState();
-    return;
+  if (panel) {
+    panel.classList.remove("opens-up");
   }
-
-  panel.classList.remove("opens-up");
   requestAnimationFrame(() => {
-    const sheetRect = form.getBoundingClientRect();
-    const panelRect = panel.getBoundingClientRect();
-    const availableBottom = Math.min(window.innerHeight - 12, sheetRect.bottom - 12);
-    if (panelRect.bottom > availableBottom) {
-      panel.classList.add("opens-up");
-    }
     syncSchedulePickerState();
   });
 }

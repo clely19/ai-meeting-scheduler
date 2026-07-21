@@ -2065,11 +2065,12 @@ input::placeholder {
 }
 
 .ios-picker-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: relative;
+  grid-column: 1 / -1;
   z-index: 12;
-  width: min(420px, calc(100vw - 40px));
+  width: 100%;
+  min-width: 0;
+  margin-top: 10px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 22px;
   padding: 18px;
@@ -2081,7 +2082,7 @@ input::placeholder {
 
 .ios-picker-panel.opens-up {
   top: auto;
-  bottom: calc(100% + 8px);
+  bottom: auto;
 }
 
 .ios-picker-panel[hidden] {
@@ -2181,11 +2182,9 @@ input::placeholder {
 .time-picker-panel {
   --time-wheel-row-height: 54px;
   --time-wheel-height: 270px;
-  position: absolute;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  width: min(420px, calc(100vw - 40px));
   padding: 20px 18px;
   overflow: hidden;
 }
@@ -3056,9 +3055,7 @@ button.secondary {
   }
 
   .ios-picker-panel {
-    right: 50%;
-    transform: translateX(50%);
-    width: min(350px, calc(100vw - 28px));
+    width: 100%;
     padding: 14px;
     border-radius: 20px;
   }
@@ -3103,7 +3100,6 @@ button.secondary {
   .time-picker-panel {
     --time-wheel-row-height: 44px;
     --time-wheel-height: 214px;
-    width: min(330px, calc(100vw - 28px));
     padding: 16px 14px;
   }
 
