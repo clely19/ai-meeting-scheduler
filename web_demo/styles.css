@@ -1107,7 +1107,7 @@ h1 {
 
 .week-grid {
   position: relative;
-  --calendar-header-height: 46px;
+  --calendar-header-height: 58px;
   --calendar-row-height: 34px;
   --calendar-grid-gap: 0px;
   --calendar-time-column-width: 40px;
@@ -1122,7 +1122,7 @@ h1 {
 }
 
 .week-grid > span:first-child {
-  min-height: 46px;
+  min-height: var(--calendar-header-height);
   border-bottom: 1px solid rgba(84, 84, 88, 0.62);
 }
 
@@ -1137,7 +1137,7 @@ h1 {
 }
 
 .week-header {
-  min-height: 46px;
+  min-height: var(--calendar-header-height);
   align-content: center;
   gap: 4px;
   border-radius: 0;
@@ -1212,11 +1212,12 @@ h1 {
   position: absolute;
   z-index: 2;
   --meeting-column-width: calc((100% - var(--calendar-time-column-width) - (7 * var(--calendar-grid-gap))) / 7);
-  --meeting-inset: 3px;
-  top: calc(var(--calendar-header-height) + var(--calendar-grid-gap) + (var(--meeting-start-offset) * var(--calendar-row-height)) + (var(--meeting-start-gap-count) * var(--calendar-grid-gap)) + var(--meeting-inset));
-  left: calc((var(--meeting-column-width) * (var(--meeting-day) - 1)) + var(--calendar-time-column-width) + (var(--meeting-day) * var(--calendar-grid-gap)) + var(--meeting-inset));
-  width: calc(var(--meeting-column-width) - (2 * var(--meeting-inset)));
-  height: calc((var(--meeting-duration) * var(--calendar-row-height)) + (var(--meeting-gap-count) * var(--calendar-grid-gap)) - (2 * var(--meeting-inset)));
+  --meeting-inset-x: 3px;
+  --meeting-inset-y: 2px;
+  top: calc(var(--calendar-header-height) + var(--calendar-grid-gap) + (var(--meeting-start-offset) * var(--calendar-row-height)) + (var(--meeting-start-gap-count) * var(--calendar-grid-gap)) + var(--meeting-inset-y));
+  left: calc((var(--meeting-column-width) * (var(--meeting-day) - 1)) + var(--calendar-time-column-width) + (var(--meeting-day) * var(--calendar-grid-gap)) + var(--meeting-inset-x));
+  width: calc(var(--meeting-column-width) - (2 * var(--meeting-inset-x)));
+  height: calc((var(--meeting-duration) * var(--calendar-row-height)) + (var(--meeting-gap-count) * var(--calendar-grid-gap)) - (2 * var(--meeting-inset-y)));
   min-height: 14px;
   border: 0;
   border-radius: 6px;
