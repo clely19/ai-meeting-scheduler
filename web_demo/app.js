@@ -1692,9 +1692,20 @@ function renderCalendarPlanner() {
     days.forEach((day) => {
       const header = document.createElement("span");
       header.className = "week-header";
-      header.textContent = day.toLocaleDateString([], {
+      if (day.toDateString() === new Date().toDateString()) {
+        header.classList.add("is-today");
+      }
+      const weekday = document.createElement("span");
+      weekday.className = "week-header-weekday";
+      weekday.textContent = day.toLocaleDateString([], {
         weekday: "short"
       });
+      const date = document.createElement("span");
+      date.className = "week-header-date";
+      date.textContent = day.toLocaleDateString([], {
+        day: "numeric"
+      });
+      header.append(weekday, date);
       header.title = formatDayHeader(day);
       weekGrid.append(header);
     });

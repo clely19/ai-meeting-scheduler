@@ -854,17 +854,18 @@ h1 {
   z-index: 1;
   width: min(340px, calc(100vw - 32px));
   display: grid;
-  gap: 10px;
+  gap: 12px;
   max-height: min(680px, calc(100vh - 80px));
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 22px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
   color: #f5f5f7;
-  background: linear-gradient(180deg, rgba(34, 34, 36, 0.86), rgba(18, 18, 20, 0.90));
+  background:
+    linear-gradient(180deg, rgba(38, 38, 40, 0.94), rgba(19, 19, 21, 0.96));
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
-  backdrop-filter: blur(22px);
+  backdrop-filter: blur(28px) saturate(130%);
   overflow-y: auto;
-  opacity: 0.88;
+  opacity: 0.94;
 }
 
 .calendar-planner[hidden] {
@@ -980,13 +981,13 @@ h1 {
 
 .calendar-title {
   color: #fff;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 800;
 }
 
 .calendar-subtitle {
   margin-top: 3px;
-  color: #a2a2a8;
+  color: #8e8e93;
   font-size: 12px;
   line-height: 1.3;
 }
@@ -1006,10 +1007,10 @@ h1 {
 .calendar-nav-button {
   width: 34px;
   height: 34px;
-  border: 1px solid rgba(10, 132, 255, 0.42);
+  border: 1px solid rgba(10, 132, 255, 0.20);
   border-radius: 50%;
-  color: #fff;
-  background: rgba(10, 132, 255, 0.26);
+  color: #0a84ff;
+  background: rgba(10, 132, 255, 0.12);
   font-size: 24px;
   line-height: 1;
   font-weight: 900;
@@ -1043,50 +1044,54 @@ h1 {
   padding: 0 11px;
   border-radius: 15px;
   color: #0a84ff;
-  background: rgba(10, 132, 255, 0.14);
+  background: rgba(118, 118, 128, 0.18);
   font-size: 12px;
   font-weight: 800;
 }
 
 .calendar-grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .participant-calendar {
   position: relative;
   display: grid;
-  gap: 7px;
+  gap: 9px;
   min-width: 0;
-  padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  background: rgba(28, 28, 30, 0.86);
+  padding: 11px 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+  background: rgba(44, 44, 46, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 32px rgba(0, 0, 0, 0.18);
 }
 
 .participant-calendar h4 {
   margin: 0;
   color: #fff;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.2;
+  font-weight: 800;
 }
 
 .week-grid {
   position: relative;
   --calendar-row-height: 25px;
-  --calendar-grid-gap: 4px;
-  --calendar-time-column-width: 30px;
+  --calendar-grid-gap: 2px;
+  --calendar-time-column-width: 26px;
   display: grid;
   grid-template-columns: var(--calendar-time-column-width) repeat(7, minmax(35px, 1fr));
   gap: var(--calendar-grid-gap);
   min-width: 0;
+  padding-top: 2px;
 }
 
 .week-header,
 .time-label,
 .busy-cell {
   min-height: var(--calendar-row-height);
-  border-radius: 8px;
   display: grid;
   place-items: center;
   font-size: 10px;
@@ -1094,55 +1099,94 @@ h1 {
 }
 
 .week-header {
-  color: #d1d1d6;
-  background: rgba(255, 255, 255, 0.07);
+  min-height: 34px;
+  align-content: center;
+  gap: 3px;
+  border-radius: 0;
+  color: #8e8e93;
+  background: transparent;
   font-weight: 800;
+}
+
+.week-header-weekday {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.week-header-date {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #f5f5f7;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.week-header.is-today .week-header-date {
+  color: #fff;
+  background: #ff453a;
 }
 
 .time-label {
   align-items: start;
   justify-items: end;
-  padding-top: 1px;
-  padding-right: 5px;
+  padding-top: 3px;
+  padding-right: 6px;
   color: #8e8e93;
   background: transparent;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 800;
 }
 
 .busy-cell {
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  border-radius: 7px;
+  border: 0;
+  border-radius: 5px;
   color: transparent;
-  background: rgba(48, 209, 88, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.035)),
+    rgba(48, 209, 88, 0.12);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16);
 }
 
 .busy-cell.is-busy {
   color: #fff;
-  background: rgba(255, 69, 58, 0.72);
+  background: linear-gradient(180deg, #ff5e57, #d93830);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 3px 8px rgba(255, 69, 58, 0.18);
+  font-size: 9px;
+  font-weight: 900;
 }
 
 .scheduled-meeting-block {
   position: absolute;
   z-index: 2;
   --meeting-column-width: calc((100% - var(--calendar-time-column-width) - (7 * var(--calendar-grid-gap))) / 7);
-  --meeting-inset: 3px;
+  --meeting-inset: 2px;
   top: calc(var(--calendar-row-height) + var(--calendar-grid-gap) + (var(--meeting-start-offset) * var(--calendar-row-height)) + (var(--meeting-start-gap-count) * var(--calendar-grid-gap)) + var(--meeting-inset));
   left: calc((var(--meeting-column-width) * (var(--meeting-day) - 1)) + var(--calendar-time-column-width) + (var(--meeting-day) * var(--calendar-grid-gap)) + var(--meeting-inset));
   width: calc(var(--meeting-column-width) - (2 * var(--meeting-inset)));
   height: calc((var(--meeting-duration) * var(--calendar-row-height)) + (var(--meeting-gap-count) * var(--calendar-grid-gap)) - (2 * var(--meeting-inset)));
   min-height: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  border-radius: 7px;
   display: grid;
   align-content: start;
   justify-items: start;
   gap: 0;
   overflow: visible;
-  padding: 3px 4px;
+  padding: 4px 5px;
   color: #fff;
-  background: linear-gradient(180deg, #0a84ff, #0066d6);
-  box-shadow: 0 6px 14px rgba(10, 132, 255, 0.24);
+  background: linear-gradient(180deg, #0a84ff, #006ee6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 6px 14px rgba(10, 132, 255, 0.26);
   font-size: 9px;
   font-weight: 800;
   cursor: default;
@@ -1159,7 +1203,8 @@ h1 {
 }
 
 .scheduled-meeting-time {
-  color: rgba(255, 255, 255, 0.78);
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.82);
   font-size: 8px;
   font-weight: 700;
 }
@@ -2515,13 +2560,12 @@ button.secondary {
 
   .week-grid {
     --calendar-row-height: 22px;
-    --calendar-grid-gap: 4px;
-    --calendar-time-column-width: 30px;
+    --calendar-grid-gap: 2px;
+    --calendar-time-column-width: 26px;
     grid-template-columns: var(--calendar-time-column-width) repeat(7, minmax(24px, 1fr));
     gap: var(--calendar-grid-gap);
   }
 
-  .week-header,
   .time-label,
   .busy-cell {
     min-height: var(--calendar-row-height);
