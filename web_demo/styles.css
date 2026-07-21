@@ -1583,19 +1583,36 @@ input::placeholder {
   animation: welcomeRise 720ms ease-out both;
 }
 
-.setup-welcome-title span,
+.welcome-script,
 .setup-welcome-title small {
   display: block;
 }
 
-.setup-welcome-title span {
-  color: #f5f5f7;
-  font-family: "Apple Chancery", "Snell Roundhand", "Brush Script MT", cursive;
-  font-size: clamp(54px, 7vw, 84px);
-  font-weight: 400;
-  line-height: 0.82;
-  text-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
-  animation: welcomeTrace 980ms cubic-bezier(0.19, 1, 0.22, 1) both;
+.welcome-script {
+  width: min(360px, 72vw);
+  height: auto;
+  margin: 0 auto -2px;
+  overflow: visible;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.08));
+}
+
+.welcome-script-text {
+  font-family: "Snell Roundhand", "SignPainter", "Brush Script MT", "Segoe Script", cursive;
+  font-size: 96px;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: 0;
+  fill: rgba(245, 245, 247, 0);
+  stroke: rgba(245, 245, 247, 0.96);
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 780;
+  stroke-dashoffset: 780;
+  paint-order: stroke fill;
+  animation:
+    welcomeStroke 1.45s cubic-bezier(0.19, 1, 0.22, 1) 80ms both,
+    welcomeFill 520ms ease-out 1.05s both;
 }
 
 .setup-welcome-title small {
@@ -1607,25 +1624,29 @@ input::placeholder {
   animation: welcomeSubtitle 900ms ease-out 180ms both;
 }
 
-@keyframes welcomeTrace {
+@keyframes welcomeStroke {
   from {
     opacity: 0;
-    letter-spacing: 0.12em;
-    transform: translateY(8px) scale(0.96);
-    filter: blur(8px);
-  }
-
-  65% {
-    opacity: 1;
-    letter-spacing: 0.02em;
-    filter: blur(0);
+    stroke-dashoffset: 780;
+    filter: blur(3px);
   }
 
   to {
     opacity: 1;
-    letter-spacing: 0;
-    transform: translateY(0) scale(1);
+    stroke-dashoffset: 0;
     filter: blur(0);
+  }
+}
+
+@keyframes welcomeFill {
+  from {
+    fill: rgba(245, 245, 247, 0);
+    stroke: rgba(245, 245, 247, 0.96);
+  }
+
+  to {
+    fill: rgba(245, 245, 247, 0.96);
+    stroke: rgba(245, 245, 247, 0.5);
   }
 }
 
