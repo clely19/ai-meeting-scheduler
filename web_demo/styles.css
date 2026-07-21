@@ -1591,46 +1591,20 @@ input::placeholder {
 .welcome-script {
   width: min(390px, 74vw);
   height: auto;
-  margin: 0 auto -4px;
+  margin: 0 auto -6px;
   overflow: visible;
   filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.08));
 }
 
-.welcome-script-text {
-  font-family: "SignPainter", "Savoye LET", "Snell Roundhand", "Brush Script MT", "Segoe Script", cursive;
-  font-size: 104px;
-  font-weight: 400;
-  font-style: normal;
-  letter-spacing: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: skewX(-7deg);
-}
-
-.welcome-script-stroke {
+.welcome-script-path {
   fill: none;
-  stroke: rgba(245, 245, 247, 0.98);
-  stroke-width: 1.9;
+  stroke: rgba(245, 245, 247, 0.97);
+  stroke-width: 9;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 920;
-  stroke-dashoffset: 920;
-  paint-order: stroke;
-  animation: welcomeStroke 1.65s cubic-bezier(0.19, 1, 0.22, 1) 120ms both;
-}
-
-.welcome-script-fill {
-  fill: rgba(245, 245, 247, 0);
-  stroke: none;
-  animation:
-    welcomeFill 680ms ease-out 1.12s both;
-}
-
-.welcome-script-mask {
-  transform-box: fill-box;
-  transform-origin: left center;
-  transform: scaleX(0);
-  animation: welcomeReveal 1.6s cubic-bezier(0.18, 0.92, 0.2, 1) 80ms both;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: welcomeHandwrite 1.95s cubic-bezier(0.2, 0.84, 0.21, 1) 120ms both;
 }
 
 .setup-welcome-title small {
@@ -1642,37 +1616,22 @@ input::placeholder {
   animation: welcomeSubtitle 900ms ease-out 180ms both;
 }
 
-@keyframes welcomeStroke {
+@keyframes welcomeHandwrite {
   from {
     opacity: 0;
-    stroke-dashoffset: 920;
-    filter: blur(2px);
+    stroke-dashoffset: 1;
+    filter: blur(1.5px);
+  }
+
+  12% {
+    opacity: 1;
+    filter: blur(0);
   }
 
   to {
     opacity: 1;
     stroke-dashoffset: 0;
     filter: blur(0);
-  }
-}
-
-@keyframes welcomeReveal {
-  from {
-    transform: scaleX(0);
-  }
-
-  to {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes welcomeFill {
-  from {
-    fill: rgba(245, 245, 247, 0);
-  }
-
-  to {
-    fill: rgba(245, 245, 247, 0.96);
   }
 }
 

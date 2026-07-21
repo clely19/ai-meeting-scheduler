@@ -2477,10 +2477,12 @@ function showSchedulerSheet() {
   updateRunButtonForMeetingLimit();
 }
 
-function closeSchedulerSheet() {
+function closeSchedulerSheet(options = {}) {
   form.hidden = true;
   appDrawer.hidden = true;
-  hideCalendarPlanner();
+  if (!options.keepCalendarPlanner) {
+    hideCalendarPlanner();
+  }
   phone.classList.remove("sheet-open");
   updateSheetOffset(sheetCollapsedOffset);
   setGuideStep(1);
@@ -2909,9 +2911,11 @@ async function runSchedulingFlow({
     setGuideStep(4);
     setGuideVisibility(true);
     if (hasCompletedDemoCycle()) {
-      closeSchedulerSheet();
+      closeSchedulerSheet({
+        keepCalendarPlanner: true
+      });
       setGuideVisibility(false);
-      scheduleDemoCompleteOverlay();
+      scheduleDemoCompleteOverlay(2000);
     }
   } catch (error) {
     resultStatus.textContent = "Error";
