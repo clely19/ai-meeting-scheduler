@@ -149,71 +149,76 @@
             </div>
 
             <div class="field-stack">
-            <label>
-              Meeting Title
-              <input id="meeting-title" value="Portfolio Demo Meeting" required>
-            </label>
-
-              <fieldset class="schedule-window-field">
-                <legend>Schedule between</legend>
-                <div class="schedule-window-control ios-schedule-control">
-                  <section class="ios-date-time-row" data-schedule-row="start">
-                    <span class="ios-date-time-label">Starts</span>
-                    <input id="schedule-start-date" type="date" required>
-                    <input id="schedule-start-time" type="hidden" value="09:00">
-                    <button class="ios-value-pill ios-date-pill" type="button" data-date-picker="schedule-start-date">Jul 20, 2026</button>
-                    <button class="ios-value-pill ios-time-pill" type="button" data-time-picker="schedule-start-time">9:00 AM</button>
-                    <div class="ios-picker-panel date-picker-panel" data-date-panel="schedule-start-date" hidden></div>
-                    <div class="ios-picker-panel time-picker-panel" data-time-panel="schedule-start-time" hidden>
-                      <div id="start-time-wheel" class="time-wheel ios-time-column" role="listbox" aria-label="Start hour" data-time-input="schedule-start-time" data-time-part="hour"></div>
-                      <div class="time-wheel ios-time-column" role="listbox" aria-label="Start minutes" data-time-input="schedule-start-time" data-time-part="minute"></div>
-                      <div class="time-wheel ios-time-column period-wheel" role="listbox" aria-label="Start period" data-time-input="schedule-start-time" data-time-part="period"></div>
-                    </div>
-                  </section>
-                  <section class="ios-date-time-row" data-schedule-row="end">
-                    <span class="ios-date-time-label">Ends</span>
-                    <input id="schedule-end-date" type="date" required>
-                    <input id="schedule-end-time" type="hidden" value="10:00">
-                    <button class="ios-value-pill ios-date-pill" type="button" data-date-picker="schedule-end-date">Jul 20, 2026</button>
-                    <button class="ios-value-pill ios-time-pill" type="button" data-time-picker="schedule-end-time">10:00 AM</button>
-                    <div class="ios-picker-panel date-picker-panel" data-date-panel="schedule-end-date" hidden></div>
-                    <div class="ios-picker-panel time-picker-panel" data-time-panel="schedule-end-time" hidden>
-                      <div id="end-time-wheel" class="time-wheel ios-time-column" role="listbox" aria-label="End hour" data-time-input="schedule-end-time" data-time-part="hour"></div>
-                      <div class="time-wheel ios-time-column" role="listbox" aria-label="End minutes" data-time-input="schedule-end-time" data-time-part="minute"></div>
-                      <div class="time-wheel ios-time-column period-wheel" role="listbox" aria-label="End period" data-time-input="schedule-end-time" data-time-part="period"></div>
-                    </div>
-                  </section>
-                </div>
-              </fieldset>
-
-              <label>
-                Meeting platform
-                <select id="meeting-platform">
-                  <option value="google-meet" selected>Google Meet</option>
-                  <option value="facetime">Apple FaceTime</option>
-                  <option value="zoom">Zoom</option>
-                  <option value="teams">Microsoft Teams</option>
-                </select>
-              </label>
-
-              <div class="hidden-controls" aria-label="Demo agent preferences">
+              <div class="meeting-basics-grid">
                 <label>
-                  Host style
-                  <select id="host-style">
-                    <option value="early" selected>Early</option>
-                    <option value="balanced">Balanced</option>
-                    <option value="flexible">Flexible</option>
-                  </select>
+                  Meeting Title
+                  <input id="meeting-title" value="Portfolio Demo Meeting" required>
                 </label>
+
                 <label>
-                  Invitees
-                  <select id="invitee-mix">
-                    <option value="early-flexible" selected>Early + Flexible</option>
-                    <option value="balanced-balanced">Balanced + Balanced</option>
-                    <option value="early-balanced">Early + Balanced</option>
+                  Meeting platform
+                  <select id="meeting-platform">
+                    <option value="google-meet" selected>Google Meet</option>
+                    <option value="facetime">Apple FaceTime</option>
+                    <option value="zoom">Zoom</option>
+                    <option value="teams">Microsoft Teams</option>
                   </select>
                 </label>
               </div>
+
+              <div class="schedule-preferences-grid">
+                <fieldset class="schedule-window-field">
+                  <legend>Schedule between</legend>
+                  <div class="schedule-window-control ios-schedule-control">
+                    <section class="ios-date-time-row" data-schedule-row="start">
+                      <span class="ios-date-time-label">Starts</span>
+                      <input id="schedule-start-date" type="date" required>
+                      <input id="schedule-start-time" type="hidden" value="09:00">
+                      <button class="ios-value-pill ios-date-pill" type="button" data-date-picker="schedule-start-date">Jul 20, 2026</button>
+                      <button class="ios-value-pill ios-time-pill" type="button" data-time-picker="schedule-start-time">9:00 AM</button>
+                      <div class="ios-picker-panel date-picker-panel" data-date-panel="schedule-start-date" hidden></div>
+                      <div class="ios-picker-panel time-picker-panel" data-time-panel="schedule-start-time" hidden>
+                        <div id="start-time-wheel" class="time-wheel ios-time-column" role="listbox" aria-label="Start hour" data-time-input="schedule-start-time" data-time-part="hour"></div>
+                        <div class="time-wheel ios-time-column" role="listbox" aria-label="Start minutes" data-time-input="schedule-start-time" data-time-part="minute"></div>
+                        <div class="time-wheel ios-time-column period-wheel" role="listbox" aria-label="Start period" data-time-input="schedule-start-time" data-time-part="period"></div>
+                      </div>
+                    </section>
+                    <section class="ios-date-time-row" data-schedule-row="end">
+                      <span class="ios-date-time-label">Ends</span>
+                      <input id="schedule-end-date" type="date" required>
+                      <input id="schedule-end-time" type="hidden" value="10:00">
+                      <button class="ios-value-pill ios-date-pill" type="button" data-date-picker="schedule-end-date">Jul 20, 2026</button>
+                      <button class="ios-value-pill ios-time-pill" type="button" data-time-picker="schedule-end-time">10:00 AM</button>
+                      <div class="ios-picker-panel date-picker-panel" data-date-panel="schedule-end-date" hidden></div>
+                      <div class="ios-picker-panel time-picker-panel" data-time-panel="schedule-end-time" hidden>
+                        <div id="end-time-wheel" class="time-wheel ios-time-column" role="listbox" aria-label="End hour" data-time-input="schedule-end-time" data-time-part="hour"></div>
+                        <div class="time-wheel ios-time-column" role="listbox" aria-label="End minutes" data-time-input="schedule-end-time" data-time-part="minute"></div>
+                        <div class="time-wheel ios-time-column period-wheel" role="listbox" aria-label="End period" data-time-input="schedule-end-time" data-time-part="period"></div>
+                      </div>
+                    </section>
+                  </div>
+                </fieldset>
+
+                <div class="hidden-controls" aria-label="Demo agent preferences">
+                  <label>
+                    Host style
+                    <select id="host-style">
+                      <option value="early" selected>Early</option>
+                      <option value="balanced">Balanced</option>
+                      <option value="flexible">Flexible</option>
+                    </select>
+                  </label>
+                  <label>
+                    Invitees
+                    <select id="invitee-mix">
+                      <option value="early-flexible" selected>Early + Flexible</option>
+                      <option value="balanced-balanced">Balanced + Balanced</option>
+                      <option value="early-balanced">Early + Balanced</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+
               <section class="style-guide" aria-label="Scheduling style explanation">
                 <div>
                   <p class="style-guide-kicker">People-focused scheduling</p>

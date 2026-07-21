@@ -1902,22 +1902,43 @@ input::placeholder {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.meeting-basics-grid,
+.schedule-preferences-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.meeting-basics-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(180px, 0.9fr);
+  align-items: end;
+}
+
+.schedule-preferences-grid {
+  grid-template-columns: minmax(390px, 1fr) minmax(180px, 0.72fr);
+  align-items: start;
+  gap: 14px;
+}
+
 .schedule-window-control {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
 }
 
 .ios-date-time-row {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(78px, 1fr) auto auto;
+  grid-template-columns: minmax(80px, 1fr) auto auto;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
   min-width: 0;
-  padding: 11px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 15px 0;
+}
+
+.ios-date-time-row + .ios-date-time-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
 }
 
 .ios-date-time-row input[type="date"] {
@@ -1930,20 +1951,21 @@ input::placeholder {
 
 .ios-date-time-label {
   color: #f5f5f7;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0;
 }
 
 .ios-value-pill {
   min-width: 0;
-  height: 32px;
+  height: 44px;
   border: 0;
   border-radius: 999px;
-  padding: 0 10px;
+  padding: 0 16px;
   color: #f5f5f7;
   background: rgba(118, 118, 128, 0.34);
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 19px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1956,11 +1978,11 @@ input::placeholder {
 }
 
 .ios-date-pill {
-  width: 106px;
+  width: 160px;
 }
 
 .ios-time-pill {
-  width: 78px;
+  width: 120px;
 }
 
 .ios-picker-panel {
@@ -2122,8 +2144,20 @@ body.scheduler-picker-open .guide-callout {
 
 .hidden-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 10px 0 0;
+}
+
+.schedule-preferences-grid .hidden-controls {
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  background: rgba(28, 28, 30, 0.50);
+}
+
+.schedule-preferences-grid .hidden-controls label {
+  gap: 7px;
 }
 
 .style-guide {
@@ -2598,23 +2632,23 @@ button.secondary {
   }
 
   .field-stack {
-    grid-template-columns: 1.1fr 1fr;
-    align-items: end;
+    grid-template-columns: 1fr;
+    align-items: stretch;
     gap: 16px;
     padding: 18px 20px 0;
   }
 
   .field-stack > label:first-child {
-    grid-column: 1;
+    grid-column: auto;
   }
 
   .field-stack > label:nth-of-type(2) {
-    grid-column: 2;
-    grid-row: 1;
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .schedule-window-field {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 
   .style-guide {
@@ -2868,6 +2902,18 @@ button.secondary {
     grid-template-columns: 1fr;
   }
 
+  .meeting-basics-grid,
+  .schedule-preferences-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-preferences-grid .hidden-controls {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
   .ios-date-time-row {
     grid-template-columns: 1fr auto auto;
     gap: 6px;
@@ -2875,15 +2921,21 @@ button.secondary {
   }
 
   .ios-date-time-label {
-    font-size: 15px;
+    font-size: 18px;
   }
 
   .ios-date-pill {
-    width: 104px;
+    width: 118px;
   }
 
   .ios-time-pill {
-    width: 76px;
+    width: 84px;
+  }
+
+  .ios-value-pill {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 14px;
   }
 
   .ios-picker-panel {
