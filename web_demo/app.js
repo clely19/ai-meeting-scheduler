@@ -1299,6 +1299,20 @@ function formatShortTime(date) {
   });
 }
 
+function formatCalendarHourLabel(hour) {
+  if (hour === 12) {
+    return "Noon";
+  }
+
+  const displayHour = hour > 12
+    ? hour - 12
+    : hour;
+  const period = hour >= 12
+    ? "PM"
+    : "AM";
+  return `${displayHour} ${period}`;
+}
+
 function getParticipantWindowConflicts(participant, day, windowStart, windowEnd) {
   const days = getCalendarWeekDays(0);
   const dayIndex = days.findIndex((candidate) => (
@@ -1725,7 +1739,7 @@ function renderCalendarPlanner() {
     calendarHours.forEach((hour) => {
       const time = document.createElement("span");
       time.className = "time-label";
-      time.textContent = `${hour}`;
+      time.textContent = formatCalendarHourLabel(hour);
       weekGrid.append(time);
 
       days.forEach((day, dayIndex) => {
