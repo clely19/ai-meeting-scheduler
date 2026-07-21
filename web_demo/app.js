@@ -775,6 +775,19 @@ function updateDateTimePills() {
   });
 }
 
+function scrollTimeWheelOptionIntoCenter(wheel, button) {
+  if (!wheel || !button) {
+    return;
+  }
+
+  const nextScrollTop = button.offsetTop -
+    ((wheel.clientHeight - button.offsetHeight) / 2);
+  wheel.scrollTo({
+    top: Math.max(nextScrollTop, 0),
+    behavior: "auto"
+  });
+}
+
 function updateTimeWheelSelection(input, options = {}) {
   if (!input) {
     return;
@@ -792,9 +805,7 @@ function updateTimeWheelSelection(input, options = {}) {
       button.setAttribute("aria-selected", String(selected));
       if (selected && options.scroll !== false) {
         requestAnimationFrame(() => {
-          button.scrollIntoView({
-            block: "center"
-          });
+          scrollTimeWheelOptionIntoCenter(wheel, button);
         });
       }
     });

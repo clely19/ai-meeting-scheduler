@@ -2048,40 +2048,47 @@ input::placeholder {
 }
 
 .time-picker-panel {
+  --time-wheel-row-height: 38px;
+  --time-wheel-height: 174px;
+  position: absolute;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   width: min(286px, calc(100vw - 40px));
-  padding: 12px 10px;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.time-picker-panel::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  z-index: 0;
+  height: var(--time-wheel-row-height);
+  border-radius: 999px;
+  background: rgba(118, 118, 128, 0.34);
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 
 .time-wheel {
   position: relative;
-  height: 132px;
-  display: grid;
-  gap: 2px;
+  z-index: 1;
+  height: var(--time-wheel-height);
+  display: block;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 48px 3px;
+  padding: calc((var(--time-wheel-height) - var(--time-wheel-row-height)) / 2) 3px;
   background:
-    linear-gradient(180deg, rgba(44, 44, 46, 0.98), transparent 30%, transparent 70%, rgba(44, 44, 46, 0.98)),
+    linear-gradient(180deg, rgba(44, 44, 46, 0.98), transparent 26%, transparent 74%, rgba(44, 44, 46, 0.98)),
     transparent;
+  scroll-padding-block: calc((var(--time-wheel-height) - var(--time-wheel-row-height)) / 2);
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
-}
-
-.time-wheel::before {
-  content: "";
-  position: sticky;
-  top: 50%;
-  z-index: -1;
-  height: 32px;
-  margin-top: -16px;
-  border-radius: 999px;
-  background: rgba(118, 118, 128, 0.34);
-  grid-row: 1;
 }
 
 .time-wheel::-webkit-scrollbar {
@@ -2090,13 +2097,17 @@ input::placeholder {
 
 .time-wheel-option {
   position: relative;
-  height: 32px;
+  z-index: 1;
+  width: 100%;
+  height: var(--time-wheel-row-height);
   border: 0;
   border-radius: 9px;
   color: rgba(235, 235, 245, 0.42);
   background: transparent;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
+  line-height: var(--time-wheel-row-height);
+  text-align: center;
   scroll-snap-align: center;
   cursor: pointer;
 }
