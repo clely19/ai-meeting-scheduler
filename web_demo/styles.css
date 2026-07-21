@@ -872,6 +872,28 @@ h1 {
   display: none;
 }
 
+.calendar-planner.is-revealing {
+  border-color: rgba(10, 132, 255, 0.48);
+  box-shadow:
+    0 0 0 3px rgba(10, 132, 255, 0.16),
+    0 24px 70px rgba(0, 0, 0, 0.36);
+  animation: calendar-reveal-pulse 1400ms ease-out 2;
+}
+
+@keyframes calendar-reveal-pulse {
+  0% {
+    transform: translateY(10px);
+  }
+
+  45% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
 .demo-love-widget {
   position: absolute;
   right: 18px;

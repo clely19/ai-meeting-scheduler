@@ -129,6 +129,7 @@ let currentChatMode = "scheduler";
 let isRestoringSchedulerChat = false;
 let calendarWeekOffset = 0;
 let pendingOffscreenMeeting = null;
+let calendarRevealTimer = 0;
 let participantSetupComplete = false;
 let demoCompleteTimer;
 const timeWheelScrollTimers = new WeakMap();
@@ -1983,10 +1984,51 @@ function showCalendarPlanner() {
   document.body.classList.add("calendars-visible");
 }
 
+function revealCalendarsForMeeting(meeting) {
+  if (!calendarPlanner || !meeting) {
+    return;
+  }
+
+  const targetWeekOffset = getMeetingWeekOffset(meeting);
+  if (Number.isFinite(targetWeekOffset)) {
+    calendarWeekOffset = targetWeekOffset;
+    pendingOffscreenMeeting = null;
+  }
+
+  showCalendarPlanner();
+  calendarPlanner.classList.remove("is-revealing");
+  void calendarPlanner.offsetWidth;
+  calendarPlanner.classList.add("is-revealing");
+
+  if (calendarWeekHint) {
+    calendarWeekHint.hidden = false;
+    calendarWeekHint.textContent = `Meeting ${meeting.number} was added here.`;
+  }
+
+  window.clearTimeout(calendarRevealTimer);
+  calendarRevealTimer = window.setTimeout(() => {
+    calendarPlanner.classList.remove("is-revealing");
+    if (calendarWeekHint?.textContent === `Meeting ${meeting.number} was added here.`) {
+      renderCalendarPlanner();
+    }
+  }, 3600);
+
+  if (window.matchMedia("(max-width: 880px)").matches) {
+    window.setTimeout(() => {
+      calendarPlanner.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }, 280);
+  }
+}
+
 function hideCalendarPlanner() {
   if (calendarPlanner) {
     calendarPlanner.hidden = true;
+    calendarPlanner.classList.remove("is-revealing");
   }
+  window.clearTimeout(calendarRevealTimer);
   document.body.classList.remove("calendars-visible");
 }
 
@@ -3104,6 +3146,7 @@ async function runSchedulingFlow({
 
     if (scheduledMeeting) {
       addMeetingResultCard(scheduledMeeting);
+      revealCalendarsForMeeting(scheduledMeeting);
     } else {
       if (fallbackAttempt) {
         addAppCard(
