@@ -2788,7 +2788,7 @@ async function api(path, options = {}) {
 
 function formatDemoLoveCount(count) {
   const value = Number.isFinite(Number(count)) ? Number(count) : 0;
-  return `${value.toLocaleString()} ${value === 1 ? "device" : "devices"} reached this far`;
+  return value.toLocaleString();
 }
 
 function setDemoLoveState({ count, loved } = {}) {
@@ -2827,7 +2827,7 @@ async function refreshDemoLoveCount() {
     });
   } catch {
     if (demoLoveCount) {
-      demoLoveCount.textContent = "Love count unavailable";
+      demoLoveCount.textContent = "0";
     }
   }
 }
