@@ -4,6 +4,7 @@ const shell = document.querySelector(".shell");
 const phone = document.querySelector(".phone");
 const thread = document.querySelector("#thread");
 const form = document.querySelector("#demo-form");
+const imessageInput = document.querySelector(".imessage-input");
 const appDrawer = document.querySelector("#app-drawer");
 const openAppsButton = document.querySelector("#open-apps");
 const openSchedulerButton = document.querySelector("#open-scheduler");
@@ -17,6 +18,7 @@ const calendarNextWeekButton = document.querySelector("#calendar-next-week");
 const resetCalendarsButton = document.querySelector("#reset-calendars");
 const scrollToSchedulerButton = document.querySelector("#scroll-to-scheduler");
 const scrollToCalendarsButton = document.querySelector("#scroll-to-calendars");
+const closeCalendarPanelButton = document.querySelector("#close-calendar-panel");
 const linkedinPostButtons = document.querySelectorAll(".linkedin-row");
 const filterMenuButton = document.querySelector("#filter-menu-button");
 const filterMenu = document.querySelector("#filter-menu");
@@ -656,13 +658,13 @@ function positionGuideCallout() {
   }
 
   const phoneRect = phone.getBoundingClientRect();
-  const formRect = form.getBoundingClientRect();
+  const inputRect = imessageInput?.getBoundingClientRect();
   const shellLeft = shellRect.left;
 
-  if (guideStepIndex === 2 && !form.hidden) {
+  if (guideStepIndex === 2 && !form.hidden && inputRect?.width && inputRect?.height) {
     const position = getClampedGuidePosition(
-      formRect.left - shellLeft + 18,
-      formRect.top - shellRect.top - calloutRect.height - 18,
+      inputRect.left - shellLeft + 16,
+      inputRect.top - shellRect.top - calloutRect.height - 14,
       shellRect,
       calloutRect
     );
@@ -2071,26 +2073,61 @@ function returnToInitialDemo() {
   updateRunButtonForMeetingLimit();
 }
 
-function showCalendarPlanner() {
+function isMobileCalendarPanel() {
+  return window.matchMedia("(max-width: 880px)").matches;
+}
+
+function showCalendarPlanner(options = {}) {
   if (!calendarPlanner) {
     return;
   }
   renderCalendarPlanner();
   calendarPlanner.hidden = false;
   document.body.classList.add("calendars-visible");
+  if (options.openPanel && isMobileCalendarPanel()) {
+    openCalendarPanel();
+  }
   syncCalendarJumpButtons();
 }
 
 function syncCalendarJumpButtons() {
   if (!calendarPlanner || calendarPlanner.hidden) {
     document.body.classList.remove("calendar-planner-in-view");
+    document.body.classList.remove("calendar-panel-open");
     return;
   }
 
   const rect = calendarPlanner.getBoundingClientRect();
-  const isMobile = window.matchMedia("(max-width: 880px)").matches;
+  const isMobile = isMobileCalendarPanel();
   const topIsVisible = rect.top < window.innerHeight * 0.58 && rect.bottom > 120;
-  document.body.classList.toggle("calendar-planner-in-view", isMobile && topIsVisible);
+  document.body.classList.toggle(
+    "calendar-planner-in-view",
+    isMobile && (document.body.classList.contains("calendar-panel-open") || topIsVisible)
+  );
+  if (!isMobile) {
+    document.body.classList.remove("calendar-panel-open");
+  }
+}
+
+function openCalendarPanel() {
+  if (!calendarPlanner || calendarPlanner.hidden) {
+    showCalendarPlanner();
+  }
+  if (!isMobileCalendarPanel()) {
+    calendarPlanner?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+    return;
+  }
+
+  document.body.classList.add("calendar-panel-open");
+  document.body.classList.add("calendar-planner-in-view");
+}
+
+function closeCalendarPanel() {
+  document.body.classList.remove("calendar-panel-open");
+  syncCalendarJumpButtons();
 }
 
 function scrollCalendarsToMeeting(meeting, behavior = "smooth") {
@@ -2152,7 +2189,7 @@ function scrollCalendarsToMeeting(meeting, behavior = "smooth") {
   });
 }
 
-function revealCalendarsForMeeting(meeting) {
+function revealCalendarsForMeeting(meeting, options = {}) {
   if (!calendarPlanner || !meeting) {
     return;
   }
@@ -2163,7 +2200,9 @@ function revealCalendarsForMeeting(meeting) {
     pendingOffscreenMeeting = null;
   }
 
-  showCalendarPlanner();
+  showCalendarPlanner({
+    openPanel: options.openPanel
+  });
   scrollCalendarsToMeeting(meeting, "auto");
   calendarPlanner.classList.remove("is-revealing");
   void calendarPlanner.offsetWidth;
@@ -2183,7 +2222,15 @@ function revealCalendarsForMeeting(meeting) {
     }
   }, 3600);
 
-  if (window.matchMedia("(max-width: 880px)").matches) {
+  if (isMobileCalendarPanel()) {
+    if (options.openPanel) {
+      openCalendarPanel();
+    }
+    syncCalendarJumpButtons();
+    return;
+  }
+
+  if (!isMobileCalendarPanel()) {
     window.setTimeout(() => {
       calendarPlanner.scrollIntoView({
         behavior: "smooth",
@@ -2213,6 +2260,11 @@ function scrollDownToCalendars() {
     return;
   }
 
+  if (isMobileCalendarPanel()) {
+    openCalendarPanel();
+    return;
+  }
+
   calendarPlanner.scrollIntoView({
     behavior: "smooth",
     block: "start"
@@ -2228,7 +2280,9 @@ function refocusMeetingOnCalendars(meetingNumber, behavior = "smooth") {
     return;
   }
 
-  revealCalendarsForMeeting(meeting);
+  revealCalendarsForMeeting(meeting, {
+    openPanel: true
+  });
   scrollCalendarsToMeeting(meeting, behavior);
 }
 
@@ -2240,6 +2294,7 @@ function hideCalendarPlanner() {
   window.clearTimeout(calendarRevealTimer);
   document.body.classList.remove("calendars-visible");
   document.body.classList.remove("calendar-planner-in-view");
+  document.body.classList.remove("calendar-panel-open");
 }
 
 function advanceGuide() {
@@ -3539,6 +3594,7 @@ calendarNextWeekButton?.addEventListener("click", () => {
 });
 scrollToSchedulerButton?.addEventListener("click", scrollBackToScheduler);
 scrollToCalendarsButton?.addEventListener("click", scrollDownToCalendars);
+closeCalendarPanelButton?.addEventListener("click", closeCalendarPanel);
 thread.addEventListener("click", (event) => {
   const meetingResult = event.target.closest(".meeting-result");
   if (meetingResult && !event.target.closest("a")) {
@@ -3686,6 +3742,22 @@ timePickerPanels.forEach((panel) => {
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".ios-date-time-row")) {
     closeSchedulePickers();
+  }
+});
+document.addEventListener("click", (event) => {
+  if (
+    !document.body.classList.contains("calendar-panel-open") ||
+    event.target.closest("#calendar-planner") ||
+    event.target.closest("#scroll-to-calendars")
+  ) {
+    return;
+  }
+
+  closeCalendarPanel();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && document.body.classList.contains("calendar-panel-open")) {
+    closeCalendarPanel();
   }
 });
 hostStyleSelect?.addEventListener("change", () => {

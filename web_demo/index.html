@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playwrite+TZ:wght@400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/demo/styles.css?v=20260722-app-drawer-font-1">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260722-calendar-panel-1">
   </head>
   <body>
     <main class="shell">
@@ -249,7 +249,9 @@
         <p id="guide-copy">Tap the highlighted +.</p>
         <button id="guide-next" class="guide-next" type="button">Tap + in the phone</button>
       </aside>
-      <button id="scroll-to-calendars" class="scroll-to-calendars" type="button" aria-label="Scroll down to External calendars">↓</button>
+      <button id="scroll-to-calendars" class="scroll-to-calendars" type="button" aria-label="Open External calendars">
+        <span class="calendar-floating-glyph" aria-hidden="true"></span>
+      </button>
 
       <section id="calendar-planner" class="calendar-planner" aria-label="Weekly calendar editor" hidden>
         <header class="calendar-planner-header">
@@ -262,6 +264,7 @@
             <button id="calendar-prev-week" class="calendar-nav-button" type="button" aria-label="Previous calendar week">‹</button>
             <button id="calendar-next-week" class="calendar-nav-button" type="button" aria-label="Next calendar week">›</button>
             <button id="reset-calendars" class="calendar-reset" type="button">Reset</button>
+            <button id="close-calendar-panel" class="calendar-panel-close" type="button" aria-label="Close External calendars">×</button>
           </div>
         </header>
         <button id="scroll-to-scheduler" class="scroll-to-scheduler" type="button" aria-label="Scroll back to Meeting Scheduler">↑</button>
@@ -343,6 +346,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260722-hide-mobile-status-1"></script>
+    <script src="/demo/app.js?v=20260722-calendar-panel-1"></script>
   </body>
 </html>

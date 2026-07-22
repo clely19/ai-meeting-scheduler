@@ -140,7 +140,7 @@ select {
 
 .shell.guide-step-2 .guide-callout {
   left: 16px;
-  bottom: 92px;
+  bottom: calc(var(--sheet-current-height) + 72px);
   top: auto;
   right: auto;
 }
@@ -1059,7 +1059,8 @@ body.calendars-visible .shell.guide-step-4 .calendar-planner {
 }
 
 .scroll-to-scheduler,
-.scroll-to-calendars {
+.scroll-to-calendars,
+.calendar-panel-close {
   position: sticky;
   top: 6px;
   z-index: 10;
@@ -1084,9 +1085,9 @@ body.calendars-visible .shell.guide-step-4 .calendar-planner {
 
 .scroll-to-calendars {
   position: fixed;
-  top: auto;
+  top: max(14px, calc(env(safe-area-inset-top) + 12px));
   right: 18px;
-  bottom: 112px;
+  bottom: auto;
   z-index: 32;
   display: none;
   place-items: center;
@@ -1096,11 +1097,52 @@ body.calendars-visible .shell.guide-step-4 .calendar-planner {
   animation: calendar-jump-bounce 1.6s ease-in-out infinite;
 }
 
-body.calendars-visible:not(.calendar-planner-in-view) .scroll-to-calendars {
+body.calendars-visible:not(.calendar-panel-open) .scroll-to-calendars {
   display: grid;
 }
 
 body:has(#demo-complete-overlay:not([hidden])) .scroll-to-calendars {
+  display: none;
+}
+
+.calendar-floating-glyph {
+  position: relative;
+  width: 20px;
+  height: 18px;
+  display: block;
+  border: 2px solid currentColor;
+  border-radius: 5px;
+  box-shadow: inset 0 5px 0 rgba(255, 255, 255, 0.18);
+}
+
+.calendar-floating-glyph::before,
+.calendar-floating-glyph::after {
+  content: "";
+  position: absolute;
+}
+
+.calendar-floating-glyph::before {
+  left: 3px;
+  right: 3px;
+  top: 6px;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.calendar-floating-glyph::after {
+  left: 4px;
+  bottom: 3px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow:
+    6px 0 0 currentColor,
+    12px 0 0 currentColor;
+}
+
+.calendar-panel-close {
   display: none;
 }
 
@@ -3103,10 +3145,10 @@ button.secondary {
   }
 
   .shell.guide-step-2 .guide-callout {
-    right: 22px;
-    left: auto;
+    left: calc(var(--desktop-sidebar-width) + 26px);
+    right: auto;
     top: auto;
-    bottom: 78px;
+    bottom: calc(var(--sheet-current-height) + 72px);
   }
 
   .shell.guide-step-3 .guide-callout,
@@ -3147,23 +3189,63 @@ button.secondary {
   }
 
   body.calendars-visible .shell {
-    gap: 14px;
+    gap: 0;
   }
 
   .calendar-planner {
-    position: relative;
-    width: 100%;
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 34;
+    width: min(390px, calc(100vw - 42px));
+    height: 100dvh;
     max-height: none;
-    order: 2;
-    scroll-margin-top: 10px;
+    border-radius: 24px 0 0 24px;
+    padding: max(16px, calc(env(safe-area-inset-top) + 12px)) 14px max(18px, env(safe-area-inset-bottom));
+    transform: translateX(calc(100% + 20px));
+    transition: transform 220ms ease, opacity 220ms ease;
+    opacity: 0;
+    pointer-events: none;
+    order: initial;
+    scroll-margin-top: 0;
+  }
+
+  body.calendar-panel-open .calendar-planner {
+    transform: translateX(0);
+    opacity: 0.98;
+    pointer-events: auto;
+  }
+
+  body.calendar-panel-open::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 33;
+    background: rgba(0, 0, 0, 0.44);
+    backdrop-filter: blur(3px);
   }
 
   .scroll-to-calendars {
     display: none;
+    right: 16px;
   }
 
-  body.calendars-visible:not(.calendar-planner-in-view) .scroll-to-calendars {
+  body.calendars-visible:not(.calendar-panel-open) .scroll-to-calendars {
     display: grid;
+  }
+
+  .scroll-to-scheduler {
+    display: none;
+  }
+
+  .calendar-panel-close {
+    position: static;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 25px;
+    line-height: 1;
   }
 
   .guide-callout {
@@ -3535,7 +3617,8 @@ button.secondary {
 
   .scroll-to-calendars {
     right: 16px;
-    bottom: 122px;
+    top: max(14px, calc(env(safe-area-inset-top) + 12px));
+    bottom: auto;
   }
 
   .search-bar {
@@ -3554,6 +3637,6 @@ button.secondary {
   }
 
   body.calendars-visible .shell.guide-step-4 .calendar-planner {
-    padding-top: 150px;
+    padding-top: max(16px, calc(env(safe-area-inset-top) + 12px));
   }
 }
