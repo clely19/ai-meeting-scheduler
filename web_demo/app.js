@@ -1414,10 +1414,9 @@ function getEarlierWindowExplanation(slot) {
 }
 
 function applyHostStyleToScheduler() {
-  const style = hostStyleSelect?.value || "early";
   const names = getParticipantNames();
 
-  extensionSubtitle.textContent = `Hi ${names.host} · ${style} style`;
+  extensionSubtitle.textContent = `Hi ${names.host}`;
 
   if (!calendarPlanner?.hidden) {
     renderCalendarPlanner();

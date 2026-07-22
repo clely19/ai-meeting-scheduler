@@ -35,7 +35,7 @@ struct MainSchedulingView: View {
                     Text("Meeting Scheduler")
                         .font(.headline)
                         .fontWeight(.bold)
-                    Text("Hi \(displayName) · \(schedulingStyle) style")
+                    Text("Hi \(displayName)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
