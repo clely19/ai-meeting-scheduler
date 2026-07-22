@@ -3142,6 +3142,10 @@ button.secondary {
     min-height: min(620px, calc(100dvh - 24px));
   }
 
+  .status-bar {
+    display: none;
+  }
+
   body.calendars-visible .shell {
     gap: 14px;
   }
