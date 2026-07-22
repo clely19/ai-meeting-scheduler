@@ -75,12 +75,30 @@ const guideCallout = document.querySelector("#guide-callout");
 const demoLoveWidget = document.querySelector("#demo-love-widget");
 const demoLoveLabel = document.querySelector("#demo-love-label");
 const demoLoveCount = document.querySelector("#demo-love-count");
+const demoCompleteLoveWidget = document.querySelector("#demo-complete-love-widget");
+const demoCompleteLoveLabel = document.querySelector("#demo-complete-love-label");
+const demoCompleteLoveCount = document.querySelector("#demo-complete-love-count");
 
 const geminiKeyStorageName = "meetingSchedulerGeminiKey";
 const schedulerStateStorageName = "meetingSchedulerDemoStateV6";
 const demoLoveDeviceStorageName = "meetingSchedulerDemoDeviceId";
 const demoLoveAcknowledgedStorageName = "meetingSchedulerDemoLovedV1";
 const maxScheduledMeetings = 3;
+
+const demoLoveControls = [
+  {
+    widget: demoLoveWidget,
+    label: demoLoveLabel,
+    count: demoLoveCount,
+    placement: "primary"
+  },
+  {
+    widget: demoCompleteLoveWidget,
+    label: demoCompleteLoveLabel,
+    count: demoCompleteLoveCount,
+    placement: "complete"
+  }
+];
 
 function readStoredValue(storageName, key, fallback = null) {
   try {
@@ -132,6 +150,7 @@ let pendingOffscreenMeeting = null;
 let calendarRevealTimer = 0;
 let participantSetupComplete = false;
 let demoCompleteTimer;
+let demoCompleteLovePinned = false;
 const timeWheelScrollTimers = new WeakMap();
 
 const sheetExpandedOffset = 0;
@@ -402,6 +421,7 @@ function showDemoCompleteOverlay() {
     demoCompleteCopy.textContent = `All three meetings are on the calendars for ${getParticipantNameList()}.`;
   }
   demoCompleteOverlay.hidden = false;
+  syncDemoLoveWidget();
   returnInitialDemoButton?.focus();
 }
 
@@ -410,6 +430,7 @@ function hideDemoCompleteOverlay() {
   if (demoCompleteOverlay) {
     demoCompleteOverlay.hidden = true;
   }
+  syncDemoLoveWidget();
 }
 
 function scheduleDemoCompleteOverlay(delay = 5000) {
@@ -2855,65 +2876,74 @@ function formatDemoLoveCount(count) {
 }
 
 function setDemoLoveState({ count, loved } = {}) {
-  if (!demoLoveWidget) {
-    return;
-  }
-
   const hasLoved = loved ?? readStoredValue(
     "localStorage",
     demoLoveAcknowledgedStorageName,
     "false"
   ) === "true";
-  demoLoveWidget.setAttribute("aria-pressed", String(hasLoved));
-  if (demoLoveLabel) {
-    demoLoveLabel.textContent = hasLoved ? "Thanks for the love" : "Show some love";
-  }
-  if (demoLoveCount) {
-    demoLoveCount.textContent = formatDemoLoveCount(count);
-  }
+  demoLoveControls.forEach(({ widget, label, count: countNode, placement }) => {
+    if (!widget) {
+      return;
+    }
+
+    const isCompletePrompt = placement === "complete";
+    widget.hidden = isCompletePrompt
+      ? demoCompleteOverlay?.hidden || (hasLoved && !demoCompleteLovePinned)
+      : false;
+    widget.setAttribute("aria-pressed", String(hasLoved));
+    if (label) {
+      label.textContent = hasLoved ? "Thanks for the love" : "Show some love";
+    }
+    if (countNode) {
+      countNode.textContent = formatDemoLoveCount(count);
+    }
+  });
 }
 
 async function refreshDemoLoveCount() {
-  if (!demoLoveWidget || demoLoveWidget.hidden) {
+  if (!demoLoveControls.some(({ widget }) => widget && !widget.hidden)) {
     return;
   }
 
   try {
-    const response = await api("/demo/love");
+    const deviceId = encodeURIComponent(getDemoLoveDeviceId());
+    const response = await api(`/demo/love?device_id=${deviceId}`);
     setDemoLoveState({
       count: response.count,
-      loved: readStoredValue(
+      loved: response.loved || readStoredValue(
         "localStorage",
         demoLoveAcknowledgedStorageName,
         "false"
       ) === "true"
     });
-  } catch {
-    if (demoLoveCount) {
-      demoLoveCount.textContent = "0";
+    if (response.loved) {
+      writeStoredValue("localStorage", demoLoveAcknowledgedStorageName, "true");
     }
+  } catch {
+    setDemoLoveState();
   }
 }
 
 function syncDemoLoveWidget() {
-  if (!demoLoveWidget) {
-    return;
-  }
-
-  const shouldShow = scheduledMeetings.length > 0;
-  demoLoveWidget.hidden = !shouldShow;
-  if (shouldShow) {
-    setDemoLoveState();
-    refreshDemoLoveCount();
-  }
+  setDemoLoveState();
+  refreshDemoLoveCount();
 }
 
-async function registerDemoLove() {
-  if (!demoLoveWidget || demoLoveWidget.hidden) {
+async function registerDemoLove(event) {
+  const activeWidget = event?.currentTarget || demoLoveWidget;
+  if (!activeWidget || activeWidget.hidden) {
     return;
   }
 
-  demoLoveWidget.disabled = true;
+  if (activeWidget === demoCompleteLoveWidget) {
+    demoCompleteLovePinned = true;
+  }
+
+  demoLoveControls.forEach(({ widget }) => {
+    if (widget) {
+      widget.disabled = true;
+    }
+  });
   try {
     const response = await api("/demo/love", {
       method: "POST",
@@ -2927,11 +2957,13 @@ async function registerDemoLove() {
       loved: true
     });
   } catch {
-    if (demoLoveCount) {
-      demoLoveCount.textContent = "Try again in a moment";
-    }
+    setDemoLoveState();
   } finally {
-    demoLoveWidget.disabled = false;
+    demoLoveControls.forEach(({ widget }) => {
+      if (widget) {
+        widget.disabled = false;
+      }
+    });
   }
 }
 
@@ -3346,7 +3378,9 @@ resetCalendarsButton?.addEventListener("click", () => {
   resetCalendarBusyCells();
   renderCalendarPlanner();
 });
-demoLoveWidget?.addEventListener("click", registerDemoLove);
+demoLoveControls.forEach(({ widget }) => {
+  widget?.addEventListener("click", registerDemoLove);
+});
 [
   scheduleStartDateInput,
   scheduleStartTimeInput,
@@ -3474,6 +3508,7 @@ initializeScheduleWindowControls();
 initializeTimeWheels();
 initializeDatePickers();
 loadSchedulerState();
+syncDemoLoveWidget();
 resetCalendarBusyCells();
 setModePresentation(false);
 applyHostStyleToScheduler();

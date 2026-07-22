@@ -210,6 +210,18 @@ class DemoMetricsTests(unittest.TestCase):
         self.assertEqual(response["count"], 1)
         self.assertEqual(response["storage"], "temporary_demo")
 
+    @patch("api.demo_metrics.get_db", side_effect=ValueError("no db"))
+    def test_demo_love_count_lookup_does_not_count_new_device(self, _get_db):
+        register_demo_love(DemoLoveRequest(device_id="device-a"))
+
+        existing = get_demo_love_count(device_id="device-a")
+        new_device = get_demo_love_count(device_id="device-b")
+
+        self.assertEqual(existing["count"], 1)
+        self.assertTrue(existing["loved"])
+        self.assertEqual(new_device["count"], 1)
+        self.assertFalse(new_device["loved"])
+
 
 class AgentFallbackTests(unittest.TestCase):
     def tearDown(self):

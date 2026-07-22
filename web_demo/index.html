@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playwrite+TZ:wght@400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/demo/styles.css?v=20260721-love-widget">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260722-love-widget-2">
   </head>
   <body>
     <main class="shell">
@@ -78,8 +78,15 @@
               <span class="conversation-date">Post</span>
             </button>
           </section>
-          <div class="search-bar" aria-hidden="true">
-            <span>Search</span>
+          <div class="search-bar">
+            <button id="demo-love-widget" class="demo-love-widget" type="button" aria-pressed="false" hidden>
+              <span class="demo-love-heart" aria-hidden="true">
+                <span id="demo-love-count">0</span>
+              </span>
+              <span class="demo-love-copy">
+                <span id="demo-love-label">Show some love</span>
+              </span>
+            </button>
           </div>
         </section>
 
@@ -256,13 +263,6 @@
             <button id="reset-calendars" class="calendar-reset" type="button">Reset</button>
           </div>
         </header>
-        <button id="demo-love-widget" class="demo-love-widget" type="button" aria-pressed="false" hidden>
-          <span class="demo-love-heart" aria-hidden="true">♡</span>
-          <span class="demo-love-copy">
-            <span id="demo-love-label">Show some love</span>
-            <span id="demo-love-count">0</span>
-          </span>
-        </button>
         <div id="calendar-grid" class="calendar-grid"></div>
       </section>
 
@@ -321,7 +321,17 @@
 
       <section id="demo-complete-overlay" class="participant-setup-overlay" aria-label="Demo cycle complete" hidden>
         <div class="participant-setup-card demo-complete-card" role="dialog" aria-modal="true" aria-labelledby="demo-complete-title">
-          <p class="setup-kicker">Demo cycle complete</p>
+          <div class="demo-complete-heading">
+            <p class="setup-kicker">Demo cycle complete</p>
+            <button id="demo-complete-love-widget" class="demo-love-widget demo-complete-love-widget" type="button" aria-pressed="false" hidden>
+              <span class="demo-love-heart" aria-hidden="true">
+                <span id="demo-complete-love-count">0</span>
+              </span>
+              <span class="demo-love-copy">
+                <span id="demo-complete-love-label">Show some love</span>
+              </span>
+            </button>
+          </div>
           <h2 id="demo-complete-title">All three meetings are scheduled</h2>
           <p id="demo-complete-copy" class="setup-copy">All three meetings are on the calendars.</p>
           <div class="demo-complete-actions">
@@ -333,6 +343,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260721-love-widget"></script>
+    <script src="/demo/app.js?v=20260722-love-widget-2"></script>
   </body>
 </html>
