@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timezone
 from hashlib import sha256
+from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -9,6 +10,8 @@ from database import get_db
 
 router = APIRouter()
 LOCAL_LOVE_EVENTS: list[str] = []
+LOVE_EVENT_TABLE = "demo_love_events"
+LEGACY_LOVE_DEVICE_TABLE = "demo_love_devices"
 
 
 class DemoLoveRequest(BaseModel):
@@ -61,23 +64,83 @@ def _fallback_or_raise(
     return _local_response(device_hash, count_device=count_device)
 
 
-def _supabase_count(db) -> int:
-    response = db.table("demo_love_events").select("id", count="exact").execute()
+def _supabase_count(db, table_name: str, count_column: str) -> int:
+    response = db.table(table_name).select(count_column, count="exact").execute()
     return response.count if response.count is not None else len(response.data or [])
 
 
-def _supabase_has_device(db, device_hash: str | None) -> bool:
+def _supabase_has_device(db, table_name: str, device_hash: str | None) -> bool:
     if not device_hash:
         return False
 
     response = (
-        db.table("demo_love_events")
-        .select("id")
+        db.table(table_name)
+        .select("device_hash")
         .eq("device_hash", device_hash)
         .limit(1)
         .execute()
     )
-    return bool(response.data)
+    if response.data or table_name != LEGACY_LOVE_DEVICE_TABLE:
+        return bool(response.data)
+
+    legacy_event_response = (
+        db.table(table_name)
+        .select("device_hash")
+        .like("device_hash", f"{device_hash}:%")
+        .limit(1)
+        .execute()
+    )
+    return bool(legacy_event_response.data)
+
+
+def _supabase_insert_love_event(db, table_name: str, device_hash: str) -> None:
+    stored_device_hash = device_hash
+    if table_name == LEGACY_LOVE_DEVICE_TABLE:
+        stored_device_hash = f"{device_hash}:{uuid4().hex}"
+
+    db.table(table_name).insert(
+        {
+            "device_hash": stored_device_hash,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+    ).execute()
+
+
+def _get_supabase_love_state(db, device_hash: str | None) -> dict:
+    table_errors: list[Exception] = []
+    for table_name, count_column in (
+        (LOVE_EVENT_TABLE, "id"),
+        (LEGACY_LOVE_DEVICE_TABLE, "device_hash"),
+    ):
+        try:
+            return {
+                "count": _supabase_count(db, table_name, count_column),
+                "loved": _supabase_has_device(db, table_name, device_hash),
+                "storage": f"supabase:{table_name}",
+            }
+        except Exception as exc:
+            table_errors.append(exc)
+
+    raise table_errors[-1]
+
+
+def _register_supabase_love(db, device_hash: str) -> dict:
+    table_errors: list[Exception] = []
+    for table_name, count_column in (
+        (LOVE_EVENT_TABLE, "id"),
+        (LEGACY_LOVE_DEVICE_TABLE, "device_hash"),
+    ):
+        try:
+            _supabase_insert_love_event(db, table_name, device_hash)
+            return {
+                "count": _supabase_count(db, table_name, count_column),
+                "loved": True,
+                "storage": f"supabase:{table_name}",
+            }
+        except Exception as exc:
+            table_errors.append(exc)
+
+    raise table_errors[-1]
 
 
 @router.get("/demo/love")
@@ -85,11 +148,7 @@ def get_demo_love_count(device_id: str | None = None):
     device_hash = _hash_device_id(device_id) if device_id else None
     try:
         db = get_db()
-        return {
-            "count": _supabase_count(db),
-            "loved": _supabase_has_device(db, device_hash),
-            "storage": "supabase",
-        }
+        return _get_supabase_love_state(db, device_hash)
     except Exception as exc:
         return _fallback_or_raise(device_hash, exc=exc)
 
@@ -99,16 +158,6 @@ def register_demo_love(req: DemoLoveRequest):
     device_hash = _hash_device_id(req.device_id)
     try:
         db = get_db()
-        db.table("demo_love_events").insert(
-            {
-                "device_hash": device_hash,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-            }
-        ).execute()
-        return {
-            "count": _supabase_count(db),
-            "loved": True,
-            "storage": "supabase",
-        }
+        return _register_supabase_love(db, device_hash)
     except Exception as exc:
         return _fallback_or_raise(device_hash, count_device=True, exc=exc)

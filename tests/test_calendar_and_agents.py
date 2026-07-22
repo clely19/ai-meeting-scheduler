@@ -223,6 +223,88 @@ class DemoMetricsTests(unittest.TestCase):
         self.assertEqual(new_device["count"], 2)
         self.assertFalse(new_device["loved"])
 
+    @patch("api.demo_metrics.get_db")
+    def test_demo_love_uses_legacy_table_when_event_table_is_missing(self, get_db_mock):
+        from api import demo_metrics
+
+        class FakeResponse:
+            def __init__(self, data=None, count=None):
+                self.data = data or []
+                self.count = count
+
+        class FakeQuery:
+            def __init__(self, table):
+                self.table = table
+                self.filters = []
+
+            def select(self, *_args, **_kwargs):
+                return self
+
+            def eq(self, column, value):
+                self.filters.append(("eq", column, value))
+                return self
+
+            def like(self, column, value):
+                self.filters.append(("like", column, value))
+                return self
+
+            def limit(self, _value):
+                return self
+
+            def execute(self):
+                if self.table.name == demo_metrics.LOVE_EVENT_TABLE:
+                    raise ValueError("event table missing")
+
+                values = self.table.rows
+                for op, _column, value in self.filters:
+                    if op == "eq":
+                        values = [row for row in values if row == value]
+                    if op == "like":
+                        prefix = value.rstrip("%")
+                        values = [row for row in values if row.startswith(prefix)]
+
+                return FakeResponse(
+                    data=[{"device_hash": value} for value in values],
+                    count=len(values) if not self.filters else None,
+                )
+
+        class FakeTable:
+            def __init__(self, name, rows):
+                self.name = name
+                self.rows = rows
+
+            def select(self, *args, **kwargs):
+                return FakeQuery(self).select(*args, **kwargs)
+
+            def insert(self, row):
+                if self.name == demo_metrics.LOVE_EVENT_TABLE:
+                    raise ValueError("event table missing")
+                self.rows.append(row["device_hash"])
+                return self
+
+            def execute(self):
+                return FakeResponse()
+
+        class FakeDb:
+            def __init__(self):
+                self.rows = []
+
+            def table(self, name):
+                return FakeTable(name, self.rows)
+
+        fake_db = FakeDb()
+        get_db_mock.return_value = fake_db
+
+        first = register_demo_love(DemoLoveRequest(device_id="device-a"))
+        second = register_demo_love(DemoLoveRequest(device_id="device-a"))
+        lookup = get_demo_love_count(device_id="device-a")
+
+        self.assertEqual(first["count"], 1)
+        self.assertEqual(second["count"], 2)
+        self.assertEqual(lookup["count"], 2)
+        self.assertTrue(lookup["loved"])
+        self.assertEqual(lookup["storage"], "supabase:demo_love_devices")
+
     @patch.dict("os.environ", {"DEMO_LOVE_REQUIRE_PERSISTENCE": "true"})
     @patch("api.demo_metrics.get_db", side_effect=ValueError("no db"))
     def test_demo_love_requires_persistence_when_configured(self, _get_db):
