@@ -140,7 +140,7 @@ select {
 
 .shell.guide-step-2 .guide-callout {
   left: 16px;
-  bottom: calc(var(--sheet-current-height) + 72px);
+  bottom: calc(var(--sheet-current-height) + 84px);
   top: auto;
   right: auto;
 }
@@ -3148,7 +3148,7 @@ button.secondary {
     left: calc(var(--desktop-sidebar-width) + 26px);
     right: auto;
     top: auto;
-    bottom: calc(var(--sheet-current-height) + 72px);
+    bottom: calc(var(--sheet-current-height) + 84px);
   }
 
   .shell.guide-step-3 .guide-callout,

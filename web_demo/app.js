@@ -4,7 +4,7 @@ const shell = document.querySelector(".shell");
 const phone = document.querySelector(".phone");
 const thread = document.querySelector("#thread");
 const form = document.querySelector("#demo-form");
-const imessageInput = document.querySelector(".imessage-input");
+const extensionSheet = document.querySelector(".extension-sheet");
 const appDrawer = document.querySelector("#app-drawer");
 const openAppsButton = document.querySelector("#open-apps");
 const openSchedulerButton = document.querySelector("#open-scheduler");
@@ -87,6 +87,7 @@ const geminiKeyStorageName = "meetingSchedulerGeminiKey";
 const schedulerStateStorageName = "meetingSchedulerDemoStateV6";
 const demoLoveDeviceStorageName = "meetingSchedulerDemoDeviceId";
 const demoLoveAcknowledgedStorageName = "meetingSchedulerDemoLovedV1";
+const demoLoveCountStorageName = "meetingSchedulerDemoLoveCountV1";
 const maxScheduledMeetings = 3;
 const meetingDetailsErrorTitle = "Please recheck the meeting details";
 const meetingDetailsErrorCopy = "Please recheck the details entered in the Meeting Scheduler, then try again.";
@@ -124,6 +125,15 @@ function writeStoredValue(storageName, key, value) {
   }
 }
 
+function readStoredBoolean(storageName, key, fallback = false) {
+  return readStoredValue(storageName, key, String(fallback)) === "true";
+}
+
+function readStoredNumber(storageName, key, fallback = 0) {
+  const value = Number(readStoredValue(storageName, key, String(fallback)));
+  return Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
 function createDeviceId() {
   if (window.crypto?.randomUUID) {
     return window.crypto.randomUUID();
@@ -157,6 +167,10 @@ let calendarRevealTimer = 0;
 let participantSetupComplete = false;
 let demoCompleteTimer;
 let demoCompleteLovePinned = false;
+let demoLoveState = {
+  count: readStoredNumber("localStorage", demoLoveCountStorageName),
+  loved: readStoredBoolean("localStorage", demoLoveAcknowledgedStorageName)
+};
 const timeWheelScrollTimers = new WeakMap();
 
 const sheetExpandedOffset = 0;
@@ -658,13 +672,13 @@ function positionGuideCallout() {
   }
 
   const phoneRect = phone.getBoundingClientRect();
-  const inputRect = imessageInput?.getBoundingClientRect();
+  const sheetRect = extensionSheet?.getBoundingClientRect();
   const shellLeft = shellRect.left;
 
-  if (guideStepIndex === 2 && !form.hidden && inputRect?.width && inputRect?.height) {
+  if (guideStepIndex === 2 && !form.hidden && sheetRect?.width && sheetRect?.height) {
     const position = getClampedGuidePosition(
-      inputRect.left - shellLeft + 16,
-      inputRect.top - shellRect.top - calloutRect.height - 14,
+      sheetRect.left - shellLeft + 16,
+      sheetRect.top - shellRect.top - calloutRect.height - 16,
       shellRect,
       calloutRect
     );
@@ -3105,11 +3119,24 @@ function formatDemoLoveCount(count) {
 }
 
 function setDemoLoveState({ count, loved } = {}) {
-  const hasLoved = loved ?? readStoredValue(
-    "localStorage",
-    demoLoveAcknowledgedStorageName,
-    "false"
-  ) === "true";
+  if (Number.isFinite(Number(count)) && Number(count) >= 0) {
+    demoLoveState.count = Number(count);
+    writeStoredValue("localStorage", demoLoveCountStorageName, String(demoLoveState.count));
+  }
+
+  if (typeof loved === "boolean") {
+    demoLoveState.loved = loved || demoLoveState.loved;
+  } else {
+    demoLoveState.loved = demoLoveState.loved || readStoredBoolean(
+      "localStorage",
+      demoLoveAcknowledgedStorageName
+    );
+  }
+
+  if (demoLoveState.loved) {
+    writeStoredValue("localStorage", demoLoveAcknowledgedStorageName, "true");
+  }
+
   demoLoveControls.forEach(({ widget, label, count: countNode, placement }) => {
     if (!widget) {
       return;
@@ -3117,14 +3144,14 @@ function setDemoLoveState({ count, loved } = {}) {
 
     const isCompletePrompt = placement === "complete";
     widget.hidden = isCompletePrompt
-      ? demoCompleteOverlay?.hidden || (hasLoved && !demoCompleteLovePinned)
+      ? demoCompleteOverlay?.hidden || (demoLoveState.loved && !demoCompleteLovePinned)
       : false;
-    widget.setAttribute("aria-pressed", String(hasLoved));
+    widget.setAttribute("aria-pressed", String(demoLoveState.loved));
     if (label) {
-      label.textContent = hasLoved ? "Thanks for the love" : "Show some love";
+      label.textContent = demoLoveState.loved ? "Thanks for the love" : "Show some love";
     }
     if (countNode) {
-      countNode.textContent = formatDemoLoveCount(count);
+      countNode.textContent = formatDemoLoveCount(demoLoveState.count);
     }
   });
 }
@@ -3139,15 +3166,8 @@ async function refreshDemoLoveCount() {
     const response = await api(`/demo/love?device_id=${deviceId}`);
     setDemoLoveState({
       count: response.count,
-      loved: response.loved || readStoredValue(
-        "localStorage",
-        demoLoveAcknowledgedStorageName,
-        "false"
-      ) === "true"
+      loved: Boolean(response.loved)
     });
-    if (response.loved) {
-      writeStoredValue("localStorage", demoLoveAcknowledgedStorageName, "true");
-    }
   } catch {
     setDemoLoveState();
   }
@@ -3166,6 +3186,14 @@ async function registerDemoLove(event) {
 
   if (activeWidget === demoCompleteLoveWidget) {
     demoCompleteLovePinned = true;
+  }
+
+  if (demoLoveState.loved || readStoredBoolean("localStorage", demoLoveAcknowledgedStorageName)) {
+    setDemoLoveState({
+      loved: true
+    });
+    refreshDemoLoveCount();
+    return;
   }
 
   demoLoveControls.forEach(({ widget }) => {
@@ -3772,6 +3800,9 @@ participantSetupForm?.addEventListener("submit", (event) => {
   refreshEditableParticipantPresentation();
   saveSchedulerState();
   hideParticipantSetup();
+  window.clearTimeout(guideDelayTimer);
+  setGuideStep(0);
+  setGuideVisibility(true);
   openAppsButton.focus();
 });
 [
