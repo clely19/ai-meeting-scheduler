@@ -34,6 +34,8 @@ Set these in the Render service environment:
 
 The demo love counter requires Supabase-backed storage. Run `scripts/create_demo_love_devices.sql` in the Supabase SQL editor before deploying so the global love count persists across Render restarts and redeploys. The app prefers `public.demo_love_events` and can fall back to `public.demo_love_devices` for older deployments.
 
+If the Render logs show `503` for `/demo/love` and Supabase logs show `new row violates row-level security policy`, rerun `scripts/create_demo_love_devices.sql`. That script includes the read and insert policies needed when Render uses the Supabase anon key for this public demo counter.
+
 ## Deploy From Render Dashboard
 
 1. Push this repo to GitHub.

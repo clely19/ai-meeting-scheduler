@@ -36,6 +36,34 @@ begin
     select 1
     from pg_policies
     where schemaname = 'public'
+      and tablename = 'demo_love_events'
+      and policyname = 'Public demo can read love events'
+  ) then
+    create policy "Public demo can read love events"
+      on public.demo_love_events
+      for select
+      to anon
+      using (true);
+  end if;
+
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'demo_love_events'
+      and policyname = 'Public demo can add love events'
+  ) then
+    create policy "Public demo can add love events"
+      on public.demo_love_events
+      for insert
+      to anon
+      with check (true);
+  end if;
+
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
       and tablename = 'demo_love_devices'
       and policyname = 'Service role can manage demo love devices'
   ) then
@@ -44,5 +72,33 @@ begin
       for all
       using (auth.role() = 'service_role')
       with check (auth.role() = 'service_role');
+  end if;
+
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'demo_love_devices'
+      and policyname = 'Public demo can read love devices'
+  ) then
+    create policy "Public demo can read love devices"
+      on public.demo_love_devices
+      for select
+      to anon
+      using (true);
+  end if;
+
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'demo_love_devices'
+      and policyname = 'Public demo can add love devices'
+  ) then
+    create policy "Public demo can add love devices"
+      on public.demo_love_devices
+      for insert
+      to anon
+      with check (true);
   end if;
 end $$;
