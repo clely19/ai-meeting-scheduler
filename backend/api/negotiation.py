@@ -25,6 +25,8 @@ class NegotiationRequest(BaseModel):
     duration_minutes: int
     date_range_start: str
     date_range_end: str
+    working_hours_start: int = Field(default=9, ge=0, lt=24)
+    working_hours_end: int = Field(default=18, ge=0, le=24)
     use_ai: bool = False
     participant_busy_blocks: Dict[str, List[dict]] = Field(default_factory=dict)
 
@@ -79,7 +81,9 @@ def start_negotiation(
             date_range_end=request.date_range_end,
             enable_ai=request.use_ai,
             ai_api_key=x_user_gemini_key,
-            participant_busy_blocks=request.participant_busy_blocks
+            participant_busy_blocks=request.participant_busy_blocks,
+            working_hours_start=request.working_hours_start,
+            working_hours_end=request.working_hours_end
         )
 
         result = orchestrator.run_negotiation(

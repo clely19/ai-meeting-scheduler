@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playwrite+TZ:wght@400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/demo/styles.css?v=20260722-love-widget-2">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260722-host-meeting-bubbles">
   </head>
   <body>
     <main class="shell">
@@ -236,7 +236,7 @@
             </div>
 
           <div class="composer-actions">
-            <button id="run-demo" type="submit">Run Demo Mode</button>
+            <button id="run-demo" type="submit">Run</button>
           </div>
           </section>
         </form>
@@ -297,8 +297,7 @@
             <span class="welcome-title-rest">to the Meeting Scheduler</span>
           </div>
         </div>
-        <form id="participant-setup-form" class="participant-setup-card">
-          <p class="setup-kicker">Before the first demo meeting</p>
+        <form id="participant-setup-form" class="participant-setup-card participant-intro-card">
           <h2>People in this chat</h2>
           <p class="setup-copy">Rename the demo participants.</p>
           <div class="participant-name-grid">
@@ -322,7 +321,6 @@
       <section id="demo-complete-overlay" class="participant-setup-overlay" aria-label="Demo cycle complete" hidden>
         <div class="participant-setup-card demo-complete-card" role="dialog" aria-modal="true" aria-labelledby="demo-complete-title">
           <div class="demo-complete-heading">
-            <p class="setup-kicker">Demo cycle complete</p>
             <button id="demo-complete-love-widget" class="demo-love-widget demo-complete-love-widget" type="button" aria-pressed="false" hidden>
               <span class="demo-love-heart" aria-hidden="true">
                 <span id="demo-complete-love-count">0</span>
@@ -332,8 +330,8 @@
               </span>
             </button>
           </div>
-          <h2 id="demo-complete-title">All three meetings are scheduled</h2>
-          <p id="demo-complete-copy" class="setup-copy">All three meetings are on the calendars.</p>
+          <h2 id="demo-complete-title">All meetings are scheduled</h2>
+          <p id="demo-complete-copy" class="setup-copy">Meetings are on the calendars.</p>
           <div class="demo-complete-actions">
             <button id="return-initial-demo" type="button">Return to initial demo</button>
             <button id="review-completed-demo" class="secondary" type="button">Go back to review</button>
@@ -343,6 +341,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260722-love-widget-2"></script>
+    <script src="/demo/app.js?v=20260722-host-meeting-bubbles"></script>
   </body>
 </html>

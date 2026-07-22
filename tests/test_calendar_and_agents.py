@@ -222,6 +222,14 @@ class DemoMetricsTests(unittest.TestCase):
         self.assertEqual(new_device["count"], 1)
         self.assertFalse(new_device["loved"])
 
+    @patch.dict("os.environ", {"DEMO_LOVE_REQUIRE_PERSISTENCE": "true"})
+    @patch("api.demo_metrics.get_db", side_effect=ValueError("no db"))
+    def test_demo_love_requires_persistence_when_configured(self, _get_db):
+        with self.assertRaises(Exception) as context:
+            get_demo_love_count()
+
+        self.assertEqual(context.exception.status_code, 503)
+
 
 class AgentFallbackTests(unittest.TestCase):
     def tearDown(self):
@@ -430,6 +438,31 @@ class AgentFallbackTests(unittest.TestCase):
             next_slot["start"],
             "2026-07-01T11:00:00",
         )
+
+    def test_orchestrator_can_generate_late_night_slots(self):
+        session_id = "session-late-night"
+        orchestrator = NegotiationOrchestrator(
+            session_id=session_id,
+            meeting_title="Late planning",
+            duration_minutes=60,
+            date_range_start="2026-06-30T22:00:00",
+            date_range_end="2026-06-30T23:00:00",
+            participant_busy_blocks={
+                "host": [],
+                "maya": [],
+                "jordan": [],
+            },
+            working_hours_start=22,
+            working_hours_end=23,
+        )
+
+        host_slots = orchestrator._setup_agent_availability("host")
+        maya_slots = orchestrator._setup_agent_availability("maya")
+        jordan_slots = orchestrator._setup_agent_availability("jordan")
+
+        self.assertEqual(host_slots[0]["start"], "2026-06-30T22:00:00")
+        self.assertEqual(maya_slots[0]["start"], "2026-06-30T22:00:00")
+        self.assertEqual(jordan_slots[0]["end"], "2026-06-30T23:00:00")
 
     def test_next_common_available_slot_returns_none_when_none_fit(self):
         session_id = "session-no-common"

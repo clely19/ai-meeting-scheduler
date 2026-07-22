@@ -1,7 +1,8 @@
+import os
 from datetime import datetime, timezone
 from hashlib import sha256
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from database import get_db
@@ -28,6 +29,36 @@ def _local_response(device_hash: str | None = None, *, count_device: bool = Fals
         "loved": bool(device_hash and device_hash in LOCAL_LOVE_DEVICES),
         "storage": "temporary_demo",
     }
+
+
+def _requires_persistent_storage() -> bool:
+    explicit = os.environ.get("DEMO_LOVE_REQUIRE_PERSISTENCE", "").strip().lower()
+    if explicit in {"1", "true", "yes"}:
+        return True
+
+    return any(
+        os.environ.get(name)
+        for name in ("RENDER", "RENDER_SERVICE_ID", "RENDER_EXTERNAL_URL")
+    )
+
+
+def _fallback_or_raise(
+    device_hash: str | None = None,
+    *,
+    count_device: bool = False,
+    exc: Exception | None = None,
+) -> dict:
+    if _requires_persistent_storage():
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Persistent demo love storage is not configured. "
+                "Set SUPABASE_URL and SUPABASE_KEY, then create "
+                "the demo_love_devices table."
+            ),
+        ) from exc
+
+    return _local_response(device_hash, count_device=count_device)
 
 
 def _supabase_count(db) -> int:
@@ -59,8 +90,8 @@ def get_demo_love_count(device_id: str | None = None):
             "loved": _supabase_has_device(db, device_hash),
             "storage": "supabase",
         }
-    except Exception:
-        return _local_response(device_hash)
+    except Exception as exc:
+        return _fallback_or_raise(device_hash, exc=exc)
 
 
 @router.post("/demo/love")
@@ -80,5 +111,5 @@ def register_demo_love(req: DemoLoveRequest):
             "loved": True,
             "storage": "supabase",
         }
-    except Exception:
-        return _local_response(device_hash, count_device=True)
+    except Exception as exc:
+        return _fallback_or_raise(device_hash, count_device=True, exc=exc)

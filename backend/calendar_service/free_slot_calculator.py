@@ -109,10 +109,14 @@ def get_free_slots(
     if duration_minutes <= 0:
         raise ValueError("duration_minutes must be greater than 0")
 
-    if not 0 <= working_hours_start < working_hours_end <= 24:
+    if (
+        not 0 <= working_hours_start < 24 or
+        not 0 <= working_hours_end <= 24 or
+        working_hours_start == working_hours_end
+    ):
         raise ValueError(
             "working hours must satisfy "
-            "0 <= start < end <= 24"
+            "0 <= start < 24, 0 <= end <= 24, and start != end"
         )
 
     if slot_increment_minutes is None:
@@ -162,10 +166,9 @@ def get_free_slots(
             current_date,
             working_hours_start
         )
-        day_end = _build_day_boundary(
-            current_date,
-            working_hours_end
-        )
+        day_end = _build_day_boundary(current_date, working_hours_end)
+        if working_hours_end <= working_hours_start:
+            day_end += timedelta(days=1)
 
         window_start = max(day_start, start_date)
         window_end = min(day_end, end_date)

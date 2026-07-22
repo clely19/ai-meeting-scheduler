@@ -32,6 +32,8 @@ Set these in the Render service environment:
 
 `GEMINI_API_KEY` is optional for deterministic fallback demos, but set it if you want live AI-backed agent responses.
 
+The demo love counter also requires the `public.demo_love_devices` table in Supabase. Run `scripts/create_demo_love_devices.sql` in the Supabase SQL editor before deploying so unique-device counts persist across Render restarts and redeploys.
+
 ## Deploy From Render Dashboard
 
 1. Push this repo to GitHub.

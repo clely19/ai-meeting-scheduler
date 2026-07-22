@@ -59,6 +59,22 @@ class FreeSlotCalculatorExtensiveTests(unittest.TestCase):
             ],
         )
 
+    def test_working_hours_can_cross_midnight(self):
+        slots = get_free_slots(
+            busy_blocks=[],
+            date_range_start="2026-03-02T23:30:00",
+            date_range_end="2026-03-03T00:30:00",
+            duration_minutes=60,
+            working_hours_start=23,
+            working_hours_end=1,
+        )
+
+        self.assertEqual(
+            [slot["start"] for slot in slots],
+            ["2026-03-02T23:30:00"],
+        )
+        self.assertEqual(slots[0]["end"], "2026-03-03T00:30:00")
+
     def test_date_range_clamps_start_and_end_inside_working_day(self):
         slots = get_free_slots(
             busy_blocks=[],
@@ -217,7 +233,7 @@ class FreeSlotCalculatorExtensiveTests(unittest.TestCase):
                 date_range_end="2026-03-02T12:00:00",
                 duration_minutes=60,
                 working_hours_start=18,
-                working_hours_end=9,
+                working_hours_end=18,
             )
 
     def test_rejects_invalid_slot_increment(self):

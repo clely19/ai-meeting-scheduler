@@ -84,6 +84,8 @@ const schedulerStateStorageName = "meetingSchedulerDemoStateV6";
 const demoLoveDeviceStorageName = "meetingSchedulerDemoDeviceId";
 const demoLoveAcknowledgedStorageName = "meetingSchedulerDemoLovedV1";
 const maxScheduledMeetings = 3;
+const meetingDetailsErrorTitle = "Please recheck the meeting details";
+const meetingDetailsErrorCopy = "Please recheck the details entered in the Meeting Scheduler, then try again.";
 
 const demoLoveControls = [
   {
@@ -155,13 +157,14 @@ const timeWheelScrollTimers = new WeakMap();
 
 const sheetExpandedOffset = 0;
 const sheetCollapsedOffset = 90;
+const sheetReviewOffset = 168;
 const sheetCloseOffset = 270;
 const demoWindowDays = 7;
 const timeWheelIncrementMinutes = 15;
 const datePickerMonths = new Map();
 const balancedStyleBufferMinutes = 30;
 const fallbackSearchDays = 42;
-const calendarHours = [9, 10, 11, 12, 13, 14, 15, 16, 17];
+const calendarHours = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
 const calendarParticipants = [
   {
     key: "host",
@@ -217,7 +220,7 @@ const guideSteps = [
   {
     title: "Review meeting details",
     copy: "Adjust details, then run.",
-    action: "Run Demo Mode"
+    action: "Run"
   },
   {
     title: "Live negotiation running",
@@ -225,8 +228,8 @@ const guideSteps = [
     action: "Running..."
   },
   {
-    title: "Demo complete",
-    copy: "Review the scheduled meeting.",
+    title: "Meeting added",
+    copy: "Review it in External calendars.",
     action: "Start over"
   }
 ];
@@ -418,7 +421,7 @@ function showDemoCompleteOverlay() {
   }
 
   if (demoCompleteCopy) {
-    demoCompleteCopy.textContent = `All three meetings are on the calendars for ${getParticipantNameList()}.`;
+    demoCompleteCopy.textContent = `Meetings are on the calendars for ${getParticipantNameList()}.`;
   }
   demoCompleteOverlay.hidden = false;
   syncDemoLoveWidget();
@@ -564,7 +567,9 @@ function setGuideStep(index) {
   shell?.classList.add(`guide-step-${guideStepIndex}`);
   phone.classList.remove(...guideSteps.map((_, stepIndex) => `guide-step-${stepIndex}`));
   phone.classList.add(`guide-step-${guideStepIndex}`);
-  guideStepCount.textContent = `Step ${guideStepIndex + 1} of ${guideSteps.length}`;
+  guideStepCount.textContent = guideStepIndex === 4
+    ? `Step 4 of ${guideSteps.length}`
+    : `Step ${guideStepIndex + 1} of ${guideSteps.length}`;
   guidePanelCount.textContent = guideStepCount.textContent;
   guideTitle.textContent = step.title;
   guideCopy.textContent = step.copy;
@@ -586,8 +591,13 @@ function getGuideTarget() {
   if (guideStepIndex === 2) {
     return runButton;
   }
-  if (guideStepIndex === 3 || guideStepIndex === 4) {
+  if (guideStepIndex === 3) {
     return thread;
+  }
+  if (guideStepIndex === 4) {
+    return calendarPlanner && !calendarPlanner.hidden
+      ? calendarPlanner
+      : thread;
   }
   return null;
 }
@@ -658,6 +668,17 @@ function positionGuideCallout() {
     return;
   }
 
+  if (guideStepIndex === 4 && calendarPlanner && !calendarPlanner.hidden) {
+    const position = getClampedGuidePosition(
+      targetRect.left - shellLeft + 18,
+      targetRect.top - shellRect.top + 14,
+      shellRect,
+      calloutRect
+    );
+    setGuideCalloutPosition(position.left, position.top);
+    return;
+  }
+
   if (guideStepIndex === 3 || guideStepIndex === 4) {
     const position = getClampedGuidePosition(
       phoneRect.right - shellLeft - calloutRect.width - 28,
@@ -687,7 +708,7 @@ function setModePresentation(useAi) {
   resultModeLabel.textContent = modeName;
   demoModeCard?.classList.toggle("active", !useAi);
   aiModeCard?.classList.toggle("active", useAi);
-  runButton.textContent = "Run Demo Mode";
+  runButton.textContent = "Run";
 }
 
 function formatLocalDateTime(date) {
@@ -1119,6 +1140,14 @@ function getSelectedDateRange() {
     throw new Error("Choose a valid scheduling date and time window.");
   }
 
+  if (
+    end <= start &&
+    scheduleStartDateInput.value &&
+    scheduleStartDateInput.value === scheduleEndDateInput.value
+  ) {
+    end.setDate(end.getDate() + 1);
+  }
+
   if (end <= start) {
     throw new Error("The schedule end must be after the schedule start.");
   }
@@ -1126,6 +1155,22 @@ function getSelectedDateRange() {
   return {
     start: formatLocalDateTime(start),
     end: formatLocalDateTime(end)
+  };
+}
+
+function getSelectedWorkingHours() {
+  const startMinutes = timeInputValueToMinutes(scheduleStartTimeInput?.value);
+  let endMinutes = timeInputValueToMinutes(scheduleEndTimeInput?.value);
+  if (endMinutes <= startMinutes) {
+    endMinutes += 24 * 60;
+  }
+  const rawEndHour = Math.ceil(endMinutes / 60);
+
+  return {
+    start: Math.floor(startMinutes / 60),
+    end: rawEndHour > 24
+      ? rawEndHour % 24
+      : rawEndHour
   };
 }
 
@@ -1638,8 +1683,11 @@ function renderScheduledMeetingOverlays(weekGrid, days) {
 
     const startHourValue = meetingStart.getHours() +
       meetingStart.getMinutes() / 60;
-    const endHourValue = meetingEnd.getHours() +
+    let endHourValue = meetingEnd.getHours() +
       meetingEnd.getMinutes() / 60;
+    if (meetingEnd > meetingStart && endHourValue <= startHourValue) {
+      endHourValue += 24;
+    }
     const visibleStart = Math.max(startHourValue, firstHour);
     const visibleEnd = Math.min(endHourValue, lastHour);
     if (visibleEnd <= visibleStart) {
@@ -1655,6 +1703,7 @@ function renderScheduledMeetingOverlays(weekGrid, days) {
 
     const overlay = document.createElement("div");
     overlay.className = "scheduled-meeting-block";
+    overlay.dataset.meetingNumber = String(meeting.number);
     if (dayIndex >= 4) {
       overlay.classList.add("popover-left");
     }
@@ -1664,9 +1713,6 @@ function renderScheduledMeetingOverlays(weekGrid, days) {
     const label = document.createElement("span");
     label.className = "scheduled-meeting-label";
     label.textContent = meeting.title || `Meeting ${meeting.number}`;
-    const time = document.createElement("span");
-    time.className = "scheduled-meeting-time";
-    time.textContent = `${formatShortTime(meetingStart)}-${formatShortTime(meetingEnd)}`;
     const popover = document.createElement("span");
     popover.className = "scheduled-meeting-popover";
     const popoverKicker = document.createElement("span");
@@ -1676,17 +1722,15 @@ function renderScheduledMeetingOverlays(weekGrid, days) {
     popoverTitle.textContent = meeting.title || `Meeting ${meeting.number}`;
     const popoverSlot = document.createElement("span");
     popoverSlot.textContent = formatSlot(meeting);
-    const popoverLink = document.createElement("span");
+    const popoverLink = document.createElement("a");
     popoverLink.className = "popover-link";
+    popoverLink.href = meeting.link || "#";
+    popoverLink.target = "_blank";
+    popoverLink.rel = "noreferrer";
     popoverLink.textContent = meeting.link || "Meeting link pending";
     popover.append(popoverKicker, popoverTitle, popoverSlot);
-    if (meeting.styleReason) {
-      const popoverReason = document.createElement("span");
-      popoverReason.textContent = meeting.styleReason;
-      popover.append(popoverReason);
-    }
     popover.append(popoverLink);
-    overlay.append(icon, label, time, popover);
+    overlay.append(icon, label, popover);
     overlay.setAttribute(
       "aria-label",
       getMeetingDetailsText(meeting)
@@ -1793,7 +1837,11 @@ function renderCalendarPlanner() {
 
     renderScheduledMeetingOverlays(weekGrid, days);
 
-    calendar.append(heading, weekGrid);
+    const weekScroll = document.createElement("div");
+    weekScroll.className = "week-grid-scroll";
+    weekScroll.append(weekGrid);
+
+    calendar.append(heading, weekScroll);
     calendarGrid.append(calendar);
   });
 }
@@ -2003,7 +2051,7 @@ function updateRunButtonForMeetingLimit() {
   runButton.disabled = reachedLimit;
   runButton.textContent = reachedLimit
     ? "Demo Complete"
-    : "Run Demo Mode";
+    : "Run";
 }
 
 function returnToInitialDemo() {
@@ -2026,6 +2074,65 @@ function showCalendarPlanner() {
   document.body.classList.add("calendars-visible");
 }
 
+function scrollCalendarsToMeeting(meeting, behavior = "smooth") {
+  if (!meeting) {
+    return;
+  }
+
+  const meetingStart = new Date(meeting.start);
+  const meetingEnd = new Date(meeting.end);
+  if (
+    Number.isNaN(meetingStart.getTime()) ||
+    Number.isNaN(meetingEnd.getTime())
+  ) {
+    return;
+  }
+
+  const firstHour = calendarHours[0];
+  const lastHour = calendarHours[calendarHours.length - 1] + 1;
+  const startHourValue = meetingStart.getHours() + meetingStart.getMinutes() / 60;
+  let endHourValue = meetingEnd.getHours() + meetingEnd.getMinutes() / 60;
+  if (meetingEnd > meetingStart && endHourValue <= startHourValue) {
+    endHourValue += 24;
+  }
+  const visibleStart = Math.max(startHourValue, firstHour);
+  const visibleEnd = Math.min(endHourValue, lastHour);
+  const meetingMidpoint = (visibleStart + visibleEnd) / 2;
+  const visibleDayMidpoint = (firstHour + lastHour) / 2;
+
+  window.requestAnimationFrame(() => {
+    const scrollAreas = calendarGrid?.querySelectorAll(".week-grid-scroll") || [];
+    scrollAreas.forEach((scrollArea) => {
+      const weekGrid = scrollArea.querySelector(".week-grid");
+      if (!weekGrid) {
+        return;
+      }
+
+      const styles = window.getComputedStyle(weekGrid);
+      const headerHeight = parseFloat(styles.getPropertyValue("--calendar-header-height")) || 58;
+      const rowHeight = parseFloat(styles.getPropertyValue("--calendar-row-height")) || 34;
+      const scrollWindowRows = Math.max(
+        1,
+        (scrollArea.clientHeight - headerHeight) / rowHeight
+      );
+      const leadingRows = meetingMidpoint <= visibleDayMidpoint
+        ? 1
+        : Math.max(1.5, scrollWindowRows / 2);
+      const targetTop = Math.min(
+        scrollArea.scrollHeight - scrollArea.clientHeight,
+        Math.max(
+          0,
+          ((visibleStart - firstHour) * rowHeight) - (leadingRows * rowHeight)
+        )
+      );
+      scrollArea.scrollTo({
+        top: targetTop,
+        behavior
+      });
+    });
+  });
+}
+
 function revealCalendarsForMeeting(meeting) {
   if (!calendarPlanner || !meeting) {
     return;
@@ -2038,6 +2145,7 @@ function revealCalendarsForMeeting(meeting) {
   }
 
   showCalendarPlanner();
+  scrollCalendarsToMeeting(meeting, "auto");
   calendarPlanner.classList.remove("is-revealing");
   void calendarPlanner.offsetWidth;
   calendarPlanner.classList.add("is-revealing");
@@ -2052,6 +2160,7 @@ function revealCalendarsForMeeting(meeting) {
     calendarPlanner.classList.remove("is-revealing");
     if (calendarWeekHint?.textContent === `Meeting ${meeting.number} was added here.`) {
       renderCalendarPlanner();
+      scrollCalendarsToMeeting(meeting, "auto");
     }
   }, 3600);
 
@@ -2063,6 +2172,18 @@ function revealCalendarsForMeeting(meeting) {
       });
     }, 280);
   }
+}
+
+function refocusMeetingOnCalendars(meetingNumber, behavior = "smooth") {
+  const meeting = scheduledMeetings.find((item) => (
+    String(item.number) === String(meetingNumber)
+  ));
+  if (!meeting) {
+    return;
+  }
+
+  revealCalendarsForMeeting(meeting);
+  scrollCalendarsToMeeting(meeting, behavior);
 }
 
 function hideCalendarPlanner() {
@@ -2318,11 +2439,11 @@ function addFallbackProposalIfAvailable({
   });
 
   if (!fallbackSlot) {
-    resultStatus.textContent = "No fallback found";
-    slotOutput.textContent = "Try a shorter meeting or clear a busy block.";
+    resultStatus.textContent = meetingDetailsErrorTitle;
+    slotOutput.textContent = meetingDetailsErrorCopy;
     addAppCard(
-      "No shared fallback found",
-      "Try a shorter meeting or clear a busy block."
+      meetingDetailsErrorTitle,
+      meetingDetailsErrorCopy
     );
     return;
   }
@@ -2422,7 +2543,11 @@ function addMeetingResultCard(meeting, options = {}) {
   }
 
   const message = document.createElement("article");
-  message.className = "message card meeting-result";
+  message.className = "message user card meeting-result";
+  message.dataset.meetingNumber = String(meeting.number);
+  message.setAttribute("role", "button");
+  message.setAttribute("tabindex", "0");
+  message.setAttribute("aria-label", `Show scheduled meeting ${meeting.number} on the calendars`);
 
   const header = document.createElement("div");
   header.className = "card-title";
@@ -2440,10 +2565,6 @@ function addMeetingResultCard(meeting, options = {}) {
   const slot = document.createElement("p");
   slot.textContent = formatSlot(meeting);
 
-  const reason = document.createElement("p");
-  reason.className = "meeting-style-reason";
-  reason.textContent = meeting.styleReason || "Earliest shared slot.";
-
   const link = document.createElement("a");
   link.className = "meeting-link";
   link.href = meeting.link;
@@ -2451,7 +2572,7 @@ function addMeetingResultCard(meeting, options = {}) {
   link.rel = "noreferrer";
   link.textContent = `${meeting.platformLabel}: ${meeting.link}`;
 
-  message.append(header, title, slot, reason, link);
+  message.append(header, title, slot, link);
   thread.appendChild(message);
 
   if (options.persist !== false) {
@@ -2522,7 +2643,12 @@ function addRoundSummaryMessage(title, lines, options = {}) {
 
 function addLinkedInPreview(post) {
   const message = document.createElement("article");
-  message.className = "message card linkedin-preview linkedin-post-bubble";
+  message.className = [
+    "message",
+    "card",
+    "linkedin-preview",
+    "linkedin-post-bubble"
+  ].filter(Boolean).join(" ");
   const media = post.image
     ? `<img class="linkedin-post-media" src="${post.image}" alt="${post.imageAlt}">`
     : `<span class="linkedin-post-media linkedin-post-placeholder" aria-label="${post.imageAlt}">
@@ -2600,6 +2726,11 @@ function showChat() {
 }
 
 function showLinkedInPostChat(post) {
+  linkedinPostButtons.forEach((button) => {
+    const isSelected = button.dataset.postId && linkedInPosts[button.dataset.postId] === post;
+    button.classList.toggle("is-selected", isSelected);
+    button.setAttribute("aria-pressed", String(isSelected));
+  });
   currentChatMode = "post";
   phone.classList.add("in-chat");
   phone.classList.add("post-chat");
@@ -2616,8 +2747,8 @@ function showLinkedInPostChat(post) {
   thread.innerHTML = "";
   addMessage("system", "LinkedIn", post.subtitle);
   addLinkedInContext(post);
-  addLinkedInPreview(post);
   addLinkedInCta(post);
+  addLinkedInPreview(post);
   hideParticipantSetup();
   syncDemoLoveWidget();
 }
@@ -2635,6 +2766,10 @@ function showMessagesList() {
   setModePresentation(false);
   setGuideStep(0);
   hideParticipantSetup();
+  linkedinPostButtons.forEach((button) => {
+    button.classList.remove("is-selected");
+    button.setAttribute("aria-pressed", "false");
+  });
   syncDemoLoveWidget();
 }
 
@@ -2675,7 +2810,7 @@ function showSchedulerSheet() {
   appDrawer.hidden = true;
   form.hidden = false;
   showCalendarPlanner();
-  updateSheetOffset(sheetCollapsedOffset);
+  updateSheetOffset(sheetExpandedOffset);
   phone.classList.add("sheet-open");
   scrollThreadToLatest();
   setGuideStep(2);
@@ -2806,7 +2941,6 @@ function getMeetingDetailsText(meeting) {
   return [
     meeting.title,
     formatSlot(meeting),
-    meeting.styleReason,
     meeting.platformLabel,
     meeting.link
   ].filter(Boolean).join("\n");
@@ -3085,7 +3219,7 @@ async function runSchedulingFlow({
     runAiDemoButton.disabled = true;
   }
   setGuideStep(3);
-  setGuideVisibility(true);
+  setGuideVisibility(false);
   resultStatus.textContent = useAi
     ? "Personalized AI running"
     : "Demo running";
@@ -3102,10 +3236,10 @@ async function runSchedulingFlow({
   try {
     demoDateRange = getSelectedDateRange();
   } catch (error) {
-    const message = error.message || "Choose a valid scheduling date and time window.";
-    resultStatus.textContent = "Error";
+    const message = error.message || meetingDetailsErrorCopy;
+    resultStatus.textContent = meetingDetailsErrorTitle;
     slotOutput.textContent = message;
-    addMessage("system", "Error", message);
+    addAppCard(meetingDetailsErrorTitle, message);
     runButton.disabled = false;
     if (runAiDemoButton) {
       runAiDemoButton.disabled = false;
@@ -3121,6 +3255,7 @@ async function runSchedulingFlow({
   const meetingPlatform = getMeetingPlatform();
   const participantNames = getParticipantNames();
   const [inviteeStyleOne, inviteeStyleTwo] = getInviteeStyles();
+  const workingHours = getSelectedWorkingHours();
 
   try {
     addAppCard(
@@ -3175,6 +3310,8 @@ async function runSchedulingFlow({
         duration_minutes: durationMinutes,
         date_range_start: demoDateRange.start,
         date_range_end: demoDateRange.end,
+        working_hours_start: workingHours.start,
+        working_hours_end: workingHours.end,
         participant_busy_blocks: participantBusyBlocks,
         use_ai: useAi
       })
@@ -3200,11 +3337,15 @@ async function runSchedulingFlow({
     if (scheduledMeeting) {
       addMeetingResultCard(scheduledMeeting);
       revealCalendarsForMeeting(scheduledMeeting);
+      if (!hasCompletedDemoCycle()) {
+        updateSheetOffset(sheetReviewOffset);
+        scrollThreadToLatest();
+      }
     } else {
       if (fallbackAttempt) {
         addAppCard(
-          "Fallback slot unavailable",
-          "Adjust the details and try again."
+          meetingDetailsErrorTitle,
+          meetingDetailsErrorCopy
         );
       } else {
         addFallbackProposalIfAvailable({
@@ -3229,10 +3370,10 @@ async function runSchedulingFlow({
       scheduleDemoCompleteOverlay(2000);
     }
   } catch (error) {
-    resultStatus.textContent = "Error";
-    const message = error.message || "The demo run could not complete.";
+    resultStatus.textContent = meetingDetailsErrorTitle;
+    const message = meetingDetailsErrorCopy;
     slotOutput.textContent = message;
-    addMessage("system", "Error", message);
+    addAppCard(meetingDetailsErrorTitle, message);
     setGuideStep(2);
   } finally {
     form.classList.remove("is-running");
@@ -3357,6 +3498,12 @@ calendarNextWeekButton?.addEventListener("click", () => {
   renderCalendarPlanner();
 });
 thread.addEventListener("click", (event) => {
+  const meetingResult = event.target.closest(".meeting-result");
+  if (meetingResult && !event.target.closest("a")) {
+    refocusMeetingOnCalendars(meetingResult.dataset.meetingNumber);
+    return;
+  }
+
   const resetButton = event.target.closest("[data-action='reset-scheduler-demo']");
   if (resetButton) {
     returnToInitialDemo();
@@ -3373,6 +3520,19 @@ thread.addEventListener("click", (event) => {
   if (declineButton) {
     declineFallbackProposal(declineButton.dataset.fallbackId);
   }
+});
+thread.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") {
+    return;
+  }
+
+  const meetingResult = event.target.closest(".meeting-result");
+  if (!meetingResult) {
+    return;
+  }
+
+  event.preventDefault();
+  refocusMeetingOnCalendars(meetingResult.dataset.meetingNumber);
 });
 resetCalendarsButton?.addEventListener("click", () => {
   resetCalendarBusyCells();

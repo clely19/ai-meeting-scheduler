@@ -29,7 +29,9 @@ class NegotiationOrchestrator:
         date_range_end: str,
         enable_ai: bool = False,
         ai_api_key: str | None = None,
-        participant_busy_blocks: Dict[str, List[Dict]] | None = None
+        participant_busy_blocks: Dict[str, List[Dict]] | None = None,
+        working_hours_start: int = 9,
+        working_hours_end: int = 18
     ):
         self.session_id = session_id
         self.meeting_title = meeting_title
@@ -39,6 +41,8 @@ class NegotiationOrchestrator:
         self.enable_ai = enable_ai
         self.ai_api_key = ai_api_key
         self.participant_busy_blocks = participant_busy_blocks or {}
+        self.working_hours_start = working_hours_start
+        self.working_hours_end = working_hours_end
         self.participant_user_ids = []
         self.negotiation_logs = {}
         self.current_round = 0
@@ -60,7 +64,9 @@ class NegotiationOrchestrator:
             busy_blocks=busy_blocks,
             date_range_start=self.date_range_start,
             date_range_end=self.date_range_end,
-            duration_minutes=self.duration_minutes
+            duration_minutes=self.duration_minutes,
+            working_hours_start=self.working_hours_start,
+            working_hours_end=self.working_hours_end
         )
         store_availability(
             user_id,
