@@ -1068,7 +1068,8 @@ function renderDatePickerPanel(input) {
     grid.append(button);
   });
 
-  previous.addEventListener("click", () => {
+  previous.addEventListener("click", (event) => {
+    event.stopPropagation();
     datePickerMonths.set(input.id, new Date(
       visibleMonth.getFullYear(),
       visibleMonth.getMonth() - 1,
@@ -1076,7 +1077,8 @@ function renderDatePickerPanel(input) {
     ));
     renderDatePickerPanel(input);
   });
-  next.addEventListener("click", () => {
+  next.addEventListener("click", (event) => {
+    event.stopPropagation();
     datePickerMonths.set(input.id, new Date(
       visibleMonth.getFullYear(),
       visibleMonth.getMonth() + 1,
@@ -3597,6 +3599,7 @@ timePickerButtons.forEach((button) => {
 });
 datePickerPanels.forEach((panel) => {
   panel.addEventListener("click", (event) => {
+    event.stopPropagation();
     const dayButton = event.target.closest("[data-date-value]");
     if (!dayButton) {
       return;
@@ -3617,6 +3620,11 @@ datePickerPanels.forEach((panel) => {
     input.dispatchEvent(new Event("change", {
       bubbles: true
     }));
+  });
+});
+timePickerPanels.forEach((panel) => {
+  panel.addEventListener("click", (event) => {
+    event.stopPropagation();
   });
 });
 document.addEventListener("click", (event) => {

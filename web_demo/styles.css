@@ -741,7 +741,7 @@ h1 {
   animation: running-pulse 1.1s ease-in-out infinite;
 }
 
-.meeting-result {
+.message.user.card.meeting-result {
   align-self: flex-end;
   display: grid;
   gap: 8px;
@@ -752,8 +752,8 @@ h1 {
   cursor: pointer;
 }
 
-.meeting-result:hover,
-.meeting-result:focus-visible {
+.message.user.card.meeting-result:hover,
+.message.user.card.meeting-result:focus-visible {
   outline: 2px solid rgba(100, 210, 255, 0.38);
   outline-offset: 2px;
 }
