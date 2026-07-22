@@ -1880,6 +1880,7 @@ input::placeholder {
 .welcome-title-rest {
   position: relative;
   top: 1px;
+  margin-left: -14px;
   color: rgba(245, 245, 247, 0.86);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   font-size: 20px;
@@ -2948,6 +2949,7 @@ button.secondary {
   }
 
   .welcome-title-rest {
+    margin-left: -12px;
     font-size: 15px;
   }
 
