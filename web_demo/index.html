@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playwrite+TZ:wght@400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/demo/styles.css?v=20260722-host-meeting-bubbles-2">
+    <link rel="stylesheet" href="/demo/styles.css?v=20260722-calendar-jump-2">
   </head>
   <body>
     <main class="shell">
@@ -249,6 +249,7 @@
         <p id="guide-copy">Tap the highlighted +.</p>
         <button id="guide-next" class="guide-next" type="button">Tap + in the phone</button>
       </aside>
+      <button id="scroll-to-calendars" class="scroll-to-calendars" type="button" aria-label="Scroll down to External calendars">↓</button>
 
       <section id="calendar-planner" class="calendar-planner" aria-label="Weekly calendar editor" hidden>
         <header class="calendar-planner-header">
@@ -263,6 +264,7 @@
             <button id="reset-calendars" class="calendar-reset" type="button">Reset</button>
           </div>
         </header>
+        <button id="scroll-to-scheduler" class="scroll-to-scheduler" type="button" aria-label="Scroll back to Meeting Scheduler">↑</button>
         <div id="calendar-grid" class="calendar-grid"></div>
       </section>
 
@@ -341,6 +343,6 @@
 
     </main>
 
-    <script src="/demo/app.js?v=20260722-host-meeting-bubbles-2"></script>
+    <script src="/demo/app.js?v=20260722-calendar-jump-2"></script>
   </body>
 </html>

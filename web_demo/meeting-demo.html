@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Demo Meeting Link</title>
+    <link rel="stylesheet" href="/demo/styles.css?v=20260722-calendar-jump-2">
+  </head>
+  <body class="meeting-demo-page">
+    <main class="meeting-demo-shell" aria-label="Demo meeting link">
+      <section class="meeting-demo-card">
+        <div class="meeting-demo-animation" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <p class="meeting-demo-kicker">Demo link</p>
+        <h1 id="meeting-demo-title">Meeting scheduled</h1>
+        <p id="meeting-demo-copy">This link is part of the Meeting Scheduler demo, so it does not open a real video call.</p>
+        <button id="return-to-scheduler-link" type="button">Return to Meeting Scheduler</button>
+      </section>
+    </main>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const title = params.get("title") || "Meeting scheduled";
+      const platform = params.get("platform") || "Meeting";
+      document.querySelector("#meeting-demo-title").textContent = title;
+      document.querySelector("#meeting-demo-copy").textContent =
+        `${platform} was created for the demo experience only.`;
+      document.querySelector("#return-to-scheduler-link").addEventListener("click", () => {
+        if (window.opener && !window.opener.closed) {
+          window.opener.focus();
+          window.close();
+          return;
+        }
+        window.location.href = "/demo/";
+      });
+    </script>
+  </body>
+</html>

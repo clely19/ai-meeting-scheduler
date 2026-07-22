@@ -15,6 +15,8 @@ const calendarWeekHint = document.querySelector("#calendar-week-hint");
 const calendarPrevWeekButton = document.querySelector("#calendar-prev-week");
 const calendarNextWeekButton = document.querySelector("#calendar-next-week");
 const resetCalendarsButton = document.querySelector("#reset-calendars");
+const scrollToSchedulerButton = document.querySelector("#scroll-to-scheduler");
+const scrollToCalendarsButton = document.querySelector("#scroll-to-calendars");
 const linkedinPostButtons = document.querySelectorAll(".linkedin-row");
 const filterMenuButton = document.querySelector("#filter-menu-button");
 const filterMenu = document.querySelector("#filter-menu");
@@ -1069,6 +1071,7 @@ function renderDatePickerPanel(input) {
   });
 
   previous.addEventListener("click", (event) => {
+    event.preventDefault();
     event.stopPropagation();
     datePickerMonths.set(input.id, new Date(
       visibleMonth.getFullYear(),
@@ -1078,6 +1081,7 @@ function renderDatePickerPanel(input) {
     renderDatePickerPanel(input);
   });
   next.addEventListener("click", (event) => {
+    event.preventDefault();
     event.stopPropagation();
     datePickerMonths.set(input.id, new Date(
       visibleMonth.getFullYear(),
@@ -2074,6 +2078,19 @@ function showCalendarPlanner() {
   renderCalendarPlanner();
   calendarPlanner.hidden = false;
   document.body.classList.add("calendars-visible");
+  syncCalendarJumpButtons();
+}
+
+function syncCalendarJumpButtons() {
+  if (!calendarPlanner || calendarPlanner.hidden) {
+    document.body.classList.remove("calendar-planner-in-view");
+    return;
+  }
+
+  const rect = calendarPlanner.getBoundingClientRect();
+  const isMobile = window.matchMedia("(max-width: 880px)").matches;
+  const topIsVisible = rect.top < window.innerHeight * 0.58 && rect.bottom > 120;
+  document.body.classList.toggle("calendar-planner-in-view", isMobile && topIsVisible);
 }
 
 function scrollCalendarsToMeeting(meeting, behavior = "smooth") {
@@ -2176,6 +2193,33 @@ function revealCalendarsForMeeting(meeting) {
   }
 }
 
+function scrollBackToScheduler() {
+  const target = form && !form.hidden
+    ? form
+    : phone;
+  target?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+  if (form && !form.hidden) {
+    window.setTimeout(() => {
+      positionGuideCallout();
+    }, 280);
+  }
+}
+
+function scrollDownToCalendars() {
+  if (!calendarPlanner || calendarPlanner.hidden) {
+    return;
+  }
+
+  calendarPlanner.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+  window.setTimeout(syncCalendarJumpButtons, 360);
+}
+
 function refocusMeetingOnCalendars(meetingNumber, behavior = "smooth") {
   const meeting = scheduledMeetings.find((item) => (
     String(item.number) === String(meetingNumber)
@@ -2195,6 +2239,7 @@ function hideCalendarPlanner() {
   }
   window.clearTimeout(calendarRevealTimer);
   document.body.classList.remove("calendars-visible");
+  document.body.classList.remove("calendar-planner-in-view");
 }
 
 function advanceGuide() {
@@ -2923,20 +2968,13 @@ function createMeetingLink(platformId, title, slot) {
     String(start.getHours()).padStart(2, "0"),
     String(start.getMinutes()).padStart(2, "0")
   ].join("-");
-
-  if (platformId === "zoom") {
-    return `https://zoom.us/j/${code}`;
-  }
-
-  if (platformId === "teams") {
-    return `https://teams.microsoft.com/l/meetup-join/${code}`;
-  }
-
-  if (platformId === "facetime") {
-    return `https://facetime.apple.com/join/${code}`;
-  }
-
-  return `https://meet.google.com/${code}`;
+  const platform = getMeetingPlatform();
+  const params = new URLSearchParams({
+    id: code,
+    platform: platform.label,
+    title: title || "Scheduled meeting"
+  });
+  return `/demo/meeting-demo.html?${params.toString()}`;
 }
 
 function getMeetingDetailsText(meeting) {
@@ -3499,6 +3537,8 @@ calendarNextWeekButton?.addEventListener("click", () => {
   calendarWeekOffset += 1;
   renderCalendarPlanner();
 });
+scrollToSchedulerButton?.addEventListener("click", scrollBackToScheduler);
+scrollToCalendarsButton?.addEventListener("click", scrollDownToCalendars);
 thread.addEventListener("click", (event) => {
   const meetingResult = event.target.closest(".meeting-result");
   if (meetingResult && !event.target.closest("a")) {
@@ -3562,7 +3602,8 @@ demoLoveControls.forEach(({ widget }) => {
   });
 });
 datePickerButtons.forEach((button) => {
-  button.addEventListener("click", () => {
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
     const input = document.querySelector(`#${button.dataset.datePicker}`);
     const panel = document.querySelector(`[data-date-panel="${button.dataset.datePicker}"]`);
     if (!input || !panel) {
@@ -3580,7 +3621,8 @@ datePickerButtons.forEach((button) => {
   });
 });
 timePickerButtons.forEach((button) => {
-  button.addEventListener("click", () => {
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
     const input = document.querySelector(`#${button.dataset.timePicker}`);
     const panel = document.querySelector(`[data-time-panel="${button.dataset.timePicker}"]`);
     if (!input || !panel) {
@@ -3598,6 +3640,13 @@ timePickerButtons.forEach((button) => {
   });
 });
 datePickerPanels.forEach((panel) => {
+  ["pointerdown", "touchstart"].forEach((eventName) => {
+    panel.addEventListener(eventName, (event) => {
+      event.stopPropagation();
+    }, {
+      passive: true
+    });
+  });
   panel.addEventListener("click", (event) => {
     event.stopPropagation();
     const dayButton = event.target.closest("[data-date-value]");
@@ -3623,6 +3672,13 @@ datePickerPanels.forEach((panel) => {
   });
 });
 timePickerPanels.forEach((panel) => {
+  ["pointerdown", "touchstart"].forEach((eventName) => {
+    panel.addEventListener(eventName, (event) => {
+      event.stopPropagation();
+    }, {
+      passive: true
+    });
+  });
   panel.addEventListener("click", (event) => {
     event.stopPropagation();
   });
@@ -3661,8 +3717,17 @@ closeSheetButton.addEventListener("pointercancel", finishSheetDrag);
 form.addEventListener("submit", runDemo);
 runAiDemoButton?.addEventListener("click", runPersonalizedAiDemo);
 guideNext.addEventListener("click", advanceGuide);
-window.addEventListener("resize", positionGuideCallout);
-window.addEventListener("orientationchange", positionGuideCallout);
+window.addEventListener("scroll", syncCalendarJumpButtons, {
+  passive: true
+});
+window.addEventListener("resize", () => {
+  positionGuideCallout();
+  syncCalendarJumpButtons();
+});
+window.addEventListener("orientationchange", () => {
+  positionGuideCallout();
+  syncCalendarJumpButtons();
+});
 returnInitialDemoButton?.addEventListener("click", returnToInitialDemo);
 reviewCompletedDemoButton?.addEventListener("click", () => {
   hideDemoCompleteOverlay();
