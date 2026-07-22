@@ -925,7 +925,8 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  max-width: min(158px, calc(100vw - 28px));
+  width: max-content;
+  max-width: min(188px, calc(100vw - 28px));
   min-height: 32px;
   border: 1px solid rgba(255, 104, 150, 0.34);
   border-radius: 999px;
@@ -1017,6 +1018,7 @@ h1 {
   display: inline-flex;
   align-items: baseline;
   min-width: 0;
+  flex: 0 0 auto;
   text-align: left;
 }
 
