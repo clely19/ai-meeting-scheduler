@@ -23,13 +23,13 @@ except ModuleNotFoundError:
 
 try:
     from api.demo_metrics import (
-        LOCAL_LOVE_DEVICES,
+        LOCAL_LOVE_EVENTS,
         DemoLoveRequest,
         get_demo_love_count,
         register_demo_love,
     )
 except ModuleNotFoundError:
-    LOCAL_LOVE_DEVICES = None
+    LOCAL_LOVE_EVENTS = None
     DemoLoveRequest = None
     get_demo_love_count = None
     register_demo_love = None
@@ -186,20 +186,20 @@ class CalendarApiTests(unittest.TestCase):
 )
 class DemoMetricsTests(unittest.TestCase):
     def setUp(self):
-        LOCAL_LOVE_DEVICES.clear()
+        LOCAL_LOVE_EVENTS.clear()
 
     def tearDown(self):
-        LOCAL_LOVE_DEVICES.clear()
+        LOCAL_LOVE_EVENTS.clear()
 
     @patch("api.demo_metrics.get_db", side_effect=ValueError("no db"))
-    def test_demo_love_counts_unique_devices_once(self, _get_db):
+    def test_demo_love_counts_every_click_globally(self, _get_db):
         first = register_demo_love(DemoLoveRequest(device_id="device-a"))
         duplicate = register_demo_love(DemoLoveRequest(device_id="device-a"))
         second = register_demo_love(DemoLoveRequest(device_id="device-b"))
 
         self.assertEqual(first["count"], 1)
-        self.assertEqual(duplicate["count"], 1)
-        self.assertEqual(second["count"], 2)
+        self.assertEqual(duplicate["count"], 2)
+        self.assertEqual(second["count"], 3)
 
     @patch("api.demo_metrics.get_db", side_effect=ValueError("no db"))
     def test_demo_love_count_endpoint_uses_local_fallback(self, _get_db):
@@ -211,15 +211,16 @@ class DemoMetricsTests(unittest.TestCase):
         self.assertEqual(response["storage"], "temporary_demo")
 
     @patch("api.demo_metrics.get_db", side_effect=ValueError("no db"))
-    def test_demo_love_count_lookup_does_not_count_new_device(self, _get_db):
+    def test_demo_love_count_lookup_reads_global_total_without_incrementing(self, _get_db):
+        register_demo_love(DemoLoveRequest(device_id="device-a"))
         register_demo_love(DemoLoveRequest(device_id="device-a"))
 
         existing = get_demo_love_count(device_id="device-a")
         new_device = get_demo_love_count(device_id="device-b")
 
-        self.assertEqual(existing["count"], 1)
+        self.assertEqual(existing["count"], 2)
         self.assertTrue(existing["loved"])
-        self.assertEqual(new_device["count"], 1)
+        self.assertEqual(new_device["count"], 2)
         self.assertFalse(new_device["loved"])
 
     @patch.dict("os.environ", {"DEMO_LOVE_REQUIRE_PERSISTENCE": "true"})

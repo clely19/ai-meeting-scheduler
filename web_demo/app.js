@@ -3188,14 +3188,6 @@ async function registerDemoLove(event) {
     demoCompleteLovePinned = true;
   }
 
-  if (demoLoveState.loved || readStoredBoolean("localStorage", demoLoveAcknowledgedStorageName)) {
-    setDemoLoveState({
-      loved: true
-    });
-    refreshDemoLoveCount();
-    return;
-  }
-
   demoLoveControls.forEach(({ widget }) => {
     if (widget) {
       widget.disabled = true;
